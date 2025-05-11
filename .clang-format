@@ -1,0 +1,6 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+IndentWidth: 4
+MaxEmptyLinesToKeep: 2
+SeparateDefinitionBlocks: Always
+ColumnLimit: 100

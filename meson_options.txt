@@ -1,0 +1,13 @@
+option(
+    'development',
+    type: 'boolean',
+    value: false,
+    description: 'Enable development mode, when this is set and the compiler is clang, enables additional flags',
+)
+
+option(
+    'enable-tests',
+    type: 'boolean',
+    value: true,
+    description: 'Enables building of tests'
+)
