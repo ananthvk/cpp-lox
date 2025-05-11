@@ -1,9 +1,12 @@
-#include <fmt/format.h>
-#include "lox.hpp"
+#include "chunk.hpp"
+#include "debug.hpp"
 #include "logger.hpp"
+#include <fmt/format.h>
 #include <iostream>
 
-int main() {
-    fmt::println("Hello world: Sum is {}", add(3, 8));
-    logger::info("Value = {}", 3);
+int main()
+{
+    Chunk chunk;
+    chunk.write_code(OpCode::RETURN);
+    disassemble_chunk(chunk, "program");
 }

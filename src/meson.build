@@ -1,4 +1,4 @@
-srcs = ['lox.cpp']
+srcs = ['lox.cpp', 'debug.cpp']
 
 liblox = static_library(
     'lox',
