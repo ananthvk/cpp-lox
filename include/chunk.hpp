@@ -1,8 +1,10 @@
 #pragma once
 #include <assert.h>
+#include <optional>
 #include <stddef.h>
 #include <stdexcept>
 #include <stdint.h>
+#include <string>
 #include <vector>
 
 #define OPCODES_LIST                                                                               \
@@ -48,52 +50,50 @@ struct Value
         int64_t i;
         double d;
     } data;
+
+    auto to_string() const -> std::string
+    {
+        switch (type)
+        {
+        case Value::NUMBER_DOUBLE:
+            return std::to_string(data.d);
+        case Value::NUMBER_INT:
+            return std::to_string(data.i);
+
+        case Value::BOOLEAN:
+            if (data.b)
+                return "true";
+            else
+                return "false";
+            break;
+        }
+    }
 };
 
-struct Chunk
+class Chunk
 {
+  private:
+    /*
+     * Marks the start of a line. Line `line_number` starts at the byte with offset `offset`
+     */
+    struct LineInfo
+    {
+        int offset;
+        int line_number;
+    };
+
     std::vector<uint8_t> code;
     std::vector<Value> value_array;
-    std::vector<int> lines;
+    std::vector<LineInfo> lines;
 
-    auto write_simple_op(OpCode op, int line) -> void
-    {
-        lines.push_back(line);
-        code.push_back(static_cast<uint8_t>(op));
-    }
+    auto add_line_number(int offset, int line) -> void;
 
-    auto write_byte(uint8_t byte, int line) -> void
-    {
-        lines.push_back(line);
-        code.push_back(byte);
-    }
+  public:
+    auto write_simple_op(OpCode op, int line) -> void;
 
-    auto write_load_constant(int index, int line) -> void
-    {
-        if (index < 0)
-        {
-            throw std::logic_error("Invalid index for write_load_constant. Underflow: < 0");
-        }
-        if (index <= 0xFF)
-        {
-            write_simple_op(OpCode::LOAD_CONSTANT, line);
-            write_byte(static_cast<uint8_t>(index), line);
-        }
-        else if (index <= 0xFFFFFF)
-        {
-            write_simple_op(OpCode::LOAD_CONSTANT_LONG, line);
-            /*
-             * All values are stored in little endian format
-             */
-            write_byte(static_cast<uint8_t>(index & 0xFF), line);
-            write_byte(static_cast<uint8_t>((index >> 8) & 0xFF), line);
-            write_byte(static_cast<uint8_t>((index >> 16) & 0xFF), line);
-        }
-        else
-        {
-            throw std::logic_error("Invalid index for write_load_constant. Overflow: > 0xFFFFFF");
-        }
-    }
+    auto write_byte(uint8_t byte, int line) -> void;
+
+    auto write_load_constant(int index, int line) -> void;
 
     template <typename T> std::enable_if_t<std::is_same_v<T, Value>, int> add_constant(T value)
     {
@@ -125,4 +125,19 @@ struct Chunk
         v.type = Value::NUMBER_DOUBLE;
         return add_constant(v);
     }
+
+    auto get_code() const -> const std::vector<uint8_t> & { return code; }
+
+    auto get_code() -> std::vector<uint8_t> & { return code; }
+
+    auto get_value(int index) const -> std::optional<Value>
+    {
+        if (index < 0 || index >= static_cast<int>(value_array.size()))
+        {
+            return std::nullopt;
+        }
+        return value_array[index];
+    }
+
+    auto get_line_number(int offset) const -> int;
 };
