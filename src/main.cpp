@@ -7,17 +7,12 @@
 int main()
 {
     Chunk chunk;
-    Value v;
-    v.data.d = 3.1415;
-    v.type = Value::NUMBER_DOUBLE;
-    chunk.add_constant(v);
-
-    v.data.b = true;
-    v.type = Value::BOOLEAN;
-    chunk.add_constant(v);
-    chunk.add_constant(v);
-    chunk.add_constant(v);
-    chunk.add_constant(v);
+    chunk.add_constant(3.1415);
+    chunk.add_constant(1234567);
+    chunk.add_constant(1);
+    chunk.add_constant(0);
+    chunk.add_constant(false);
+    chunk.add_constant(true);
 
     chunk.write_load_constant(0, 123);
     chunk.write_load_constant(1, 124);

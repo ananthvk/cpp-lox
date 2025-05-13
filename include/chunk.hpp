@@ -33,12 +33,14 @@ inline auto opcode_to_string(OpCode op) -> const char *
 
 struct Value
 {
-    enum ValueType
+    enum ValueType : uint8_t
     {
         BOOLEAN,
         NUMBER_DOUBLE,
         NUMBER_INT
     };
+
+    ValueType type;
 
     union Data
     {
@@ -46,8 +48,6 @@ struct Value
         int64_t i;
         double d;
     } data;
-
-    ValueType type;
 };
 
 struct Chunk
@@ -95,9 +95,34 @@ struct Chunk
         }
     }
 
-    auto add_constant(Value v) -> int
+    template <typename T> std::enable_if_t<std::is_same_v<T, Value>, int> add_constant(T value)
     {
-        value_array.push_back(v);
+        value_array.push_back(value);
         return value_array.size() - 1;
+    }
+
+    template <typename T> std::enable_if_t<std::is_same_v<T, bool>, int> add_constant(T value)
+    {
+        Value v;
+        v.data.b = value;
+        v.type = Value::BOOLEAN;
+        return add_constant(v);
+    }
+
+    template <typename T>
+    std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, int> add_constant(T value)
+    {
+        Value v;
+        v.data.i = value;
+        v.type = Value::NUMBER_INT;
+        return add_constant(v);
+    }
+
+    template <typename T> std::enable_if_t<std::is_same_v<T, double>, int> add_constant(T value)
+    {
+        Value v;
+        v.data.d = value;
+        v.type = Value::NUMBER_DOUBLE;
+        return add_constant(v);
     }
 };
