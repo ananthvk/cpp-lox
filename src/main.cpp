@@ -10,17 +10,24 @@ int main()
     Value v;
     v.data.d = 3.1415;
     v.type = Value::NUMBER_DOUBLE;
-    auto constant_index = chunk.add_constant(v);
+    chunk.add_constant(v);
 
     v.data.b = true;
     v.type = Value::BOOLEAN;
-    auto constant_index_2 = chunk.add_constant(v);
+    chunk.add_constant(v);
+    chunk.add_constant(v);
+    chunk.add_constant(v);
+    chunk.add_constant(v);
 
-    chunk.write_code(OpCode::LOAD_CONSTANT, 100);
-    chunk.write_code(static_cast<uint8_t>(constant_index), 100);
-    chunk.write_code(OpCode::LOAD_CONSTANT, 101);
-    chunk.write_code(static_cast<uint8_t>(constant_index_2), 101);
-    chunk.write_code(OpCode::RETURN, 101);
+    chunk.write_load_constant(0, 123);
+    chunk.write_load_constant(1, 124);
+    chunk.write_load_constant(2, 124);
+    chunk.write_load_constant(0, 124);
+    chunk.write_load_constant(5112, 125);
+    chunk.write_load_constant(256, 126);
+    chunk.write_load_constant(16000, 127);
+    chunk.write_load_constant(160000, 128);
+    chunk.write_simple_op(OpCode::RETURN, 101);
 
     disassemble_chunk(chunk, "program");
 }
