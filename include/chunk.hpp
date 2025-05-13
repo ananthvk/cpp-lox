@@ -1,74 +1,11 @@
 #pragma once
 #include <assert.h>
 #include <optional>
-#include <stddef.h>
 #include <stdexcept>
-#include <stdint.h>
-#include <string>
 #include <vector>
 
-#define OPCODES_LIST                                                                               \
-    X(RETURN)                                                                                      \
-    X(LOAD_CONSTANT)                                                                               \
-    X(LOAD_CONSTANT_LONG)
-
-enum class OpCode
-{
-#define X(name) name,
-    OPCODES_LIST
-#undef X
-};
-
-inline auto opcode_to_string(OpCode op) -> const char *
-{
-    switch (op)
-    {
-#define X(name)                                                                                    \
-    case OpCode::name:                                                                             \
-        return #name;
-        OPCODES_LIST
-#undef X
-    default:
-        return "OP_UNKNOWN";
-    }
-}
-
-struct Value
-{
-    enum ValueType : uint8_t
-    {
-        BOOLEAN,
-        NUMBER_DOUBLE,
-        NUMBER_INT
-    };
-
-    ValueType type;
-
-    union Data
-    {
-        bool b;
-        int64_t i;
-        double d;
-    } data;
-
-    auto to_string() const -> std::string
-    {
-        switch (type)
-        {
-        case Value::NUMBER_DOUBLE:
-            return std::to_string(data.d);
-        case Value::NUMBER_INT:
-            return std::to_string(data.i);
-
-        case Value::BOOLEAN:
-            if (data.b)
-                return "true";
-            else
-                return "false";
-            break;
-        }
-    }
-};
+#include "opcode.hpp"
+#include "value.hpp"
 
 class Chunk
 {
@@ -138,6 +75,8 @@ class Chunk
         }
         return value_array[index];
     }
+
+    auto get_value_unchecked(int index) const -> Value { return value_array[index]; }
 
     auto get_line_number(int offset) const -> int;
 };

@@ -1,30 +1,32 @@
-#include "chunk.hpp"
 #include "debug.hpp"
 #include "logger.hpp"
+#include "vm.hpp"
 #include <fmt/format.h>
 #include <iostream>
 
 int main()
 {
     Chunk chunk;
-    chunk.add_constant(3.1415);
-    chunk.add_constant(1234567);
-    chunk.add_constant(1);
-    chunk.add_constant(0);
-    chunk.add_constant(false);
-    chunk.add_constant(true);
+    for (int i = 0; i < 254; i++)
+    {
+        chunk.add_constant(i);
+    }
 
-    chunk.write_load_constant(0, 124);
-    chunk.write_load_constant(1, 124);
-    chunk.write_load_constant(2, 124);
-    chunk.write_load_constant(3, 124);
-    chunk.write_load_constant(4, 124);
-    chunk.write_load_constant(5, 124);
-    chunk.write_load_constant(5112, 125);
-    chunk.write_load_constant(256, 126);
-    chunk.write_load_constant(16000, 127);
-    chunk.write_load_constant(160000, 128);
-    chunk.write_simple_op(OpCode::RETURN, 129);
+    chunk.write_load_constant(chunk.add_constant(1.2), 1);
+    chunk.write_load_constant(chunk.add_constant(3.4), 1);
+    chunk.write_simple_op(OpCode::ADD, 1);
+
+    chunk.write_load_constant(chunk.add_constant(5.6), 2);
+    chunk.write_simple_op(OpCode::DIVIDE, 2);
+    chunk.write_simple_op(OpCode::NEGATE, 3);
+    chunk.write_simple_op(OpCode::RETURN, 3);
 
     disassemble_chunk(chunk, "program");
+    fmt::println("\n== Begin execution ===");
+
+    VMOpts opts;
+    opts.debug_trace_execution = true;
+    opts.debug_trace_value_stack = true;
+    VM vm(opts);
+    vm.run(&chunk);
 }

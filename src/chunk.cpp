@@ -71,5 +71,5 @@ auto Chunk::get_line_number(int offset) const -> int
             return lines[i].line_number;
         }
     }
-    return -1;
+    return lines.back().line_number;
 }

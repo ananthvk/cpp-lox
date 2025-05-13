@@ -1,6 +1,6 @@
-srcs = ['lox.cpp', 'debug.cpp', 'chunk.cpp']
+srcs = ['lox.cpp', 'debug.cpp', 'chunk.cpp', 'vm.cpp']
 
-liblox = static_library(
+liblox = shared_library(
     'lox',
     sources: srcs,
     include_directories: include_dirs,
