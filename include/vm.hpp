@@ -14,6 +14,11 @@ struct VMOpts
     bool debug_trace_execution = false;
 
     bool debug_trace_value_stack = false;
+
+    /**
+     * Waits for input before executing the next instruction
+     */
+    bool debug_step_mode_enabled = false;
 };
 
 class VM

@@ -27,6 +27,7 @@ int main()
     VMOpts opts;
     opts.debug_trace_execution = true;
     opts.debug_trace_value_stack = true;
+    opts.debug_step_mode_enabled = true;
     VM vm(opts);
     vm.run(&chunk);
 }

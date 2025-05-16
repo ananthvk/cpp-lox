@@ -36,10 +36,6 @@ auto VM::execute() -> InterpretResult
 {
     while (1)
     {
-        if (opts.debug_trace_execution)
-        {
-            disassemble_instruction(*chunk, static_cast<int>(ip - chunk->get_code().data()));
-        }
         if (opts.debug_trace_value_stack)
         {
             fmt::print("[ ");
@@ -48,6 +44,14 @@ auto VM::execute() -> InterpretResult
                 fmt::print(fmt::fg(fmt::color::beige), "{}, ", elem.to_string());
             }
             fmt::println(" ]");
+        }
+        if (opts.debug_trace_execution)
+        {
+            disassemble_instruction(*chunk, static_cast<int>(ip - chunk->get_code().data()));
+        }
+        if (opts.debug_step_mode_enabled)
+        {
+            getchar();
         }
         uint8_t instruction = read_byte();
         auto op = static_cast<OpCode>(instruction);
