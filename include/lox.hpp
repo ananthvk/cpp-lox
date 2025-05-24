@@ -1,3 +1,9 @@
 #pragma once
+#include <filesystem>
 
-int add(int a, int b);
+class Lox
+{
+  public:
+    auto run_repl() -> int;
+    auto run_file(const std::filesystem::path &path) -> int;
+};

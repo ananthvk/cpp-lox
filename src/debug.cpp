@@ -1,4 +1,5 @@
 #include "debug.hpp"
+#include "lexer.hpp"
 
 auto simple_instruction(OpCode op, int offset) -> int
 {
@@ -81,4 +82,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset) -> int
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");
         return offset + 1;
     }
+}
+
+auto print_tokens(std::string_view source) -> void {
+    Lexer lexer(source);
 }

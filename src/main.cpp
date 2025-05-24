@@ -1,33 +1,20 @@
-#include "debug.hpp"
-#include "logger.hpp"
-#include "vm.hpp"
+#include "lox.hpp"
+#include <fmt/color.h>
 #include <fmt/format.h>
-#include <iostream>
 
-int main()
+int main(int argc, char *argv[])
 {
-    Chunk chunk;
-    for (int i = 0; i < 254; i++)
-    {
-        chunk.add_constant(i);
-    }
-
-    chunk.write_load_constant(chunk.add_constant(1.2), 1);
-    chunk.write_load_constant(chunk.add_constant(3.4), 1);
-    chunk.write_simple_op(OpCode::ADD, 1);
-
-    chunk.write_load_constant(chunk.add_constant(5.6), 2);
-    chunk.write_simple_op(OpCode::DIVIDE, 2);
-    chunk.write_simple_op(OpCode::NEGATE, 3);
-    chunk.write_simple_op(OpCode::RETURN, 3);
-
-    disassemble_chunk(chunk, "program");
-    fmt::println("\n== Begin execution ===");
-
-    VMOpts opts;
-    opts.debug_trace_execution = true;
-    opts.debug_trace_value_stack = true;
-    opts.debug_step_mode_enabled = true;
-    VM vm(opts);
-    vm.run(&chunk);
+    Lox lox;
+    if (argc == 1)
+        return lox.run_repl();
+    if (argc == 2)
+        return lox.run_file(argv[1]);
+    fmt::print(fmt::fg(fmt::color::red), "Usage: cpplox [filename]\n");
+    return 2;
+    // VMOpts opts;
+    // opts.debug_trace_execution = true;
+    // opts.debug_trace_value_stack = true;
+    // opts.debug_step_mode_enabled = true;
+    // VM vm(opts);
+    // vm.run(&chunk);
 }

@@ -1,4 +1,4 @@
-srcs = ['lox.cpp', 'debug.cpp', 'chunk.cpp', 'vm.cpp']
+srcs = ['lox.cpp', 'debug.cpp', 'chunk.cpp', 'vm.cpp', 'lexer.cpp']
 
 liblox = shared_library(
     'lox',
