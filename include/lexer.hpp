@@ -24,132 +24,65 @@ class Lexer
         size_t start, current;
         int line;
         TokenType current_token_type;
+        ErrorCode err;
 
-        const_token_iterator(std::string_view source, size_t start, size_t current, int line)
-            : source(source), start(start), current(current), line(line),
-              current_token_type(TokenType::END_OF_FILE)
-        {
-        }
+        const_token_iterator(std::string_view source, size_t start, size_t current, int line);
 
         /**
          * Returns the the next character to be processed, and moves to the next one
          */
-        auto advance() -> char
-        {
-            char ch = source[current];
-            ++current;
-            return ch;
-        }
+        auto advance() -> char;
 
-        /**
-         * Returns the next character to be processed, but does not consume it
-         */
-        auto peek() const -> char { return source[current]; }
+        auto match(char ch) -> bool;
 
-        auto is_at_end() const -> bool { return current >= source.size(); }
+        auto is_at_end() const -> bool;
 
-        auto scan_token() -> TokenType
-        {
-            if (is_at_end())
-                return TokenType::END_OF_FILE;
+        auto peek() const -> char;
 
-            /*
-             * Process single character tokens
-             */
-            char ch = advance();
-            switch (ch)
-            {
-            case '(':
-                return TokenType::LEFT_PAREN;
-            case ')':
-                return TokenType::RIGHT_PAREN;
-            case '{':
-                return TokenType::LEFT_BRACE;
-            case '}':
-                return TokenType::RIGHT_BRACE;
-            case ';':
-                return TokenType::SEMICOLON;
-            case ',':
-                return TokenType::COMMA;
-            case '.':
-                return TokenType::DOT;
-            case '-':
-                return TokenType::MINUS;
-            case '+':
-                return TokenType::PLUS;
-            case '/':
-                return TokenType::SLASH;
-            case '*':
-                return TokenType::STAR;
-            }
-            return TokenType::ERROR;
-        }
+        auto peek_next() const -> char;
+
+        auto skip_whitespace() -> void;
+
+        auto match_string() -> TokenType;
+
+        auto match_number() -> TokenType;
+
+        auto lexeme_length() const -> size_t;
+
+        auto check_keyword(int idx, int length, const char *rest, TokenType type) const
+            -> TokenType;
+
+        auto get_identifier_type() const -> TokenType;
+
+        auto match_identifier() -> TokenType;
+
+        auto scan_token() -> TokenType;
 
       public:
-        const_token_iterator() {}
+        const_token_iterator();
 
-        auto operator==(const_token_iterator other) const -> bool
-        {
-            return start == other.start && current == other.current;
-        }
+        auto operator==(const_token_iterator other) const -> bool;
 
-        auto operator!=(const_token_iterator other) const -> bool { return !operator==(other); }
+        auto operator!=(const_token_iterator other) const -> bool;
 
-        auto operator*() const -> Token
-        {
-            Token token;
-            token.line = line;
-            token.lexeme = source.substr(start, current - start);
-            token.token_type = current_token_type;
-            return token;
-        }
+        auto operator*() const -> Token;
 
-        auto operator++() -> const_token_iterator &
-        {
-            // Pre-increment, advance the token and return the current token
-            // If there are no more characters that can be consumed, return END_OF_FILE
-            if (is_at_end())
-            {
-                current_token_type = TokenType::END_OF_FILE;
-                start = source.size();
-                current = source.size();
-            }
-            else
-            {
-                start = current;
-                current_token_type = scan_token();
-            }
-            return *this;
-        }
+        auto operator++() -> const_token_iterator &;
 
-        auto operator++(int) -> const_token_iterator
-        {
-            // Post increment
-            const_token_iterator tmp = *this;
-            ++(*this);
-            return tmp;
-        }
+        auto operator++(int) -> const_token_iterator;
 
         friend class Lexer;
     };
 
-    auto begin() const -> const_token_iterator { return cbegin(); }
+    auto begin() const -> const_token_iterator;
 
-    auto end() const -> const_token_iterator { return cend(); }
+    auto end() const -> const_token_iterator;
 
-    auto cbegin() const -> const_token_iterator
-    {
-        const_token_iterator it(src, 0, 0, 1);
-        ++it;
-        return it;
-    }
+    auto cbegin() const -> const_token_iterator;
 
-    auto cend() const -> const_token_iterator
-    {
-        return const_token_iterator(src, src.size(), src.size(), 1);
-    }
+    auto cend() const -> const_token_iterator;
 
-    Lexer(std::string_view src) : src(src) {}
+    Lexer(std::string_view src);
 
   private:
     std::string_view src;

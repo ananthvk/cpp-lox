@@ -1,4 +1,5 @@
 #include "lox.hpp"
+#include "debug.hpp"
 #include "lexer.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
@@ -24,6 +25,7 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     std::stringstream ss;
     ss << file.rdbuf();
     auto source = ss.str();
+    print_tokens(source);
     return 0;
 }
 
@@ -39,11 +41,7 @@ auto Lox::run_repl() -> int
             break;
         if (line == "")
             continue;
-        Lexer lexer(line);
-        for (auto token : lexer)
-        {
-            fmt::println("[{} '{}']", token_type_to_string(token.token_type), token.lexeme);
-        }
+        print_tokens(line);
     }
     return 0;
 }

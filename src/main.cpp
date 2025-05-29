@@ -1,3 +1,4 @@
+#include "lexer.hpp"
 #include "lox.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
@@ -17,4 +18,5 @@ int main(int argc, char *argv[])
     // opts.debug_step_mode_enabled = true;
     // VM vm(opts);
     // vm.run(&chunk);
+
 }

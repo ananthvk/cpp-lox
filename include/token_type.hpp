@@ -21,15 +21,18 @@
     X(LESS_EQUAL)                                                                                  \
     X(IDENTIFIER)                                                                                  \
     X(STRING)                                                                                      \
-    X(NUMBER)                                                                                      \
+    X(NUMBER_INT)                                                                                  \
+    X(NUMBER_REAL)                                                                                 \
     X(AND)                                                                                         \
     X(CLASS)                                                                                       \
+    X(CONST)                                                                                       \
     X(ELSE)                                                                                        \
     X(FALSE)                                                                                       \
     X(FOR)                                                                                         \
     X(FUN)                                                                                         \
     X(IF)                                                                                          \
     X(NIL)                                                                                         \
+    X(NOT)                                                                                         \
     X(OR)                                                                                          \
     X(PRINT)                                                                                       \
     X(RETURN)                                                                                      \
