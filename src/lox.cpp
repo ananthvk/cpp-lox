@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 
-auto Lox::execute(std::string_view src) -> InterpretResult
+auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretResult
 {
     CompilerOpts copts;
     VMOpts vopts;
@@ -20,21 +20,13 @@ auto Lox::execute(std::string_view src) -> InterpretResult
     vopts.debug_trace_value_stack = true;
     vopts.debug_step_mode_enabled = true;
 
-    Compiler compiler(copts);
+    Compiler compiler(copts, reporter);
     auto [chunk, result] = compiler.compile(src);
     if (result != InterpretResult::OK)
-    {
-        // Handle error here
-        fmt::print(fmt::fg(fmt::color::red), "Compilation error occured\n");
         return result;
-    }
-    VM vm(vopts);
-    result = vm.run(&chunk);
-    if (result != InterpretResult::OK)
-    {
-        fmt::print(fmt::fg(fmt::color::red), "Runtime error occured\n");
-    }
 
+    VM vm(vopts, reporter);
+    result = vm.run(&chunk);
     return result;
 }
 
@@ -56,13 +48,19 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     std::stringstream ss;
     ss << file.rdbuf();
     auto source = ss.str();
-    execute(source);
+    ErrorReporter reporter;
+    execute(source, reporter);
+    if (reporter.has_messages())
+    {
+        reporter.display(stderr);
+    }
     return 0;
 }
 
 auto Lox::run_repl() -> int
 {
     std::string line;
+    ErrorReporter reporter;
     while (true)
     {
         fmt::print(fmt::fg(fmt::color::blue), ">>> ");
@@ -72,7 +70,12 @@ auto Lox::run_repl() -> int
             break;
         if (line == "")
             continue;
-        execute(line);
+        execute(line, reporter);
+        if (reporter.has_messages())
+        {
+            reporter.display(stderr);
+            reporter.clear();
+        }
     }
     return 0;
 }

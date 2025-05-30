@@ -5,10 +5,12 @@ class Parser
 {
     Lexer::const_token_iterator previous_, current, next;
     bool had_error, panic_mode;
+    ErrorReporter &reporter;
 
   public:
-    Parser(Lexer::const_token_iterator iter)
-        : previous_(iter), current(iter), next(iter), had_error(false), panic_mode(false)
+    Parser(Lexer::const_token_iterator iter, ErrorReporter &reporter)
+        : previous_(iter), current(iter), next(iter), had_error(false), panic_mode(false),
+          reporter(reporter)
     {
         ++next;
     }
@@ -42,11 +44,25 @@ class Parser
 
     auto is_at_end() const -> bool { return (*current).token_type == TokenType::END_OF_FILE; }
 
-    auto consume(TokenType expected, std::string_view err_message) -> void
+    auto consume(TokenType expected) -> void
     {
-        if ((*current).token_type == expected)
+        auto token = *current;
+        if (token.token_type == expected)
             advance();
-        // TODO: Report error here
+        else
+        {
+            report_error("Syntax Error: Expected {}, found '{}'", token_type_to_string(expected),
+                         token.lexeme);
+        }
+    }
+
+    template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
+    {
+        if (panic_mode)
+            return;
+        panic_mode = true;
+        reporter.report(ErrorReporter::ERROR, *current, message, args...);
+        had_error = true;
     }
 
     /**

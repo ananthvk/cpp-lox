@@ -1,6 +1,7 @@
 #pragma once
 #include "chunk.hpp"
 #include "debug.hpp"
+#include "error_reporter.hpp"
 #include "result.hpp"
 
 struct VMOpts
@@ -26,6 +27,7 @@ class VM
   private:
     std::vector<Value> stack;
     VMOpts opts;
+    ErrorReporter &reporter;
     const Chunk *chunk;
     const uint8_t *ip;
 
@@ -66,7 +68,11 @@ class VM
 
 
   public:
-    VM(const VMOpts& opts) : opts(opts), chunk(nullptr), ip(nullptr) { init(); }
+    VM(const VMOpts &opts, ErrorReporter &reporter)
+        : opts(opts), reporter(reporter), chunk(nullptr), ip(nullptr)
+    {
+        init();
+    }
 
     auto init() -> void;
 

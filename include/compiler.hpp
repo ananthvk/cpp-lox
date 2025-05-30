@@ -1,5 +1,6 @@
 #pragma once
 #include "chunk.hpp"
+#include "error_reporter.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "result.hpp"
@@ -13,8 +14,9 @@ struct CompilerOpts
 class Compiler
 {
     CompilerOpts opts;
+    ErrorReporter &reporter;
 
   public:
-    Compiler(const CompilerOpts &opts);
+    Compiler(const CompilerOpts &opts, ErrorReporter &reporter);
     auto compile(std::string_view source) const -> std::pair<Chunk, InterpretResult>;
 };
