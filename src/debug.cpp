@@ -85,9 +85,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset) -> int
     }
 }
 
-auto print_tokens(std::string_view source) -> void
+auto print_tokens(const Lexer& lexer) -> void
 {
-    Lexer lexer(source);
     int previous_line = 0;
     Lexer::const_token_iterator it;
 

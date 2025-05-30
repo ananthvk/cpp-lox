@@ -1,11 +1,42 @@
 #include "lox.hpp"
+#include "compiler.hpp"
 #include "debug.hpp"
 #include "lexer.hpp"
+#include "vm.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+auto Lox::execute(std::string_view src) -> InterpretResult
+{
+    CompilerOpts copts;
+    VMOpts vopts;
+
+    copts.debug_print_tokens = true;
+
+    vopts.debug_trace_execution = true;
+    vopts.debug_trace_value_stack = true;
+    vopts.debug_step_mode_enabled = true;
+
+    Compiler compiler(copts);
+    auto [chunk, result] = compiler.compile(src);
+    if (result != InterpretResult::OK)
+    {
+        // Handle error here
+        fmt::print(fmt::fg(fmt::color::red), "Compilation error occured\n");
+        return result;
+    }
+    VM vm(vopts);
+    result = vm.run(&chunk);
+    if (result != InterpretResult::OK)
+    {
+        fmt::print(fmt::fg(fmt::color::red), "Runtime error occured\n");
+    }
+
+    return result;
+}
 
 auto Lox::run_file(const std::filesystem::path &path) -> int
 {
@@ -25,7 +56,7 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     std::stringstream ss;
     ss << file.rdbuf();
     auto source = ss.str();
-    print_tokens(source);
+    execute(source);
     return 0;
 }
 
@@ -41,7 +72,7 @@ auto Lox::run_repl() -> int
             break;
         if (line == "")
             continue;
-        print_tokens(line);
+        execute(line);
     }
     return 0;
 }

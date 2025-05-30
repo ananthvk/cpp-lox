@@ -66,7 +66,7 @@ class VM
 
 
   public:
-    VM(VMOpts opts) : opts(opts), chunk(nullptr), ip(nullptr) { init(); }
+    VM(const VMOpts& opts) : opts(opts), chunk(nullptr), ip(nullptr) { init(); }
 
     auto init() -> void;
 

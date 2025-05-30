@@ -1,10 +1,11 @@
 #pragma once
-#include "logger.hpp"
 #include "token.hpp"
 #include "token_type.hpp"
+#include <ctype.h>
 #include <limits>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <string_view>
 
 class Lexer

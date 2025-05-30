@@ -12,11 +12,4 @@ int main(int argc, char *argv[])
         return lox.run_file(argv[1]);
     fmt::print(fmt::fg(fmt::color::red), "Usage: cpplox [filename]\n");
     return 2;
-    // VMOpts opts;
-    // opts.debug_trace_execution = true;
-    // opts.debug_trace_value_stack = true;
-    // opts.debug_step_mode_enabled = true;
-    // VM vm(opts);
-    // vm.run(&chunk);
-
 }

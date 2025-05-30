@@ -98,6 +98,7 @@ auto VM::execute() -> InterpretResult
             throw std::logic_error("Invalid instruction");
         }
     }
+    return InterpretResult::OK;
 }
 
 auto VM::run(const Chunk *chunk) -> InterpretResult
