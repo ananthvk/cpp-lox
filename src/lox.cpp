@@ -14,16 +14,18 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
     CompilerOpts copts;
     VMOpts vopts;
 
-    copts.debug_print_tokens = true;
+    copts.debug_print_tokens = false;
 
     vopts.debug_trace_execution = true;
     vopts.debug_trace_value_stack = true;
     vopts.debug_step_mode_enabled = true;
 
-    Compiler compiler(copts, reporter);
-    auto [chunk, result] = compiler.compile(src);
+    Compiler compiler(src, copts, reporter);
+    auto result = compiler.compile();
     if (result != InterpretResult::OK)
         return result;
+
+    auto chunk = compiler.take_chunk();
 
     VM vm(vopts, reporter);
     result = vm.run(&chunk);

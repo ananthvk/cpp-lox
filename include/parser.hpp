@@ -4,12 +4,12 @@
 class Parser
 {
     Lexer::const_token_iterator previous_, current, next;
-    bool had_error, panic_mode;
+    bool had_error_, panic_mode;
     ErrorReporter &reporter;
 
   public:
     Parser(Lexer::const_token_iterator iter, ErrorReporter &reporter)
-        : previous_(iter), current(iter), next(iter), had_error(false), panic_mode(false),
+        : previous_(iter), current(iter), next(iter), had_error_(false), panic_mode(false),
           reporter(reporter)
     {
         ++next;
@@ -51,8 +51,12 @@ class Parser
             advance();
         else
         {
-            report_error("Syntax Error: Expected {}, found '{}'", token_type_to_string(expected),
-                         token.lexeme);
+            if (token.token_type == TokenType::END_OF_FILE)
+                report_error("Syntax Error: Expected {}, but reached end of input",
+                             token_type_to_string(expected));
+            else
+                report_error("Syntax Error: Expected {}, found '{}'",
+                             token_type_to_string(expected), token.lexeme);
         }
     }
 
@@ -62,11 +66,13 @@ class Parser
             return;
         panic_mode = true;
         reporter.report(ErrorReporter::ERROR, *current, message, args...);
-        had_error = true;
+        had_error_ = true;
     }
 
     /**
      * Note: If previous() is called when the parser is at the first token, it returns current
      */
     auto previous() const -> Token { return *previous_; }
+
+    auto had_error() const -> bool { return had_error_; }
 };

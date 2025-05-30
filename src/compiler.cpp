@@ -1,36 +1,28 @@
 #include "compiler.hpp"
 #include "debug.hpp"
 
-Compiler::Compiler(const CompilerOpts &opts, ErrorReporter &reporter)
-    : opts(opts), reporter(reporter)
+Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorReporter &reporter)
+    : source(source), opts(opts), reporter(reporter), lexer(source), parser(lexer.begin(), reporter)
 {
 }
 
-auto Compiler::compile(std::string_view source) const -> std::pair<Chunk, InterpretResult>
+auto Compiler::compile() -> InterpretResult
 {
-    Lexer lexer(source);
-    Parser parser(lexer.begin(), reporter);
-    Chunk chunk;
-
     if (opts.debug_print_tokens)
     {
         print_tokens(lexer);
     }
 
-    auto iter = lexer.begin();
-    while ((*iter).token_type != TokenType::END_OF_FILE)
-    {
-        auto token = *iter;
-        if (token.token_type == TokenType::ERROR)
-        {
-            reporter.report(ErrorReporter::ERROR, token, "Syntax Error: {}",
-                            error_code_to_string(token.err));
-            return {chunk, InterpretResult::COMPILE_ERROR};
-        }
-        ++iter;
-    }
+    // Parse a single expression for now
+    expression();
+    parser.consume(TokenType::END_OF_FILE);
 
-    chunk.write_load_constant(chunk.add_constant(51), 1);
-    chunk.write_simple_op(OpCode::RETURN, 2);
-    return {chunk, InterpretResult::OK};
+    if (parser.had_error())
+        return InterpretResult::COMPILE_ERROR;
+
+    return InterpretResult::OK;
 }
+
+auto Compiler::expression() -> void {}
+
+auto Compiler::take_chunk() -> Chunk && { return std::move(chunk); }
