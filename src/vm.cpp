@@ -12,7 +12,7 @@
         Value v;                                                                                   \
         if (b.type == Value::NUMBER_INT && b.type == a.type)                                       \
         {                                                                                          \
-            v.data.i = b.data.i operator a.data.i;                                                 \
+            v.data.i = a.data.i operator b.data.i;                                                 \
             v.type = Value::NUMBER_INT;                                                            \
         }                                                                                          \
         else                                                                                       \
