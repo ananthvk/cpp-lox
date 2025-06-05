@@ -13,7 +13,7 @@
     X(MULTIPLY)                                                                                    \
     X(DIVIDE)
 
-enum class OpCode
+enum class OpCode : uint8_t
 {
 #define X(name) name,
     OPCODES_LIST

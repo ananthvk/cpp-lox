@@ -44,19 +44,26 @@ class Parser
 
     auto is_at_end() const -> bool { return (*current).token_type == TokenType::END_OF_FILE; }
 
-    auto consume(TokenType expected) -> void
+    auto consume(TokenType expected, std::string_view error_message = "") -> void
     {
         auto token = *current;
         if (token.token_type == expected)
             advance();
         else
         {
-            if (token.token_type == TokenType::END_OF_FILE)
-                report_error("Syntax Error: Expected {}, but reached end of input",
-                             token_type_to_string(expected));
+            if (error_message.empty())
+            {
+                if (token.token_type == TokenType::END_OF_FILE)
+                    report_error("Syntax Error: Expected {}, but reached end of input",
+                                 token_type_to_string(expected));
+                else
+                    report_error("Syntax Error: Expected {}, found '{}'",
+                                 token_type_to_string(expected), token.lexeme);
+            }
             else
-                report_error("Syntax Error: Expected {}, found '{}'",
-                             token_type_to_string(expected), token.lexeme);
+            {
+                report_error("Syntax Error: {}", error_message);
+            }
         }
     }
 

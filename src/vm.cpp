@@ -9,17 +9,25 @@
         auto b = pop();                                                                            \
         auto a = pop();                                                                            \
         double b_d, a_d;                                                                           \
-        if (b.type == Value::NUMBER_INT)                                                           \
-            b_d = b.data.i;                                                                        \
-        if (b.type == Value::NUMBER_DOUBLE)                                                        \
-            b_d = b.data.d;                                                                        \
-        if (a.type == Value::NUMBER_INT)                                                           \
-            a_d = a.data.i;                                                                        \
-        if (a.type == Value::NUMBER_DOUBLE)                                                        \
-            a_d = a.data.d;                                                                        \
         Value v;                                                                                   \
-        v.data.d = a_d operator b_d;                                                               \
-        v.type = Value::NUMBER_DOUBLE;                                                             \
+        if (b.type == Value::NUMBER_INT && b.type == a.type)                                       \
+        {                                                                                          \
+            v.data.i = b.data.i operator a.data.i;                                                 \
+            v.type = Value::NUMBER_INT;                                                            \
+        }                                                                                          \
+        else                                                                                       \
+        {                                                                                          \
+            if (b.type == Value::NUMBER_INT)                                                       \
+                b_d = b.data.i;                                                                    \
+            if (b.type == Value::NUMBER_DOUBLE)                                                    \
+                b_d = b.data.d;                                                                    \
+            if (a.type == Value::NUMBER_INT)                                                       \
+                a_d = a.data.i;                                                                    \
+            if (a.type == Value::NUMBER_DOUBLE)                                                    \
+                a_d = a.data.d;                                                                    \
+            v.data.d = a_d operator b_d;                                                           \
+            v.type = Value::NUMBER_DOUBLE;                                                         \
+        }                                                                                          \
         push(v);                                                                                   \
     } while (false)
 

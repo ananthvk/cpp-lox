@@ -42,7 +42,8 @@
     X(VAR)                                                                                         \
     X(WHILE)                                                                                       \
     X(ERROR)                                                                                       \
-    X(END_OF_FILE)
+    X(END_OF_FILE)                                                                                 \
+    X(TOKEN_COUNT)
 
 enum class TokenType
 {
@@ -64,3 +65,5 @@ inline auto token_type_to_string(TokenType type) -> const char *
         return "TOKEN_UNKNOWN";
     }
 }
+
+inline auto operator+(TokenType type) -> int { return static_cast<int>(type); }

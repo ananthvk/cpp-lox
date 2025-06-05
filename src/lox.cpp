@@ -16,9 +16,9 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
 
     copts.debug_print_tokens = false;
 
-    vopts.debug_trace_execution = true;
-    vopts.debug_trace_value_stack = true;
-    vopts.debug_step_mode_enabled = true;
+    vopts.debug_trace_execution = false;
+    vopts.debug_trace_value_stack = false;
+    vopts.debug_step_mode_enabled = false;
 
     Compiler compiler(src, copts, reporter);
     auto result = compiler.compile();
@@ -26,6 +26,8 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
         return result;
 
     auto chunk = compiler.take_chunk();
+
+    disassemble_chunk(chunk, "program");
 
     VM vm(vopts, reporter);
     result = vm.run(&chunk);
