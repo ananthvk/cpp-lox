@@ -15,15 +15,16 @@ struct CompilerOpts
 enum class ParsePrecedence
 {
     NONE,
-    ASSIGNMENT, // =
-    OR,         // or
-    AND,        // and
-    EQUALITY,   // == !=
-    COMPARISON, // > >= < <=
-    TERM,       // + -
-    FACTOR,     // * /
-    UNARY,      // ! -
-    CALL,       // . ()
+    ASSIGNMENT,  // =
+    CONDITIONAL, // ?:
+    OR,          // or
+    AND,         // and
+    EQUALITY,    // == !=
+    COMPARISON,  // > >= < <=
+    TERM,        // + -
+    FACTOR,      // * /
+    UNARY,       // ! -
+    CALL,        // . ()
     PRIMARY
 };
 
@@ -133,6 +134,24 @@ class Compiler
         default:
             throw std::logic_error("Invalid token type to binary()");
         }
+    }
+
+    auto ternary() -> void
+    {
+        // The compiler has compiled the condition
+        // Check for "then" expression, followed by a ":", then a "else" expression
+        // When parsing the "else" branch, parse it with the same precedence
+        
+        // TODO: understand this solution
+
+        // Parse the "then" expression
+        parse_precedence(ParsePrecedence::CONDITIONAL);
+
+        // Check if there is a ":"
+        parser.consume(TokenType::COLON, "Expected ':' after then branch of ternary expression");
+
+        // Parse the "else" expression
+        parse_precedence(ParsePrecedence::ASSIGNMENT);
     }
 
     /**

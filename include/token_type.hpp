@@ -43,6 +43,8 @@
     X(WHILE)                                                                                       \
     X(ERROR)                                                                                       \
     X(END_OF_FILE)                                                                                 \
+    X(COLON)                                                                                       \
+    X(QUESTION_MARK)                                                                               \
     X(TOKEN_COUNT)
 
 enum class TokenType

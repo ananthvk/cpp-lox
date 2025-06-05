@@ -50,6 +50,7 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorRepor
     rules[+TokenType::WHILE]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::ERROR]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::END_OF_FILE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::QUESTION_MARK]    = {nullptr,        F(ternary),       ParsePrecedence::CONDITIONAL};
     // clang-format on
 #undef F
 }

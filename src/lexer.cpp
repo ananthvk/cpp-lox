@@ -242,6 +242,10 @@ auto Lexer::const_token_iterator::scan_token() -> TokenType
         return match_identifier();
     switch (ch)
     {
+    case ':':
+        return TokenType::COLON;
+    case '?':
+        return TokenType::QUESTION_MARK;
     case '(':
         return TokenType::LEFT_PAREN;
     case ')':
