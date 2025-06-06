@@ -22,8 +22,31 @@ class Parser
     auto advance() -> void
     {
         previous_ = current;
-        current = next;
-        ++next;
+        while (true)
+        {
+            current = next;
+            ++next;
+
+            auto token = *current;
+            if (token.token_type != TokenType::ERROR)
+                break;
+
+
+            switch (token.err)
+            {
+            case ErrorCode::INVALID_DECIMAL_LITERAL:
+                report_error("Invalid decimal '{}'", token.lexeme);
+                break;
+            case ErrorCode::UNRECOGNIZED_CHARACTER:
+                report_error("Invaild character '{}'", token.lexeme);
+                break;
+            case ErrorCode::UNTERMINATED_STRING:
+                report_error("Unterminated string '{}'", token.lexeme);
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     /**

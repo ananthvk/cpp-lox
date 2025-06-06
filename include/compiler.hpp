@@ -141,7 +141,7 @@ class Compiler
         // The compiler has compiled the condition
         // Check for "then" expression, followed by a ":", then a "else" expression
         // When parsing the "else" branch, parse it with the same precedence
-        
+
         // TODO: understand this solution
 
         // Parse the "then" expression
