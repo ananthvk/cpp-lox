@@ -19,7 +19,6 @@ class ErrorReporter
         Level severity;
         std::string message;
         int line;
-        Token token;
     };
 
     template <typename... Args>
@@ -46,7 +45,7 @@ class ErrorReporter
         auto formatted = fmt::format(fmt::runtime(message), args...);
         if (level != WARNING)
             has_error_ = true;
-        messages.push_back({level, formatted, token.line, token});
+        messages.push_back({level, formatted, token.line});
     }
 
     auto display(FILE *stream, bool include_warnings = true, bool include_errors = true,

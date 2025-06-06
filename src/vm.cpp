@@ -6,27 +6,25 @@
 #define BINARY_OP(operator)                                                                        \
     do                                                                                             \
     {                                                                                              \
+        if (!peek(0).is_number() || !peek(1).is_number())                                          \
+        {                                                                                          \
+            report_error("Expected operands of '{}' to be numbers", #operator);                    \
+            return InterpretResult::RUNTIME_ERROR;                                                 \
+        }                                                                                          \
         auto b = pop();                                                                            \
         auto a = pop();                                                                            \
-        double b_d, a_d;                                                                           \
         Value v;                                                                                   \
-        if (b.type == Value::NUMBER_INT && b.type == a.type)                                       \
+        if (b.is_integer() && a.is_integer())                                                      \
         {                                                                                          \
-            v.data.i = a.data.i operator b.data.i;                                                 \
-            v.type = Value::NUMBER_INT;                                                            \
+            auto aval = a.as_integer();                                                            \
+            auto bval = b.as_integer();                                                            \
+            v.set_value(static_cast<int64_t>(aval operator bval));                                 \
         }                                                                                          \
-        else                                                                                       \
+        else if (b.is_number() && a.is_number())                                                   \
         {                                                                                          \
-            if (b.type == Value::NUMBER_INT)                                                       \
-                b_d = b.data.i;                                                                    \
-            if (b.type == Value::NUMBER_DOUBLE)                                                    \
-                b_d = b.data.d;                                                                    \
-            if (a.type == Value::NUMBER_INT)                                                       \
-                a_d = a.data.i;                                                                    \
-            if (a.type == Value::NUMBER_DOUBLE)                                                    \
-                a_d = a.data.d;                                                                    \
-            v.data.d = a_d operator b_d;                                                           \
-            v.type = Value::NUMBER_DOUBLE;                                                         \
+            auto aval = a.coerce_real();                                                           \
+            auto bval = b.coerce_real();                                                           \
+            v.set_value(aval operator bval);                                                       \
         }                                                                                          \
         push(v);                                                                                   \
     } while (false)
@@ -77,16 +75,16 @@ auto VM::execute() -> InterpretResult
             break;
         case OpCode::NEGATE:
         {
-            Value v = pop();
-            if (v.type == Value::NUMBER_DOUBLE)
-                v.data.d = -v.data.d;
-            else if (v.type == Value::NUMBER_INT)
-                v.data.i = -v.data.i;
-            else
+            if (!peek(0).is_number())
             {
-                // TODO: Throw an error here
-                throw std::runtime_error("cannot negate a non numeric value");
+                report_error("{}", "Runtime Error: Cannot negate value, it must be a number");
+                return InterpretResult::RUNTIME_ERROR;
             }
+            Value v = pop();
+            if (v.is_real())
+                v.data.d = -v.as_real();
+            else if (v.is_integer())
+                v.data.i = -v.as_integer();
             push(v);
             break;
         }
@@ -101,6 +99,35 @@ auto VM::execute() -> InterpretResult
             break;
         case OpCode::MULTIPLY:
             BINARY_OP(*);
+            break;
+        case OpCode::FALSE:
+            push(Value(false));
+            break;
+        case OpCode::TRUE:
+            push(Value(true));
+            break;
+        case OpCode::NIL:
+            push(Value());
+            break;
+        case OpCode::NOT:
+            push(Value(pop().is_falsey()));
+            break;
+        case OpCode::EQUAL:
+        {
+            auto b = pop();
+            auto a = pop();
+            push(a == b);
+            break;
+        }
+        case OpCode::GREATER:
+            // TODO: Fix this: Inefficient, since it performs a binary op, then pops the value from
+            // the stack, then again pushes it as bool
+            BINARY_OP(>);
+            push(static_cast<bool>(pop().coerce_integer()));
+            break;
+        case OpCode::LESS:
+            BINARY_OP(<);
+            push(static_cast<bool>(pop().coerce_integer()));
             break;
         default:
             throw std::logic_error("Invalid instruction");

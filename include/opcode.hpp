@@ -11,6 +11,13 @@
     X(ADD)                                                                                         \
     X(SUBTRACT)                                                                                    \
     X(MULTIPLY)                                                                                    \
+    X(NIL)                                                                                         \
+    X(TRUE)                                                                                        \
+    X(FALSE)                                                                                       \
+    X(NOT)                                                                                         \
+    X(EQUAL)                                                                                       \
+    X(GREATER)                                                                                     \
+    X(LESS)                                                                                        \
     X(DIVIDE)
 
 enum class OpCode : uint8_t

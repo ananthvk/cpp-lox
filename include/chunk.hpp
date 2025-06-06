@@ -32,36 +32,13 @@ class Chunk
 
     auto write_load_constant(int index, int line) -> void;
 
-    template <typename T> std::enable_if_t<std::is_same_v<T, Value>, int> add_constant(T value)
+    auto add_constant(Value value) -> int
     {
         value_array.push_back(value);
         return value_array.size() - 1;
     }
 
-    template <typename T> std::enable_if_t<std::is_same_v<T, bool>, int> add_constant(T value)
-    {
-        Value v;
-        v.data.b = value;
-        v.type = Value::BOOLEAN;
-        return add_constant(v);
-    }
-
-    template <typename T>
-    std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, int> add_constant(T value)
-    {
-        Value v;
-        v.data.i = value;
-        v.type = Value::NUMBER_INT;
-        return add_constant(v);
-    }
-
-    template <typename T> std::enable_if_t<std::is_same_v<T, double>, int> add_constant(T value)
-    {
-        Value v;
-        v.data.d = value;
-        v.type = Value::NUMBER_DOUBLE;
-        return add_constant(v);
-    }
+    template <typename T> auto add_constant(T value) -> int { return add_constant(Value(value)); }
 
     auto get_code() const -> const std::vector<uint8_t> &;
 

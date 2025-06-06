@@ -66,6 +66,13 @@ class VM
 
     auto execute() -> InterpretResult;
 
+    auto peek(int offset) const -> Value { return *(stack.end() - offset - 1); }
+
+    template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
+    {
+        int offset = static_cast<ptrdiff_t>(ip - chunk->get_code().data());
+        reporter.report(ErrorReporter::ERROR, chunk->get_line_number(offset), message, args...);
+    }
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter)

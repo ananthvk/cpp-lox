@@ -79,13 +79,21 @@ auto disassemble_instruction(const Chunk &chunk, int offset) -> int
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
         return constant_instruction_long(instruction, offset, chunk);
+    case OpCode::TRUE:
+    case OpCode::FALSE:
+    case OpCode::NIL:
+    case OpCode::NOT:
+    case OpCode::GREATER:
+    case OpCode::LESS:
+    case OpCode::EQUAL:
+        return simple_instruction(instruction, offset);
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");
         return offset + 1;
     }
 }
 
-auto print_tokens(const Lexer& lexer) -> void
+auto print_tokens(const Lexer &lexer) -> void
 {
     int previous_line = 0;
     Lexer::const_token_iterator it;

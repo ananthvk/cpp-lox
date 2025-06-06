@@ -18,14 +18,14 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorRepor
     rules[+TokenType::SEMICOLON]        = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::SLASH]            = {nullptr,        F(binary),        ParsePrecedence::FACTOR};
     rules[+TokenType::STAR]             = {nullptr,        F(binary),        ParsePrecedence::FACTOR};
-    rules[+TokenType::BANG]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::BANG_EQUAL]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::BANG]             = {F(unary),       nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::BANG_EQUAL]       = {nullptr,        F(binary),        ParsePrecedence::EQUALITY};
     rules[+TokenType::EQUAL]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::EQUAL_EQUAL]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::GREATER]          = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::GREATER_EQUAL]    = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::LESS]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::LESS_EQUAL]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::EQUAL_EQUAL]      = {nullptr,        F(binary),        ParsePrecedence::EQUALITY};
+    rules[+TokenType::GREATER]          = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
+    rules[+TokenType::GREATER_EQUAL]    = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
+    rules[+TokenType::LESS]             = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
+    rules[+TokenType::LESS_EQUAL]       = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
     rules[+TokenType::IDENTIFIER]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::STRING]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_INT]       = {F(number),      nullptr,          ParsePrecedence::NONE};
@@ -34,18 +34,18 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorRepor
     rules[+TokenType::CLASS]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONST]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::ELSE]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::FALSE]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::FALSE]            = {F(literal),     nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::FOR]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::FUN]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::IF]               = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::NIL]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::NIL]              = {F(literal),     nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NOT]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::OR]               = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::PRINT]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RETURN]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::SUPER]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::THIS]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::TRUE]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::TRUE]             = {F(literal),     nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::VAR]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::WHILE]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::ERROR]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -126,6 +126,9 @@ auto Compiler::unary() -> void
     case TokenType::MINUS:
         emit_opcode(OpCode::NEGATE);
         break;
+    case TokenType::BANG:
+        emit_opcode(OpCode::NOT);
+        break;
     default:
         return;
     }
@@ -158,6 +161,28 @@ auto Compiler::binary() -> void
         break;
     case TokenType::STAR:
         emit_opcode(OpCode::MULTIPLY);
+        break;
+
+    case TokenType::EQUAL_EQUAL:
+        emit_opcode(OpCode::EQUAL);
+        break;
+    case TokenType::BANG_EQUAL:
+        emit_opcode(OpCode::EQUAL);
+        emit_opcode(OpCode::NOT);
+        break;
+    case TokenType::GREATER:
+        emit_opcode(OpCode::GREATER);
+        break;
+    case TokenType::GREATER_EQUAL:
+        emit_opcode(OpCode::LESS);
+        emit_opcode(OpCode::NOT);
+        break;
+    case TokenType::LESS:
+        emit_opcode(OpCode::LESS);
+        break;
+    case TokenType::LESS_EQUAL:
+        emit_opcode(OpCode::GREATER);
+        emit_opcode(OpCode::NOT);
         break;
 
     default:
@@ -200,5 +225,25 @@ auto Compiler::parse_precedence(ParsePrecedence precedence) -> void
         parser.advance();
         auto infix_rule = get_rule(parser.previous().token_type).infix;
         infix_rule();
+    }
+}
+
+auto Compiler::literal() -> void
+{
+    auto token = parser.previous();
+    switch (token.token_type)
+    {
+    case TokenType::FALSE:
+        emit_opcode(OpCode::FALSE);
+        break;
+    case TokenType::TRUE:
+        emit_opcode(OpCode::TRUE);
+        break;
+    case TokenType::NIL:
+        emit_opcode(OpCode::NIL);
+        break;
+    default:
+        throw std::logic_error("Invalid token type to literal");
+        break;
     }
 }
