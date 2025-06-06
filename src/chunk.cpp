@@ -73,3 +73,18 @@ auto Chunk::get_line_number(int offset) const -> int
     }
     return lines.back().line_number;
 }
+
+auto Chunk::get_code() const -> const std::vector<uint8_t> & { return code; }
+
+auto Chunk::get_code() -> std::vector<uint8_t> & { return code; }
+
+auto Chunk::get_value(int index) const -> std::optional<Value>
+{
+    if (index < 0 || index >= static_cast<int>(value_array.size()))
+    {
+        return std::nullopt;
+    }
+    return value_array[index];
+}
+
+auto Chunk::get_value_unchecked(int index) const -> Value { return value_array[index]; }

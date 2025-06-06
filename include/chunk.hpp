@@ -63,20 +63,13 @@ class Chunk
         return add_constant(v);
     }
 
-    auto get_code() const -> const std::vector<uint8_t> & { return code; }
+    auto get_code() const -> const std::vector<uint8_t> &;
 
-    auto get_code() -> std::vector<uint8_t> & { return code; }
+    auto get_code() -> std::vector<uint8_t> &;
 
-    auto get_value(int index) const -> std::optional<Value>
-    {
-        if (index < 0 || index >= static_cast<int>(value_array.size()))
-        {
-            return std::nullopt;
-        }
-        return value_array[index];
-    }
+    auto get_value(int index) const -> std::optional<Value>;
 
-    auto get_value_unchecked(int index) const -> Value { return value_array[index]; }
+    auto get_value_unchecked(int index) const -> Value;
 
     auto get_line_number(int offset) const -> int;
 };
