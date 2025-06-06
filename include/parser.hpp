@@ -12,6 +12,10 @@ class Parser
         : previous_(iter), current(iter), next(iter), had_error_(false), panic_mode(false),
           reporter(reporter)
     {
+        if ((*iter).token_type == TokenType::ERROR)
+        {
+            report_error_token(*iter);
+        }
         ++next;
     }
 
@@ -31,21 +35,25 @@ class Parser
             if (token.token_type != TokenType::ERROR)
                 break;
 
+            report_error_token(token);
+        }
+    }
 
-            switch (token.err)
-            {
-            case ErrorCode::INVALID_DECIMAL_LITERAL:
-                report_error("Invalid decimal '{}'", token.lexeme);
-                break;
-            case ErrorCode::UNRECOGNIZED_CHARACTER:
-                report_error("Invaild character '{}'", token.lexeme);
-                break;
-            case ErrorCode::UNTERMINATED_STRING:
-                report_error("Unterminated string '{}'", token.lexeme);
-                break;
-            default:
-                break;
-            }
+    auto report_error_token(Token token) -> void
+    {
+        switch (token.err)
+        {
+        case ErrorCode::INVALID_DECIMAL_LITERAL:
+            report_error("Invalid decimal '{}'", token.lexeme);
+            break;
+        case ErrorCode::UNRECOGNIZED_CHARACTER:
+            report_error("Invaild character '{}'", token.lexeme);
+            break;
+        case ErrorCode::UNTERMINATED_STRING:
+            report_error("Unterminated string '{}'", token.lexeme);
+            break;
+        default:
+            break;
         }
     }
 
