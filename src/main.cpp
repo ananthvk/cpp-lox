@@ -6,10 +6,15 @@
 int main(int argc, char *argv[])
 {
     Lox lox;
+    int status;
     if (argc == 1)
-        return lox.run_repl();
-    if (argc == 2)
-        return lox.run_file(argv[1]);
-    fmt::print(fmt::fg(fmt::color::red), "Usage: cpplox [filename]\n");
-    return 2;
+        status = lox.run_repl();
+    else if (argc == 2)
+        status = lox.run_file(argv[1]);
+    else
+    {
+        fmt::print(fmt::fg(fmt::color::red), "Usage: cpplox [filename]\n");
+        status = 2;
+    }
+    return status;
 }

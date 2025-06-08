@@ -9,6 +9,9 @@
 #include <iostream>
 #include <sstream>
 
+#include "object.hpp"
+std::vector<ObjectString *> objs;
+
 auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretResult
 {
     CompilerOpts copts;
@@ -31,6 +34,15 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
 
     VM vm(vopts, reporter);
     result = vm.run(&chunk);
+
+    /**
+     * TEMPORARY_FIX
+     */
+    for (auto obj : objs)
+    {
+        delete obj;
+    }
+    objs.clear();
     return result;
 }
 

@@ -46,7 +46,16 @@ struct Value
         case Value::NUMBER_INT:
             return std::to_string(data.i);
         case Value::OBJECT:
-            return "<object>";
+        {
+            switch (data.o->get_type())
+            {
+            case ObjectType::STRING:
+                return static_cast<ObjectString *>(data.o)->get();
+            default:
+                break;
+            }
+            break;
+        }
 
         case Value::BOOLEAN:
             if (data.b)
@@ -90,6 +99,8 @@ struct Value
         }
     }
 
+    auto as_string() const -> ObjectString * { return static_cast<ObjectString *>(data.o); }
+
     auto as_integer() const -> int64_t { return data.i; }
 
     auto as_real() const -> double { return data.d; }
@@ -109,6 +120,11 @@ struct Value
     auto is_number() const -> bool { return is_integer() || is_real(); }
 
     auto is_object() const -> bool { return type == ValueType::OBJECT; }
+
+    auto is_string() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::STRING;
+    }
 
     auto coerce_integer() const -> int64_t
     {
@@ -156,6 +172,11 @@ struct Value
         case ValueType::NUMBER_INT:
             return as_integer() == other.as_integer();
         case ValueType::OBJECT:
+            switch (data.o->get_type())
+            {
+            case ObjectType::STRING:
+                return *as_string() == *other.as_string();
+            }
             return false;
         case Value::NUMBER_REAL:
             // Note: Comparing doubles like this is incorrect due to floating point precision errors

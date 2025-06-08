@@ -251,7 +251,11 @@ auto Compiler::literal() -> void
 
 auto Compiler::string() -> void
 {
+    // TODO: This couples the compiler with the runtime (VM), fix this by making the runtime create
+    // the strings instead. For example if the program is going to emit bytecode (like .pyc/.class
+    // files), which will later be executed
     auto token = parser.previous();
-    Object *obj = new ObjectString();
+    ObjectString *obj = new ObjectString(token.lexeme.substr(1, token.lexeme.size() - 2));
+    objs.push_back(obj);
     chunk.write_load_constant(chunk.add_constant(obj), token.line);
 }

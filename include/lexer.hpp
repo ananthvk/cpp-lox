@@ -1,6 +1,5 @@
 #pragma once
 #include "token.hpp"
-#include "token_type.hpp"
 #include <ctype.h>
 #include <limits>
 #include <stddef.h>

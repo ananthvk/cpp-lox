@@ -29,6 +29,18 @@
         push(v);                                                                                   \
     } while (false)
 
+auto concatenate(ObjectString *a, ObjectString *b) -> ObjectString *
+{
+    size_t len = a->size() + b->size();
+    char *buffer = new char[len + 1];
+    memcpy(buffer, a->get(), a->size());
+    memcpy(buffer + a->size(), b->get(), b->size());
+    buffer[len] = '\0';
+    auto str = new ObjectString(buffer, len);
+    objs.push_back(str);
+    return str;
+}
+
 auto VM::init() -> void
 {
     // Reserve a few more elements to ensure that we do not trigger resize of the vector when the
@@ -89,7 +101,14 @@ auto VM::execute() -> InterpretResult
             break;
         }
         case OpCode::ADD:
-            BINARY_OP(+);
+            if (peek(0).is_string() && peek(1).is_string())
+            {
+                auto b = pop().as_string();
+                auto a = pop().as_string();
+                push(concatenate(a, b));
+            }
+            else
+                BINARY_OP(+);
             break;
         case OpCode::SUBTRACT:
             BINARY_OP(-);
