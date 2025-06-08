@@ -26,8 +26,12 @@ class ObjectString : public Object
 {
     const char *data;
     size_t length;
+    bool owns_data;
 
-    ObjectString(const char *data, size_t length) : data(data), length(length) {}
+    ObjectString(const char *data, size_t length, bool owns_data)
+        : data(data), length(length), owns_data(owns_data)
+    {
+    }
 
   public:
     auto get_type() const -> ObjectType override { return ObjectType::STRING; }
@@ -51,7 +55,13 @@ class ObjectString : public Object
     ObjectString(ObjectString &&other) noexcept = delete;
     ObjectString &operator=(ObjectString &&other) noexcept = delete;
 
-    ~ObjectString() {}
+    ~ObjectString()
+    {
+        if (owns_data)
+        {
+            delete[] data;
+        }
+    }
 
     friend class Allocator;
 };

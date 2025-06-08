@@ -10,7 +10,6 @@
 class Allocator
 {
   private:
-    std::vector<const char *> buffers;
     std::vector<Object *> objs;
 
   public:
@@ -45,21 +44,19 @@ class Allocator
             char *buffer = new char[length + 1];
             memcpy(buffer, str, length);
             buffer[length] = '\0';
-            auto obj = new ObjectString(buffer, length);
+            auto obj = new ObjectString(buffer, length, true);
             objs.push_back(obj);
-            buffers.push_back(buffer);
             return obj;
         }
         else if (storage_type == StorageType::TAKE_OWNERSHIP)
         {
-            auto obj = new ObjectString(str, length);
+            auto obj = new ObjectString(str, length, true);
             objs.push_back(obj);
-            buffers.push_back(str);
             return obj;
         }
         else if (storage_type == StorageType::STATIC)
         {
-            auto obj = new ObjectString(str, length);
+            auto obj = new ObjectString(str, length, false);
             objs.push_back(obj);
             return obj;
         }
@@ -83,10 +80,6 @@ class Allocator
 
     ~Allocator()
     {
-        for (auto buffer : buffers)
-        {
-            delete[] buffer;
-        }
         for (auto obj : objs)
         {
             delete obj;
