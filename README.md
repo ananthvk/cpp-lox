@@ -1,5 +1,7 @@
 # cpp-lox
 
+My implementation of second part of Lox programming language from [Crafting interpreters](https://www.craftinginterpreters.com/contents.html) in C++. This implementation uses a bytecode VM to execute the programs.
+
 ## How to run?
 
 Install `meson`, `ninja` and a C++ 20 capable compiler
