@@ -8,4 +8,5 @@ test(
     args: ['-q', meson.current_source_dir()],
     env: ['PYTHONPATH=' + meson.project_source_root(), 'LOX_BINARY=' + lox_path],
     suite: 'python',
+    depends: [lox_exec]
 )

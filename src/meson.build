@@ -13,6 +13,7 @@ liblox = shared_library(
     sources: srcs,
     include_directories: include_dirs,
     cpp_args: extra_args,
+    dependencies: [fmt]
 )
 
 lox_exec = executable(
