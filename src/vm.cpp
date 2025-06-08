@@ -1,8 +1,6 @@
 #include "vm.hpp"
 #include "debug.hpp"
 
-// TODO: For now, perform all mathematical operations using double
-
 #define BINARY_OP(operator)                                                                        \
     do                                                                                             \
     {                                                                                              \
@@ -29,16 +27,15 @@
         push(v);                                                                                   \
     } while (false)
 
-auto concatenate(ObjectString *a, ObjectString *b) -> ObjectString *
+auto concatenate(Allocator &allocator, ObjectString *a, ObjectString *b) -> ObjectString *
 {
     size_t len = a->size() + b->size();
     char *buffer = new char[len + 1];
-    memcpy(buffer, a->get(), a->size());
-    memcpy(buffer + a->size(), b->get(), b->size());
+    memcpy(buffer, a->get().data(), a->size());
+    memcpy(buffer + a->size(), b->get().data(), b->size());
     buffer[len] = '\0';
-    auto str = new ObjectString(buffer, len);
-    objs.push_back(str);
-    return str;
+
+    return allocator.allocate_string(buffer, len, Allocator::StorageType::TAKE_OWNERSHIP);
 }
 
 auto VM::init() -> void
@@ -105,7 +102,7 @@ auto VM::execute() -> InterpretResult
             {
                 auto b = pop().as_string();
                 auto a = pop().as_string();
-                push(concatenate(a, b));
+                push(concatenate(allocator, a, b));
             }
             else
                 BINARY_OP(+);

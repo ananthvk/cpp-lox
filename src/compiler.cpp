@@ -1,10 +1,10 @@
 #include "compiler.hpp"
 #include "debug.hpp"
-#include "object.hpp"
 
-Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorReporter &reporter)
-    : source(source), opts(opts), lexer(source), parser(lexer.begin(), reporter),
-      rules(static_cast<int>(TokenType::TOKEN_COUNT))
+Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
+                   ErrorReporter &reporter)
+    : source(source), opts(opts), allocator(allocator), lexer(source),
+      parser(lexer.begin(), reporter), rules(static_cast<int>(TokenType::TOKEN_COUNT))
 {
 #define F(function) [this]() { function(); }
     // clang-format off
@@ -254,8 +254,10 @@ auto Compiler::string() -> void
     // TODO: This couples the compiler with the runtime (VM), fix this by making the runtime create
     // the strings instead. For example if the program is going to emit bytecode (like .pyc/.class
     // files), which will later be executed
+
     auto token = parser.previous();
-    ObjectString *obj = new ObjectString(token.lexeme.substr(1, token.lexeme.size() - 2));
-    objs.push_back(obj);
+
+    ObjectString *obj = allocator.allocate_string(token.lexeme.substr(1, token.lexeme.size() - 2),
+                                                  Allocator::StorageType::STATIC);
     chunk.write_load_constant(chunk.add_constant(obj), token.line);
 }

@@ -50,7 +50,7 @@ struct Value
             switch (data.o->get_type())
             {
             case ObjectType::STRING:
-                return static_cast<ObjectString *>(data.o)->get();
+                return std::string(static_cast<ObjectString *>(data.o)->get());
             default:
                 break;
             }

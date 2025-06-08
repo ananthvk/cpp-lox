@@ -1,4 +1,5 @@
 #pragma once
+#include "allocator.hpp"
 #include "chunk.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
@@ -28,6 +29,7 @@ class VM
     std::vector<Value> stack;
     VMOpts opts;
     ErrorReporter &reporter;
+    Allocator &allocator;
     const Chunk *chunk_;
     const uint8_t *ip;
 
@@ -75,8 +77,8 @@ class VM
     }
 
   public:
-    VM(const VMOpts &opts, ErrorReporter &reporter)
-        : opts(opts), reporter(reporter), chunk_(nullptr), ip(nullptr)
+    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator)
+        : opts(opts), reporter(reporter), allocator(allocator), chunk_(nullptr), ip(nullptr)
     {
         init();
     }

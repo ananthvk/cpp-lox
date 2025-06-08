@@ -1,4 +1,5 @@
 #include "lox.hpp"
+#include "allocator.hpp"
 #include "compiler.hpp"
 #include "debug.hpp"
 #include "lexer.hpp"
@@ -9,13 +10,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "object.hpp"
-std::vector<ObjectString *> objs;
-
 auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretResult
 {
     CompilerOpts copts;
     VMOpts vopts;
+    Allocator allocator;
 
     copts.debug_print_tokens = false;
 
@@ -23,7 +22,7 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
     vopts.debug_trace_value_stack = false;
     vopts.debug_step_mode_enabled = false;
 
-    Compiler compiler(src, copts, reporter);
+    Compiler compiler(src, copts, allocator, reporter);
     auto result = compiler.compile();
     if (result != InterpretResult::OK)
         return result;
@@ -32,17 +31,9 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
 
     disassemble_chunk(chunk, "program");
 
-    VM vm(vopts, reporter);
+    VM vm(vopts, reporter, allocator);
     result = vm.run(&chunk);
 
-    /**
-     * TEMPORARY_FIX
-     */
-    for (auto obj : objs)
-    {
-        delete obj;
-    }
-    objs.clear();
     return result;
 }
 

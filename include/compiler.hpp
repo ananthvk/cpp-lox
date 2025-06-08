@@ -1,4 +1,5 @@
 #pragma once
+#include "allocator.hpp"
 #include "chunk.hpp"
 #include "error_reporter.hpp"
 #include "lexer.hpp"
@@ -43,6 +44,7 @@ class Compiler
 {
     std::string_view source;
     CompilerOpts opts;
+    Allocator &allocator;
 
     Chunk chunk;
     Lexer lexer;
@@ -81,7 +83,8 @@ class Compiler
     auto parse_precedence(ParsePrecedence precedence) -> void;
 
   public:
-    Compiler(std::string_view source, const CompilerOpts &opts, ErrorReporter &reporter);
+    Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
+             ErrorReporter &reporter);
 
     auto compile() -> InterpretResult;
 
