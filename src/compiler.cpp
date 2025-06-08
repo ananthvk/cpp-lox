@@ -1,5 +1,6 @@
 #include "compiler.hpp"
 #include "debug.hpp"
+#include "object.hpp"
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorReporter &reporter)
     : source(source), opts(opts), lexer(source), parser(lexer.begin(), reporter),
@@ -27,7 +28,7 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, ErrorRepor
     rules[+TokenType::LESS]             = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
     rules[+TokenType::LESS_EQUAL]       = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
     rules[+TokenType::IDENTIFIER]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::STRING]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::STRING]           = {F(string),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_INT]       = {F(number),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_REAL]      = {F(number),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::AND]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -246,4 +247,11 @@ auto Compiler::literal() -> void
         throw std::logic_error("Invalid token type to literal");
         break;
     }
+}
+
+auto Compiler::string() -> void
+{
+    auto token = parser.previous();
+    Object *obj = new ObjectString();
+    chunk.write_load_constant(chunk.add_constant(obj), token.line);
 }

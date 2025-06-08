@@ -46,7 +46,7 @@ auto disassemble_chunk(const Chunk &chunk, const std::string &name) -> void
     fmt::print(fmt::fg(fmt::color::white) | fmt::emphasis::bold, "== {} ({} bytes) ==\n", name,
                chunk.get_code().size());
     const auto &code = chunk.get_code();
-    for (size_t offset = 0; offset < code.size();)
+    for (int offset = 0; offset < code.size();)
     {
         offset = disassemble_instruction(chunk, offset);
     }

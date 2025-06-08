@@ -35,7 +35,7 @@ class Chunk
     auto add_constant(Value value) -> int
     {
         value_array.push_back(value);
-        return value_array.size() - 1;
+        return static_cast<int>(value_array.size() - 1);
     }
 
     template <typename T> auto add_constant(T value) -> int { return add_constant(Value(value)); }

@@ -1,10 +1,14 @@
 #pragma once
-#include <string.h>
+#include "object.hpp"
 
+#include <math.h>
 #include <stddef.h>
 #include <stdexcept>
 #include <stdint.h>
+#include <string.h>
 #include <string>
+
+const double EPSILON = 1e-9;
 
 template <typename... T> struct always_false : std::false_type
 {
@@ -18,6 +22,7 @@ struct Value
         BOOLEAN,
         NUMBER_REAL,
         NUMBER_INT,
+        OBJECT
     };
 
     ValueType type;
@@ -27,6 +32,7 @@ struct Value
         bool b;
         int64_t i;
         double d;
+        Object *o;
     } data;
 
     auto to_string() const -> std::string
@@ -39,6 +45,8 @@ struct Value
             return std::to_string(data.d);
         case Value::NUMBER_INT:
             return std::to_string(data.i);
+        case Value::OBJECT:
+            return "<object>";
 
         case Value::BOOLEAN:
             if (data.b)
@@ -70,6 +78,12 @@ struct Value
             type = ValueType::NUMBER_REAL;
             data.d = value;
         }
+        else if constexpr (std::is_pointer_v<T> &&
+                           std::is_base_of_v<Object, std::remove_pointer_t<T>>)
+        {
+            type = ValueType::OBJECT;
+            data.o = value;
+        }
         else
         {
             static_assert(always_false<T>(), "Unsupported type passed");
@@ -82,6 +96,8 @@ struct Value
 
     auto as_bool() const -> bool { return data.b; }
 
+    auto as_object() const -> Object * { return data.o; }
+
     auto is_nil() const -> bool { return type == ValueType::NIL; }
 
     auto is_bool() const -> bool { return type == ValueType::BOOLEAN; }
@@ -91,6 +107,8 @@ struct Value
     auto is_real() const -> bool { return type == ValueType::NUMBER_REAL; }
 
     auto is_number() const -> bool { return is_integer() || is_real(); }
+
+    auto is_object() const -> bool { return type == ValueType::OBJECT; }
 
     auto coerce_integer() const -> int64_t
     {
@@ -137,10 +155,12 @@ struct Value
             return as_bool() == other.as_bool();
         case ValueType::NUMBER_INT:
             return as_integer() == other.as_integer();
+        case ValueType::OBJECT:
+            return false;
         case Value::NUMBER_REAL:
             // Note: Comparing doubles like this is incorrect due to floating point precision errors
             // TODO: Fix this by either defining an epsilon, or do not allow == between doubles
-            return as_real() == other.as_real();
+            return fabs(as_real() - other.as_real()) < EPSILON;
         }
     }
 };

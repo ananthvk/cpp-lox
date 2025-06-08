@@ -47,7 +47,7 @@
     X(QUESTION_MARK)                                                                               \
     X(TOKEN_COUNT)
 
-enum class TokenType
+enum class TokenType : uint8_t
 {
 #define X(name) name,
     TOKEN_TYPE_LIST

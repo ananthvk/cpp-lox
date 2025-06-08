@@ -2,13 +2,13 @@
 
 auto Chunk::write_simple_op(OpCode op, int line) -> void
 {
-    add_line_number(code.size(), line);
+    add_line_number(static_cast<int>(code.size()), line);
     code.push_back(static_cast<uint8_t>(op));
 }
 
 auto Chunk::write_byte(uint8_t byte, int line) -> void
 {
-    add_line_number(code.size(), line);
+    add_line_number(static_cast<int>(code.size()), line);
     code.push_back(byte);
 }
 

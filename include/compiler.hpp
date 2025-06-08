@@ -71,6 +71,7 @@ class Compiler
     auto binary() -> void;
     auto ternary() -> void;
     auto literal() -> void;
+    auto string() -> void;
 
     /**
      * This function parses any expression at `precedence` level or higher

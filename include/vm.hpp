@@ -28,7 +28,7 @@ class VM
     std::vector<Value> stack;
     VMOpts opts;
     ErrorReporter &reporter;
-    const Chunk *chunk;
+    const Chunk *chunk_;
     const uint8_t *ip;
 
     auto push(Value value) -> void
@@ -54,14 +54,14 @@ class VM
 
     auto read_byte() -> uint8_t { return *ip++; }
 
-    auto read_constant() -> Value { return chunk->get_value_unchecked(read_byte()); }
+    auto read_constant() -> Value { return chunk_->get_value_unchecked(read_byte()); }
 
     auto read_constant_long() -> Value
     {
         uint32_t constant_index = read_byte();
         constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(read_byte()) << 8);
         constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(read_byte()) << 16);
-        return chunk->get_value_unchecked(static_cast<int>(constant_index));
+        return chunk_->get_value_unchecked(static_cast<int>(constant_index));
     }
 
     auto execute() -> InterpretResult;
@@ -70,13 +70,13 @@ class VM
 
     template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
     {
-        int offset = static_cast<ptrdiff_t>(ip - chunk->get_code().data());
-        reporter.report(ErrorReporter::ERROR, chunk->get_line_number(offset), message, args...);
+        int offset = static_cast<int>(ip - chunk_->get_code().data());
+        reporter.report(ErrorReporter::ERROR, chunk_->get_line_number(offset), message, args...);
     }
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter)
-        : opts(opts), reporter(reporter), chunk(nullptr), ip(nullptr)
+        : opts(opts), reporter(reporter), chunk_(nullptr), ip(nullptr)
     {
         init();
     }

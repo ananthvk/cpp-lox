@@ -34,7 +34,7 @@ auto VM::init() -> void
     // Reserve a few more elements to ensure that we do not trigger resize of the vector when the
     // stack is full
     stack.reserve(opts.value_stack_max + 4);
-    chunk = nullptr;
+    chunk_ = nullptr;
     ip = nullptr;
 }
 
@@ -53,7 +53,7 @@ auto VM::execute() -> InterpretResult
         }
         if (opts.debug_trace_execution)
         {
-            disassemble_instruction(*chunk, static_cast<int>(ip - chunk->get_code().data()));
+            disassemble_instruction(*chunk_, static_cast<int>(ip - chunk_->get_code().data()));
         }
         if (opts.debug_step_mode_enabled)
         {
@@ -142,7 +142,7 @@ auto VM::run(const Chunk *chunk) -> InterpretResult
     {
         throw std::logic_error("chunk is null");
     }
-    this->chunk = chunk;
+    this->chunk_ = chunk;
     this->ip = chunk->get_code().data();
     return execute();
 }
