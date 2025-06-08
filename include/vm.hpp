@@ -4,6 +4,7 @@
 #include "debug.hpp"
 #include "error_reporter.hpp"
 #include "result.hpp"
+#include <ostream>
 
 struct VMOpts
 {
@@ -66,7 +67,7 @@ class VM
         return chunk_->get_value_unchecked(static_cast<int>(constant_index));
     }
 
-    auto execute() -> InterpretResult;
+    auto execute(std::ostream &os) -> InterpretResult;
 
     auto peek(int offset) const -> Value { return *(stack.end() - offset - 1); }
 
@@ -85,5 +86,5 @@ class VM
 
     auto init() -> void;
 
-    auto run(const Chunk *chunk) -> InterpretResult;
+    auto run(const Chunk *chunk, std::ostream &os) -> InterpretResult;
 };

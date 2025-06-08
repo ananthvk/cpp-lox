@@ -1,6 +1,9 @@
 #include "vm.hpp"
 #include "debug.hpp"
 
+// TODO: When both operands are integers, division converts them to double before performing the
+// operation. Provide an integer division operator (like //)
+
 #define BINARY_OP(operator)                                                                        \
     do                                                                                             \
     {                                                                                              \
@@ -14,9 +17,9 @@
         Value v;                                                                                   \
         if (b.is_integer() && a.is_integer())                                                      \
         {                                                                                          \
-            auto aval = a.as_integer();                                                            \
-            auto bval = b.as_integer();                                                            \
-            v.set_value(static_cast<int64_t>(aval operator bval));                                 \
+            auto aval = a.coerce_real();                                                         \
+            auto bval = b.coerce_real();                                                         \
+            v.set_value(static_cast<double>(aval operator bval));                                  \
         }                                                                                          \
         else if (b.is_number() && a.is_number())                                                   \
         {                                                                                          \
@@ -47,7 +50,7 @@ auto VM::init() -> void
     ip = nullptr;
 }
 
-auto VM::execute() -> InterpretResult
+auto VM::execute(std::ostream &os) -> InterpretResult
 {
     while (1)
     {
@@ -74,7 +77,7 @@ auto VM::execute() -> InterpretResult
         {
         case OpCode::RETURN:
             // TODO: For now, pop the value and print it
-            fmt::print(fmt::fg(fmt::color::crimson), "{}\n", pop().to_string());
+            os << pop().to_string() << std::endl;
             return InterpretResult::OK;
         case OpCode::LOAD_CONSTANT:
             push(read_constant());
@@ -152,7 +155,7 @@ auto VM::execute() -> InterpretResult
     return InterpretResult::OK;
 }
 
-auto VM::run(const Chunk *chunk) -> InterpretResult
+auto VM::run(const Chunk *chunk, std::ostream &os) -> InterpretResult
 {
     if (chunk == nullptr)
     {
@@ -160,5 +163,5 @@ auto VM::run(const Chunk *chunk) -> InterpretResult
     }
     this->chunk_ = chunk;
     this->ip = chunk->get_code().data();
-    return execute();
+    return execute(os);
 }

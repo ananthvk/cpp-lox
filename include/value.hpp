@@ -1,6 +1,7 @@
 #pragma once
 #include "object.hpp"
 
+#include <fmt/format.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdexcept>
@@ -42,7 +43,7 @@ struct Value
         case Value::NIL:
             return "nil";
         case Value::NUMBER_REAL:
-            return std::to_string(data.d);
+            return fmt::format("{:.20g}", data.d);
         case Value::NUMBER_INT:
             return std::to_string(data.i);
         case Value::OBJECT:
@@ -63,9 +64,8 @@ struct Value
             else
                 return "false";
             break;
-        default:
-            throw std::logic_error("Invalid value type passed to to_string");
         }
+        throw std::logic_error("Invalid value type passed to to_string");
     }
 
     template <typename T> Value(T value) { set_value(value); }
@@ -183,5 +183,6 @@ struct Value
             // TODO: Fix this by either defining an epsilon, or do not allow == between doubles
             return fabs(as_real() - other.as_real()) < EPSILON;
         }
+        return false;
     }
 };

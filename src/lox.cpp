@@ -32,7 +32,7 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
     disassemble_chunk(chunk, "program");
 
     VM vm(vopts, reporter, allocator);
-    result = vm.run(&chunk);
+    result = vm.run(&chunk, std::cout);
 
     return result;
 }
@@ -83,6 +83,40 @@ auto Lox::run_repl() -> int
             reporter.display(stderr);
             reporter.clear();
         }
+    }
+    return 0;
+}
+
+auto Lox::run_source(std::string_view src) -> int
+{
+    CompilerOpts copts;
+    VMOpts vopts;
+    Allocator allocator;
+    ErrorReporter reporter;
+
+    copts.debug_print_tokens = false;
+
+    vopts.debug_trace_execution = false;
+    vopts.debug_trace_value_stack = false;
+    vopts.debug_step_mode_enabled = false;
+
+    Compiler compiler(src, copts, allocator, reporter);
+    auto result = compiler.compile();
+    if (result != InterpretResult::OK)
+    {
+        std::cout << "ERROR" << std::endl;
+        return 1;
+    }
+
+    auto chunk = compiler.take_chunk();
+
+    VM vm(vopts, reporter, allocator);
+    result = vm.run(&chunk, std::cout);
+
+    if (reporter.has_error() || result != InterpretResult::OK)
+    {
+        std::cout << "ERROR" << std::endl;
+        return 2;
     }
     return 0;
 }

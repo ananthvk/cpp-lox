@@ -15,7 +15,7 @@ liblox = shared_library(
     cpp_args: extra_args,
 )
 
-executable(
+lox_exec = executable(
     'cpplox',
     sources: ['main.cpp'],
     dependencies: [fmt],

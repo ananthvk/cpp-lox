@@ -41,6 +41,8 @@ class Allocator
     {
         if (storage_type == StorageType::DYNAMIC)
         {
+            // TODO: Use placement new (no flexible array members in C++) to create the ObjectString
+            // & the buffer at the same location.
             char *buffer = new char[length + 1];
             memcpy(buffer, str, length);
             buffer[length] = '\0';

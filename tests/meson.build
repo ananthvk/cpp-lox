@@ -1,11 +1,11 @@
-gtest_dep = dependency('gtest')
+test_py = find_program('pytest', required: true)
 
-cppstarter_test = executable(
-    'cpplox_test',
-    sources: ['cpplox_test.cpp'],
-    dependencies: [gtest_dep],
-    link_with: [liblox],
-    include_directories: include_dirs,
-    cpp_args: extra_args,
+lox_path = lox_exec.full_path()
+
+test(
+    'pytest',
+    test_py,
+    args: ['-q', meson.current_source_dir()],
+    env: ['PYTHONPATH=' + meson.project_source_root(), 'LOX_BINARY=' + lox_path],
+    suite: 'python',
 )
-test('cppstarter_test', cppstarter_test)
