@@ -92,12 +92,12 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 report_error("{}", "Runtime Error: Cannot negate value, it must be a number");
                 return InterpretResult::RUNTIME_ERROR;
             }
-            Value v = pop();
+            auto &v = stack.back();
             if (v.is_real())
                 v.data.d = -v.as_real();
             else if (v.is_integer())
                 v.data.i = -v.as_integer();
-            push(v);
+            // push(v);
             break;
         }
         case OpCode::ADD:

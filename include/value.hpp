@@ -43,7 +43,7 @@ struct Value
         case Value::NIL:
             return "nil";
         case Value::NUMBER_REAL:
-            return fmt::format("{:.20g}", data.d);
+            return fmt::format("{:.6g}", data.d);
         case Value::NUMBER_INT:
             return std::to_string(data.i);
         case Value::OBJECT:
