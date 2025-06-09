@@ -144,8 +144,6 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             break;
         }
         case OpCode::GREATER:
-            // TODO: Fix this: Inefficient, since it performs a binary op, then pops the value from
-            // the stack, then again pushes it as bool
             BINARY_OP(>);
             break;
         case OpCode::LESS:
