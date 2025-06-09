@@ -17,9 +17,9 @@
         Value v;                                                                                   \
         if (b.is_integer() && a.is_integer())                                                      \
         {                                                                                          \
-            auto aval = a.coerce_real();                                                         \
-            auto bval = b.coerce_real();                                                         \
-            v.set_value(static_cast<double>(aval operator bval));                                  \
+            auto aval = a.coerce_real();                                                           \
+            auto bval = b.coerce_real();                                                           \
+            v.set_value(aval operator bval);                                                       \
         }                                                                                          \
         else if (b.is_number() && a.is_number())                                                   \
         {                                                                                          \
@@ -135,18 +135,21 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         {
             auto b = pop();
             auto a = pop();
-            push(a == b);
+            if (a.is_number() && b.is_number() && (a.is_real() || b.is_real()))
+                push(a.coerce_real() == b.coerce_real());
+            else
+            {
+                push(a == b);
+            }
             break;
         }
         case OpCode::GREATER:
             // TODO: Fix this: Inefficient, since it performs a binary op, then pops the value from
             // the stack, then again pushes it as bool
             BINARY_OP(>);
-            push(static_cast<bool>(pop().coerce_integer()));
             break;
         case OpCode::LESS:
             BINARY_OP(<);
-            push(static_cast<bool>(pop().coerce_integer()));
             break;
         default:
             throw std::logic_error("Invalid instruction");

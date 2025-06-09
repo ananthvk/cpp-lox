@@ -53,3 +53,26 @@ def test_expression(run_lox):
             )
         )
     ) == math.floor(float("-147835"))
+
+
+def test_expression_rel(run_lox):
+    assert run_lox("(3+2) > 4") == "true"
+    assert run_lox("(3+2) == 4") == "false"
+    assert run_lox("(3+2) >= 4") == "true"
+    assert run_lox("(3+2) < 4") == "false"
+    assert run_lox("(3+2) <= 4") == "false"
+    assert run_lox("(3+2) != 4") == "true"
+
+    assert run_lox("(3-2) > 4") == "false"
+    assert run_lox("(3-2) == 4") == "false"
+    assert run_lox("(3-2) >= 4") == "false"
+    assert run_lox("(3-2) < 4") == "true"
+    assert run_lox("(3-2) <= 4") == "true"
+    assert run_lox("(3+2) != 4") == "true"
+
+    assert run_lox("(3+1) > 4") == "false"
+    assert run_lox("(3+1) == 4") == "true"
+    assert run_lox("(3+1) >= 4") == "true"
+    assert run_lox("(3+1) < 4") == "false"
+    assert run_lox("(3+1) <= 4") == "true"
+    assert run_lox("(3+1) != 4") == "false"
