@@ -17,9 +17,18 @@
         Value v;                                                                                   \
         if (b.is_integer() && a.is_integer())                                                      \
         {                                                                                          \
-            auto aval = a.coerce_real();                                                           \
-            auto bval = b.coerce_real();                                                           \
-            v.set_value(aval operator bval);                                                       \
+            if constexpr ((#operator)[0] == '/')                                                   \
+            {                                                                                      \
+                auto aval = a.coerce_real();                                                       \
+                auto bval = b.coerce_real();                                                       \
+                v.set_value(aval operator bval);                                                   \
+            }                                                                                      \
+            else                                                                                   \
+            {                                                                                      \
+                auto aval = a.as_integer();                                                        \
+                auto bval = b.as_integer();                                                        \
+                v.set_value(aval operator bval);                                                   \
+            }                                                                                      \
         }                                                                                          \
         else if (b.is_number() && a.is_number())                                                   \
         {                                                                                          \
@@ -136,6 +145,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             auto b = pop();
             auto a = pop();
             if (a.is_number() && b.is_number() && (a.is_real() || b.is_real()))
+                // TODO: -Wfloat-equal
                 push(a.coerce_real() == b.coerce_real());
             else
             {
