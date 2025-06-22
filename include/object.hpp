@@ -27,9 +27,10 @@ class ObjectString : public Object
     const char *data;
     size_t length;
     bool owns_data;
+    uint32_t hash_;
 
-    ObjectString(const char *data, size_t length, bool owns_data)
-        : data(data), length(length), owns_data(owns_data)
+    ObjectString(const char *data, size_t length, bool owns_data, uint32_t hash)
+        : data(data), length(length), owns_data(owns_data), hash_(hash)
     {
     }
 
@@ -37,6 +38,8 @@ class ObjectString : public Object
     auto get_type() const -> ObjectType override { return ObjectType::STRING; }
 
     auto size() const -> size_t { return length; }
+
+    auto hash() const -> uint32_t { return hash_; }
 
     auto get() const -> std::string_view { return std::string_view{data, length}; }
 

@@ -46,19 +46,19 @@ class Allocator
             char *buffer = new char[length + 1];
             memcpy(buffer, str, length);
             buffer[length] = '\0';
-            auto obj = new ObjectString(buffer, length, true);
+            auto obj = new ObjectString(buffer, length, true, 0);
             objs.push_back(obj);
             return obj;
         }
         else if (storage_type == StorageType::TAKE_OWNERSHIP)
         {
-            auto obj = new ObjectString(str, length, true);
+            auto obj = new ObjectString(str, length, true, 0);
             objs.push_back(obj);
             return obj;
         }
         else if (storage_type == StorageType::STATIC)
         {
-            auto obj = new ObjectString(str, length, false);
+            auto obj = new ObjectString(str, length, false, 0);
             objs.push_back(obj);
             return obj;
         }
