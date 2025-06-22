@@ -102,6 +102,33 @@ class HashMap
         }
     }
 
+    auto insert_slot(const Key &key, const Value &value) -> Slot &
+    {
+        grow();
+
+        Slot &slot = find_slot(slots, key);
+        if (slot.state == Slot::State::EMPTY)
+        {
+            slot.key = key;
+            slot.value = value;
+            slot.state = Slot::State::FILLED;
+            size_ += 1;
+        }
+        else if (slot.state == Slot::State::TOMBSTONE)
+        {
+            slot.key = key;
+            slot.value = value;
+            slot.state = Slot::State::FILLED;
+            size_ += 1;
+            tombstones_ -= 1;
+        }
+        else
+        {
+            slot.value = value;
+        }
+        return slot;
+    }
+
   public:
     using key_type = Key;
     using mapped_type = Value;
@@ -110,9 +137,9 @@ class HashMap
     using hasher = Hash;
     using key_equal = KeyEqual;
 
-    static constexpr double DEFAULT_MAX_LOAD_FACTOR = 0.75;
+    static constexpr double DEFAULT_MAX_LOAD_FACTOR = 0.65;
     static constexpr double DEFAULT_GROWTH_FACTOR = 2.0;
-    static constexpr size_t MIN_TABLE_SIZE = 8;
+    static constexpr size_t MIN_TABLE_SIZE = 128;
 
     HashMap()
         : size_(0), tombstones_(0), max_load_factor_(DEFAULT_MAX_LOAD_FACTOR),
@@ -134,7 +161,17 @@ class HashMap
 
     auto get_ref(const Key &key) -> Value &
     {
+        if (size_ == 0)
+        {
+            // No elements are present
+            return insert_slot(key, Value{}).value;
+        }
         Slot &slot = find_slot(slots, key);
+        if (slot.state != Slot::State::FILLED)
+        {
+            // Default construct a value here
+            return insert_slot(key, Value{}).value;
+        }
         return slot.value;
     }
 
