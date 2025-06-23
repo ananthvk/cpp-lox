@@ -73,12 +73,15 @@ class Allocator
         InternedString characters{str, length, hash};
         auto interned_objstring = interned_strings.get(characters);
 
+        /*
         if (interned_objstring)
         {
             fmt::println("Interned string found existing string at {} \"{}\"",
                          static_cast<void *>(interned_objstring.value()),
                          std::string_view{str, length});
         }
+        */
+
         return std::make_pair(interned_objstring.value_or(nullptr), hash);
     }
 

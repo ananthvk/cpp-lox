@@ -10,17 +10,11 @@
 #include <iostream>
 #include <sstream>
 
-auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretResult
+auto Lox::execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocator &allocator)
+    -> InterpretResult
 {
     CompilerOpts copts;
-    VMOpts vopts;
-    Allocator allocator;
-
     copts.debug_print_tokens = false;
-
-    vopts.debug_trace_execution = false;
-    vopts.debug_trace_value_stack = false;
-    vopts.debug_step_mode_enabled = false;
 
     Compiler compiler(src, copts, allocator, reporter);
     auto result = compiler.compile();
@@ -31,7 +25,6 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
 
     disassemble_chunk(chunk, "program");
 
-    VM vm(vopts, reporter, allocator);
     result = vm.run(&chunk, std::cout);
 
     return result;
@@ -39,6 +32,7 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter) -> InterpretRes
 
 auto Lox::run_file(const std::filesystem::path &path) -> int
 {
+
     std::ifstream file(path);
     if (!file)
     {
@@ -55,8 +49,16 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     std::stringstream ss;
     ss << file.rdbuf();
     auto source = ss.str();
+
     ErrorReporter reporter;
-    execute(source, reporter);
+    VMOpts vopts;
+    Allocator allocator;
+    vopts.debug_trace_execution = false;
+    vopts.debug_trace_value_stack = false;
+    vopts.debug_step_mode_enabled = false;
+    VM vm(vopts, reporter, allocator);
+
+    execute(source, reporter, vm, allocator);
     if (reporter.has_messages())
     {
         reporter.display(stderr);
@@ -68,6 +70,13 @@ auto Lox::run_repl() -> int
 {
     std::string line;
     ErrorReporter reporter;
+    VMOpts vopts;
+    Allocator allocator;
+    vopts.debug_trace_execution = false;
+    vopts.debug_trace_value_stack = false;
+    vopts.debug_step_mode_enabled = false;
+    VM vm(vopts, reporter, allocator);
+
     while (true)
     {
         fmt::print(fmt::fg(fmt::color::blue), ">>> ");
@@ -77,7 +86,7 @@ auto Lox::run_repl() -> int
             break;
         if (line == "")
             continue;
-        execute(line, reporter);
+        execute(line, reporter, vm, allocator);
         if (reporter.has_messages())
         {
             reporter.display(stderr);
