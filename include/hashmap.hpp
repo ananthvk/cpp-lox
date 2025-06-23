@@ -80,6 +80,10 @@ class HashMap
         auto new_size = size_ + 1 + tombstones_;
         if (new_size > static_cast<size_t>(static_cast<double>(slots.size()) * max_load_factor_))
         {
+            // TODO: Note that the new capacity is calculated using the number of slots and not
+            // using the number of elements in the table. If resize is implemented using the number
+            // of keys, it can save memory but can lead to thrashing when elements are frequently
+            // inserted and deleted
             auto new_capacity =
                 std::max(static_cast<size_t>(growth_factor_ * static_cast<double>(slots.size())),
                          MIN_TABLE_SIZE);

@@ -47,7 +47,7 @@ auto concatenate(Allocator &allocator, ObjectString *a, ObjectString *b) -> Obje
     memcpy(buffer + a->size(), b->get().data(), b->size());
     buffer[len] = '\0';
 
-    return allocator.allocate_string(buffer, len, Allocator::StorageType::TAKE_OWNERSHIP);
+    return allocator.intern_string(buffer, len, Allocator::StorageType::TAKE_OWNERSHIP);
 }
 
 auto VM::init() -> void

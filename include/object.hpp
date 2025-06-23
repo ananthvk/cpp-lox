@@ -26,11 +26,10 @@ class ObjectString : public Object
 {
     const char *data;
     size_t length;
-    bool owns_data;
     uint32_t hash_;
 
-    ObjectString(const char *data, size_t length, bool owns_data, uint32_t hash)
-        : data(data), length(length), owns_data(owns_data), hash_(hash)
+    ObjectString(const char *data, size_t length, uint32_t hash)
+        : data(data), length(length), hash_(hash)
     {
     }
 
@@ -43,12 +42,7 @@ class ObjectString : public Object
 
     auto get() const -> std::string_view { return std::string_view{data, length}; }
 
-    auto operator==(const ObjectString &other) const -> bool
-    {
-        if (length != other.length)
-            return false;
-        return memcmp(data, other.data, length) == 0;
-    }
+    auto operator==(const ObjectString &other) const -> bool { return this == &other; }
 
     // Copy not allowed
     ObjectString(const ObjectString &other) = delete;
@@ -58,13 +52,7 @@ class ObjectString : public Object
     ObjectString(ObjectString &&other) noexcept = delete;
     ObjectString &operator=(ObjectString &&other) noexcept = delete;
 
-    ~ObjectString()
-    {
-        if (owns_data)
-        {
-            delete[] data;
-        }
-    }
+    ~ObjectString() { delete[] data; }
 
     friend class Allocator;
 };

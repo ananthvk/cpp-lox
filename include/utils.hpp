@@ -1,4 +1,7 @@
 #pragma once
+#include "hashmap.hpp"
+#include "object.hpp"
+#include "value.hpp"
 #include <fmt/format.h>
 #include <string>
 
@@ -34,3 +37,10 @@ inline auto escape_string(const std::string_view &input) -> std::string
     }
     return escaped;
 }
+
+struct VMStringValueTableHasher
+{
+    auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
+};
+
+using VMStringValueTable = HashMap<ObjectString *, Value, VMStringValueTableHasher>;

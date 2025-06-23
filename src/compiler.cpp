@@ -257,7 +257,7 @@ auto Compiler::string() -> void
 
     auto token = parser.previous();
 
-    ObjectString *obj = allocator.allocate_string(token.lexeme.substr(1, token.lexeme.size() - 2),
-                                                  Allocator::StorageType::STATIC);
+    ObjectString *obj = allocator.intern_string(token.lexeme.substr(1, token.lexeme.size() - 2),
+                                                  Allocator::StorageType::DYNAMIC);
     chunk.write_load_constant(chunk.add_constant(obj), token.line);
 }
