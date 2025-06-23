@@ -11,3 +11,10 @@ option(
     value: true,
     description: 'Enables building of tests'
 )
+
+option(
+    'enable-benchmarks',
+    type: 'boolean',
+    value: true,
+    description: 'Enables building of benchmarks'
+)

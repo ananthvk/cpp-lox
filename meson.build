@@ -45,3 +45,7 @@ subdir('src')
 if get_option('enable-tests')
     subdir('tests')
 endif
+
+if get_option('enable-benchmarks')
+    subdir('benchmarks')
+endif
