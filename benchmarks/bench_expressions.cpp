@@ -76,4 +76,23 @@ static void BM_RunExpression(benchmark::State &state)
 
 BENCHMARK(BM_RunExpression);
 
+static void BM_RunExpressionNegation(benchmark::State &state)
+{
+    ErrorReporter reporter;
+    Allocator allocator;
+    VMOpts opts;
+    VM vm(opts, reporter, allocator);
+    const char *src =
+        "------------------------------------------------------------------------------------------"
+        "------------------------------------------------------------------------------------------"
+        "-------------8+---------------------------------------------------------------------------"
+        "------------------------------------------------------------------------------------------"
+        "----------------------------------------------------------7";
+    auto chunk = compile(src, reporter, allocator);
+    for (auto _ : state)
+        execute(chunk, vm);
+}
+
+BENCHMARK(BM_RunExpressionNegation);
+
 BENCHMARK_MAIN();

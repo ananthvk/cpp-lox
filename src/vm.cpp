@@ -101,6 +101,14 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 report_error("{}", "Runtime Error: Cannot negate value, it must be a number");
                 return InterpretResult::RUNTIME_ERROR;
             }
+            /**
+             * pop(), then push()
+             * BM_RunExpressionNegation       3.02 us         2.99 us       231099
+             *
+             * modify in place
+             * BM_RunExpressionNegation       1.68 us         1.68 us       408390
+             * So there is a performance gain when negating in place
+             */
             auto &v = stack.back();
             if (v.is_real())
                 v.data.d = -v.as_real();
