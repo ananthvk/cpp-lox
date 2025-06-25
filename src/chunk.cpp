@@ -12,6 +12,13 @@ auto Chunk::write_byte(uint8_t byte, int line) -> void
     code.push_back(byte);
 }
 
+auto Chunk::write_uint16_le(uint16_t bytes, int line) -> void
+{
+    add_line_number(static_cast<int>(code.size()), line);
+    write_byte(static_cast<uint8_t>(bytes & 0xFF), line);
+    write_byte(static_cast<uint8_t>((bytes >> 8) & 0xFF), line);
+}
+
 auto Chunk::write_load_constant(int index, int line) -> void
 {
     if (index < 0)
@@ -23,15 +30,10 @@ auto Chunk::write_load_constant(int index, int line) -> void
         write_simple_op(OpCode::LOAD_CONSTANT, line);
         write_byte(static_cast<uint8_t>(index), line);
     }
-    else if (index <= 0xFFFFFF)
+    else if (index <= 0xFFFF)
     {
         write_simple_op(OpCode::LOAD_CONSTANT_LONG, line);
-        /*
-         * All values are stored in little endian format
-         */
-        write_byte(static_cast<uint8_t>(index & 0xFF), line);
-        write_byte(static_cast<uint8_t>((index >> 8) & 0xFF), line);
-        write_byte(static_cast<uint8_t>((index >> 16) & 0xFF), line);
+        write_uint16_le(index, line);
     }
     else
     {

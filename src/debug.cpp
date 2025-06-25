@@ -23,12 +23,14 @@ auto constant_instruction(OpCode op, int offset, const Chunk &chunk) -> int
     return offset + 2;
 }
 
-auto constant_instruction_long(OpCode op, int offset, const Chunk &chunk) -> int
+/**
+ * An instruction that has an unsigned 2 byte operand
+ */
+auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk) -> int
 {
     const auto &code = chunk.get_code();
-    uint32_t constant_index = code[offset + 1];
-    constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(code[offset + 2]) << 8);
-    constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(code[offset + 3]) << 16);
+    uint16_t constant_index = code[offset + 1];
+    constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
     fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
     if (auto value = chunk.get_value(constant_index))
     {
@@ -38,7 +40,7 @@ auto constant_instruction_long(OpCode op, int offset, const Chunk &chunk) -> int
     {
         fmt::print(fmt::fg(fmt::color::red), "NO_VALUE\n");
     }
-    return offset + 4;
+    return offset + 3;
 }
 
 auto disassemble_chunk(const Chunk &chunk, const std::string &name) -> void
@@ -78,7 +80,9 @@ auto disassemble_instruction(const Chunk &chunk, int offset) -> int
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
-        return constant_instruction_long(instruction, offset, chunk);
+    case OpCode::STORE_GLOBAL:
+    case OpCode::LOAD_GLOBAL:
+        return instruction_uint16_le(instruction, offset, chunk);
     case OpCode::TRUE:
     case OpCode::FALSE:
     case OpCode::NIL:
@@ -86,6 +90,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset) -> int
     case OpCode::GREATER:
     case OpCode::LESS:
     case OpCode::EQUAL:
+    case OpCode::PRINT:
+    case OpCode::POP_TOP:
         return simple_instruction(instruction, offset);
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");

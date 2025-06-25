@@ -30,6 +30,8 @@ class Chunk
 
     auto write_byte(uint8_t byte, int line) -> void;
 
+    auto write_uint16_le(uint16_t bytes, int line) -> void;
+
     auto write_load_constant(int index, int line) -> void;
 
     auto add_constant(Value value) -> int

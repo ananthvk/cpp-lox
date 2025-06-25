@@ -179,6 +179,22 @@ class HashMap
         return slot.value;
     }
 
+    auto operator[](const Key &key) -> Value &
+    {
+        if (size_ == 0)
+        {
+            // No elements are present
+            return insert_slot(key, Value{}).value;
+        }
+        Slot &slot = find_slot(slots, key);
+        if (slot.state != Slot::State::FILLED)
+        {
+            // Default construct a value here
+            return insert_slot(key, Value{}).value;
+        }
+        return slot.value;
+    }
+
     /**
      * Returns true if a new key was inserted
      */

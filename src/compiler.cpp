@@ -27,7 +27,7 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     rules[+TokenType::GREATER_EQUAL]    = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
     rules[+TokenType::LESS]             = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
     rules[+TokenType::LESS_EQUAL]       = {nullptr,        F(binary),        ParsePrecedence::COMPARISON};
-    rules[+TokenType::IDENTIFIER]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::IDENTIFIER]       = {F(variable),    nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::STRING]           = {F(string),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_INT]       = {F(number),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_REAL]      = {F(number),      nullptr,          ParsePrecedence::NONE};
@@ -63,10 +63,12 @@ auto Compiler::compile() -> InterpretResult
         print_tokens(lexer);
     }
 
-    // Parse a single expression for now
-    expression();
+    while (!parser.match(TokenType::END_OF_FILE))
+    {
+        declaration();
+    }
+
     emit_return();
-    parser.consume(TokenType::END_OF_FILE);
 
     if (parser.had_error())
         return InterpretResult::COMPILE_ERROR;
@@ -79,6 +81,11 @@ auto Compiler::take_chunk() -> Chunk && { return std::move(chunk); }
 auto Compiler::emit_opcode(OpCode code) -> void
 {
     chunk.write_simple_op(code, parser.previous().line);
+}
+
+auto Compiler::emit_uint16_le(uint16_t bytes) -> void
+{
+    chunk.write_uint16_le(bytes, parser.previous().line);
 }
 
 auto Compiler::emit_opcode(OpCode code, uint8_t byte) -> void
@@ -258,6 +265,109 @@ auto Compiler::string() -> void
     auto token = parser.previous();
 
     ObjectString *obj = allocator.intern_string(token.lexeme.substr(1, token.lexeme.size() - 2),
-                                                  Allocator::StorageType::DYNAMIC);
+                                                Allocator::StorageType::DYNAMIC);
     chunk.write_load_constant(chunk.add_constant(obj), token.line);
+}
+
+auto Compiler::declaration() -> void
+{
+    // A declaration is either a statement or a variable declaration
+    if (parser.match(TokenType::VAR))
+    {
+        var_declaration();
+    }
+    else
+    {
+        statement();
+    }
+    if (parser.is_panic())
+    {
+        parser.synchronize();
+    }
+}
+
+auto Compiler::statement() -> void
+{
+    if (parser.match(TokenType::PRINT))
+    {
+        print_statement();
+    }
+    else
+    {
+        expression_statement();
+    }
+}
+
+auto Compiler::print_statement() -> void
+{
+    expression();
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after print statement");
+    emit_opcode(OpCode::PRINT);
+}
+
+auto Compiler::expression_statement() -> void
+{
+    if (parser.peek().token_type == TokenType::SEMICOLON)
+    {
+        // Empty expression, so don't add POP_TOP
+        parser.advance();
+        return;
+    }
+    expression();
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after expression");
+    // Pop the top of the value stack, i.e. discard the value
+    emit_opcode(OpCode::POP_TOP);
+}
+
+auto Compiler::var_declaration() -> void
+{
+    int variable_constant_index = parse_variable("Expected variable name after 'var'");
+    if (parser.match(TokenType::EQUAL))
+        expression();
+    else
+        emit_opcode(OpCode::NIL);
+
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after variable declaration");
+
+    define_global_variable(variable_constant_index);
+}
+
+auto Compiler::variable() -> void { named_variable(parser.previous()); }
+
+auto Compiler::parse_variable(std::string_view err_message) -> int
+{
+    parser.consume(TokenType::IDENTIFIER, err_message);
+
+    auto token = parser.previous();
+
+    ObjectString *obj = allocator.intern_string(token.lexeme, Allocator::StorageType::DYNAMIC);
+    return chunk.add_constant(obj);
+}
+
+auto Compiler::define_global_variable(int constant_index) -> void
+{
+    if (constant_index <= 0xFFFF)
+    {
+        emit_opcode(OpCode::STORE_GLOBAL);
+        emit_uint16_le(static_cast<uint16_t>(constant_index));
+    }
+    else
+        throw std::logic_error("Too many global variables in chunk");
+}
+
+auto Compiler::identifier(std::string_view name) -> void
+{
+    ObjectString *obj = allocator.intern_string(name, Allocator::StorageType::DYNAMIC);
+    int index = chunk.add_constant(obj);
+
+    if (index <= 0xFFFFFF)
+        emit_uint16_le(static_cast<uint16_t>(index));
+    else
+        throw std::logic_error("Too many global variables in chunk");
+}
+
+auto Compiler::named_variable(Token name) -> void
+{
+    emit_opcode(OpCode::LOAD_GLOBAL);
+    identifier(name.lexeme);
 }

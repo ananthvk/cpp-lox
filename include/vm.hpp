@@ -3,6 +3,7 @@
 #include "chunk.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
+#include "hashmap.hpp"
 #include "result.hpp"
 #include <ostream>
 
@@ -24,6 +25,13 @@ struct VMOpts
     bool debug_step_mode_enabled = false;
 };
 
+struct VMStringValueTableHasher
+{
+    auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
+};
+
+using VMStringValueTable = HashMap<ObjectString *, Value, VMStringValueTableHasher>;
+
 class VM
 {
   private:
@@ -33,6 +41,7 @@ class VM
     Allocator &allocator;
     const Chunk *chunk_;
     const uint8_t *ip;
+    VMStringValueTable globals;
 
     auto push(Value value) -> void
     {
@@ -61,9 +70,8 @@ class VM
 
     auto read_constant_long() -> Value
     {
-        uint32_t constant_index = read_byte();
-        constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(read_byte()) << 8);
-        constant_index |= static_cast<uint32_t>(static_cast<uint32_t>(read_byte()) << 16);
+        uint16_t constant_index = read_byte();
+        constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(read_byte()) << 8);
         return chunk_->get_value_unchecked(static_cast<int>(constant_index));
     }
 

@@ -43,9 +43,13 @@ class Parser
      * reported
      */
     auto consume(TokenType expected, std::string_view error_message = "") -> void;
+
     /**
      * Returns true if an error had occured while parsing
      */
+
+    auto is_panic() const -> bool { return panic_mode; }
+
     auto had_error() const -> bool;
     /**
      * Returns true if the parser does not have any more tokens to process and has parsed
@@ -73,4 +77,6 @@ class Parser
      * Returns the token after current without advancing the parser
      */
     auto peek_next() const -> Token;
+
+    auto synchronize() -> void;
 };

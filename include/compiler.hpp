@@ -58,7 +58,10 @@ class Compiler
     auto emit_opcode(OpCode code) -> void;
     auto emit_opcode(OpCode code, uint8_t byte) -> void;
     auto emit_byte(uint8_t byte) -> void;
+    auto emit_uint16_le(uint16_t bytes) -> void;
     auto emit_return() -> void;
+
+    auto define_global_variable(int constant_index) -> void;
 
     auto get_rule(TokenType type) const -> ParseRule;
 
@@ -74,6 +77,19 @@ class Compiler
     auto ternary() -> void;
     auto literal() -> void;
     auto string() -> void;
+    auto variable() -> void;
+    auto identifier(std::string_view name) -> void;
+    auto named_variable(Token name) -> void;
+
+    /**
+     * Statements
+     */
+    auto statement() -> void;
+    auto declaration() -> void;
+    auto print_statement() -> void;
+    auto expression_statement() -> void;
+    auto var_declaration() -> void;
+
 
     /**
      * This function parses any expression at `precedence` level or higher
@@ -81,6 +97,8 @@ class Compiler
      * factor, unary, call or primary
      */
     auto parse_precedence(ParsePrecedence precedence) -> void;
+
+    auto parse_variable(std::string_view err_message) -> int;
 
   public:
     Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,

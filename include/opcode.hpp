@@ -11,6 +11,7 @@
     X(ADD)                                                                                         \
     X(SUBTRACT)                                                                                    \
     X(MULTIPLY)                                                                                    \
+    X(DIVIDE)                                                                                      \
     X(NIL)                                                                                         \
     X(TRUE)                                                                                        \
     X(FALSE)                                                                                       \
@@ -18,7 +19,10 @@
     X(EQUAL)                                                                                       \
     X(GREATER)                                                                                     \
     X(LESS)                                                                                        \
-    X(DIVIDE)
+    X(PRINT)                                                                                       \
+    X(POP_TOP)                                                                                     \
+    X(STORE_GLOBAL)                                                                           \
+    X(LOAD_GLOBAL)
 
 enum class OpCode : uint8_t
 {

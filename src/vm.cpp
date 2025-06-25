@@ -85,8 +85,6 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         switch (op)
         {
         case OpCode::RETURN:
-            // TODO: For now, pop the value and print it
-            os << pop().to_string() << std::endl;
             return InterpretResult::OK;
         case OpCode::LOAD_CONSTANT:
             push(read_constant());
@@ -167,6 +165,38 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::LESS:
             BINARY_OP(<);
             break;
+        case OpCode::POP_TOP:
+            pop();
+            break;
+        case OpCode::PRINT:
+            os << pop().to_string() << "\n";
+            break;
+        case OpCode::STORE_GLOBAL:
+        {
+            auto val = read_constant_long();
+            ObjectString *variable_name = val.as_string();
+            // We first insert the value, then pop from the stack because if a garbage collection is
+            // triggered in the middle of adding it to the table, the VM will not be able to find
+            // the value
+            globals.insert(variable_name, peek(0));
+            pop();
+            break;
+        }
+        case OpCode::LOAD_GLOBAL:
+        {
+            auto global_index = read_constant_long();
+            ObjectString *variable_name = global_index.as_string();
+            // TODO: This passes the pointer by reference and is not great for performance
+            // Create another overlord or specialize
+            auto value = globals.get(variable_name);
+            if (!value)
+            {
+                report_error("Runtime error: Undefined global variable");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            push(value.value());
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

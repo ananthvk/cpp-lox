@@ -89,3 +89,32 @@ auto Parser::consume(TokenType expected, std::string_view error_message) -> void
 auto Parser::previous() const -> Token { return *previous_; }
 
 auto Parser::had_error() const -> bool { return had_error_; }
+
+auto Parser::synchronize() -> void
+{
+    // Either look for a semicolon (current is the next token after the semicolon) or look for a
+    // statement boundary such as function definition of if
+    panic_mode = false;
+    auto token = peek();
+    while (token.token_type != TokenType::END_OF_FILE)
+    {
+        if (previous().token_type == TokenType::SEMICOLON)
+            return;
+        switch (token.token_type)
+        {
+        case TokenType::CLASS:
+        case TokenType::FUN:
+        case TokenType::VAR:
+        case TokenType::FOR:
+        case TokenType::IF:
+        case TokenType::WHILE:
+        case TokenType::PRINT:
+        case TokenType::RETURN:
+            return;
+
+        default:;
+        }
+
+        advance();
+    }
+}
