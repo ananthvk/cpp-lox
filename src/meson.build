@@ -1,26 +1,16 @@
-srcs = [
-    'lox.cpp',
-    'debug.cpp',
-    'chunk.cpp',
-    'vm.cpp',
-    'lexer.cpp',
-    'compiler.cpp',
-    'parser.cpp',
-]
-
-liblox = shared_library(
+liblox = static_library(
     'lox',
-    sources: srcs,
+    sources: sources,
     include_directories: include_dirs,
-    cpp_args: extra_args,
-    dependencies: [fmt]
+    cpp_args: dev_flags,
+    dependencies: project_deps,
 )
 
-lox_exec = executable(
+lox_executable = executable(
     'cpplox',
     sources: ['main.cpp'],
-    dependencies: [fmt],
+    dependencies: project_deps,
     link_with: [liblox],
-    cpp_args: extra_args,
+    cpp_args: dev_flags,
     include_directories: include_dirs,
 )

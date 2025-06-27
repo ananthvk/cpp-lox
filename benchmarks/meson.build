@@ -1,25 +1,17 @@
-if not get_option('enable-benchmarks')
-    subdir_done()
-endif
-
 benchmark_liblox = static_library(
     'liblox_bench',
-    sources: files(
-        '../src/chunk.cpp',
-        '../src/compiler.cpp',
-        '../src/debug.cpp',
-        '../src/lexer.cpp',
-        '../src/lox.cpp',
-        '../src/parser.cpp',
-        '../src/vm.cpp',
-    ),
+    sources: sources,
     include_directories: include_dirs,
-    dependencies: [fmt],
+    dependencies: project_deps,
     override_options: ['b_sanitize=none', 'b_lto=false', 'optimization=3'],
     build_by_default: false,
 )
 
-benchmark_dep = dependency('benchmark', required: true)
+benchmark_dep = dependency(
+    'benchmark',
+    required: true,
+    default_options: ['benchmark:BENCHMARK_ENABLE_TESTING=false'],
+)
 
 benchmark_sources = files(
     'bench_expressions.cpp',
@@ -28,10 +20,10 @@ benchmark_sources = files(
 benchmark_exe = executable(
     'bench_expressions',
     benchmark_sources,
-    dependencies: [benchmark_dep],
+    dependencies: [benchmark_dep] + project_deps,
     include_directories: include_dirs,
     link_with: [benchmark_liblox],
-    #override_options: ['b_sanitize=none', 'b_lto=false', 'optimization=3'],
+    override_options: ['b_sanitize=none', 'b_lto=false', 'optimization=3'],
     install: false,
     build_by_default: false,
 )
