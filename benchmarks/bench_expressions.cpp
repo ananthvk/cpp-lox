@@ -173,4 +173,78 @@ static void BM_GlobalVariables(benchmark::State &state)
 
 BENCHMARK(BM_GlobalVariables);
 
+static void BM_CompileGlobalVariables(benchmark::State &state)
+{
+    ErrorReporter reporter;
+    Allocator allocator;
+    const char *src =
+        "var a = 3;\n"
+        "var b = 77;\n"
+        "var c = 180;\n"
+        "var d = 15;\n"
+        "var abcdefghij = 20;\n"
+        "var x;\n"
+        "var l;\n"
+        "var abc12345;\n"
+        "var ab;\n"
+        "var bc;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "abcdefghij = abcdefghij + 1;\n"
+        "print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
+        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;";
+    for (auto _ : state)
+        compile(src, reporter, allocator);
+}
+
+BENCHMARK(BM_CompileGlobalVariables);
+
 BENCHMARK_MAIN();

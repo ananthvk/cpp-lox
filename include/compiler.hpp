@@ -2,6 +2,7 @@
 #include "allocator.hpp"
 #include "chunk.hpp"
 #include "error_reporter.hpp"
+#include "hashmap.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "result.hpp"
@@ -42,9 +43,18 @@ struct ParseRule
 
 class Compiler
 {
+
+    struct StringIndexTableHasher
+    {
+        auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
+    };
+
+    using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
+
     std::string_view source;
     CompilerOpts opts;
     Allocator &allocator;
+    StringIndexTable constant_strings;
 
     Chunk chunk;
     Lexer lexer;
