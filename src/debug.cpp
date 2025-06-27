@@ -106,6 +106,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Globals *globals) -
     case OpCode::TRUE:
     case OpCode::FALSE:
     case OpCode::NIL:
+    case OpCode::UNINITIALIZED:
     case OpCode::NOT:
     case OpCode::GREATER:
     case OpCode::LESS:

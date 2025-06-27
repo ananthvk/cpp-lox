@@ -26,6 +26,8 @@ struct Value
         OBJECT
     };
 
+    bool uninitialized;
+
     ValueType type;
 
     union Data
@@ -68,7 +70,11 @@ struct Value
         throw std::logic_error("Invalid value type passed to to_string");
     }
 
-    template <typename T> Value(T value) { set_value(value); }
+    template <typename T> Value(T value, bool uninitialized = false)
+    {
+        this->uninitialized = uninitialized;
+        set_value(value);
+    }
 
     template <typename T> auto set_value(T value) -> void
     {
@@ -153,8 +159,13 @@ struct Value
         return true;
     }
 
+    auto is_uninitialized() const -> bool { return uninitialized; }
+
+    auto set_uninitialized(bool new_state) -> void { uninitialized = new_state; }
+
     Value()
     {
+        uninitialized = false;
         type = ValueType::NIL;
         memset(reinterpret_cast<void *>(&data), 0, sizeof(data));
     }

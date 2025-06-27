@@ -340,7 +340,7 @@ auto Compiler::var_declaration() -> void
     if (parser.match(TokenType::EQUAL))
         expression();
     else
-        emit_opcode(OpCode::NIL);
+        emit_opcode(OpCode::UNINITIALIZED);
 
     parser.consume(TokenType::SEMICOLON, "Expected ';' after variable declaration");
 

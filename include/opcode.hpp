@@ -13,6 +13,7 @@
     X(MULTIPLY)                                                                                    \
     X(DIVIDE)                                                                                      \
     X(NIL)                                                                                         \
+    X(UNINITIALIZED)                                                                               \
     X(TRUE)                                                                                        \
     X(FALSE)                                                                                       \
     X(NOT)                                                                                         \

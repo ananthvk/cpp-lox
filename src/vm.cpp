@@ -144,6 +144,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::NIL:
             push(Value());
             break;
+        case OpCode::UNINITIALIZED:
+        {
+            auto val = Value{};
+            val.set_uninitialized(true);
+            push(val);
+            break;
+        }
         case OpCode::NOT:
             push(Value(pop().is_falsey()));
             break;
@@ -181,6 +188,10 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             auto &global_val = globals->get_internal_value(index);
             global_val.defined = true;
             global_val.value = peek(0);
+            if (!peek(0).is_uninitialized())
+            {
+                global_val.initialized = true;
+            }
             pop();
             break;
         }
@@ -197,7 +208,10 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 return InterpretResult::RUNTIME_ERROR;
             }
             else
+            {
                 globals->get_value(index) = peek(0);
+                globals->set_initialized(index, true);
+            }
             break;
         }
         case OpCode::LOAD_GLOBAL:
@@ -206,6 +220,12 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             if (!globals->exists(index) || !globals->is_defined(index))
             {
                 report_error("Runtime Error: Undefined global variable '{}'",
+                             globals->get_name(index)->get());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!globals->is_initialized(index))
+            {
+                report_error("Runtime Error: Uninitialized access of global variable '{}'",
                              globals->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
