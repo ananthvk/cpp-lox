@@ -31,7 +31,7 @@ enum class ParsePrecedence
 
 inline auto operator+(ParsePrecedence type) -> int { return static_cast<int>(type); }
 
-using ParseFunction = std::function<void()>;
+using ParseFunction = std::function<void(bool)>;
 
 struct ParseRule
 {
@@ -70,16 +70,17 @@ class Compiler
      * precedence so that it can parse any expression.
      */
     auto expression() -> void;
-    auto number() -> void;
-    auto grouping() -> void;
-    auto unary() -> void;
-    auto binary() -> void;
-    auto ternary() -> void;
-    auto literal() -> void;
-    auto string() -> void;
-    auto variable() -> void;
+
+    auto number(bool canAssign) -> void;
+    auto grouping(bool canAssign) -> void;
+    auto unary(bool canAssign) -> void;
+    auto binary(bool canAssign) -> void;
+    auto ternary(bool canAssign) -> void;
+    auto literal(bool canAssign) -> void;
+    auto string(bool canAssign) -> void;
+    auto variable(bool canAssign) -> void;
     auto identifier(std::string_view name) -> int;
-    auto named_variable(Token name) -> void;
+    auto named_variable(Token name, bool canAssign) -> void;
 
     /**
      * Statements

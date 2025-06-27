@@ -6,7 +6,7 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     : source(source), opts(opts), allocator(allocator), lexer(source),
       parser(lexer.begin(), reporter), rules(static_cast<int>(TokenType::TOKEN_COUNT))
 {
-#define F(function) [this]() { function(); }
+#define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
     rules[+TokenType::LEFT_PAREN]       = {F(grouping),    nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RIGHT_PAREN]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -100,7 +100,7 @@ auto Compiler::emit_return() -> void { emit_opcode(OpCode::RETURN); }
 
 auto Compiler::expression() -> void { parse_precedence(ParsePrecedence::ASSIGNMENT); }
 
-auto Compiler::number() -> void
+auto Compiler::number([[maybe_unused]] bool canAssign) -> void
 {
     auto token = parser.previous();
 
@@ -113,13 +113,13 @@ auto Compiler::number() -> void
                                   token.line);
 }
 
-auto Compiler::grouping() -> void
+auto Compiler::grouping([[maybe_unused]] bool canAssign) -> void
 {
     expression();
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after expression");
 }
 
-auto Compiler::unary() -> void
+auto Compiler::unary([[maybe_unused]] bool canAssign) -> void
 {
     auto operator_type = parser.previous().token_type;
 
@@ -144,7 +144,7 @@ auto Compiler::unary() -> void
 
 auto Compiler::get_rule(TokenType type) const -> ParseRule { return rules[static_cast<int>(type)]; }
 
-auto Compiler::binary() -> void
+auto Compiler::binary([[maybe_unused]] bool canAssign) -> void
 {
     auto op = parser.previous().token_type;
     auto rule = get_rule(op);
@@ -198,7 +198,7 @@ auto Compiler::binary() -> void
     }
 }
 
-auto Compiler::ternary() -> void
+auto Compiler::ternary([[maybe_unused]] bool canAssign) -> void
 {
     // The compiler has compiled the condition
     // Check for "then" expression, followed by a ":", then a "else" expression
@@ -225,18 +225,23 @@ auto Compiler::parse_precedence(ParsePrecedence precedence) -> void
         parser.report_error("Expected expression");
         return;
     }
-
-    prefix_rule();
+    bool canAssign = +precedence <= +ParsePrecedence::ASSIGNMENT;
+    prefix_rule(canAssign);
 
     while ((+precedence) <= +get_rule(parser.peek().token_type).precedence)
     {
         parser.advance();
         auto infix_rule = get_rule(parser.previous().token_type).infix;
-        infix_rule();
+        infix_rule(canAssign);
+    }
+
+    if (canAssign && parser.match(TokenType::EQUAL))
+    {
+        parser.report_error("Invalid assignment target");
     }
 }
 
-auto Compiler::literal() -> void
+auto Compiler::literal([[maybe_unused]] bool canAssign) -> void
 {
     auto token = parser.previous();
     switch (token.token_type)
@@ -256,7 +261,7 @@ auto Compiler::literal() -> void
     }
 }
 
-auto Compiler::string() -> void
+auto Compiler::string([[maybe_unused]] bool canAssign) -> void
 {
     // TODO: This couples the compiler with the runtime (VM), fix this by making the runtime create
     // the strings instead. For example if the program is going to emit bytecode (like .pyc/.class
@@ -332,7 +337,7 @@ auto Compiler::var_declaration() -> void
     define_global_variable(variable_constant_index);
 }
 
-auto Compiler::variable() -> void { named_variable(parser.previous()); }
+auto Compiler::variable(bool canAssign) -> void { named_variable(parser.previous(), canAssign); }
 
 auto Compiler::parse_variable(std::string_view err_message) -> int
 {
@@ -353,11 +358,11 @@ auto Compiler::identifier(std::string_view name) -> int
     return chunk.add_constant(obj);
 }
 
-auto Compiler::named_variable(Token name) -> void
+auto Compiler::named_variable(Token name, bool canAssign) -> void
 {
     int index = identifier(name.lexeme);
 
-    if (parser.match(TokenType::EQUAL))
+    if (canAssign && parser.match(TokenType::EQUAL))
     {
         expression();
         emit_opcode(OpCode::STORE_GLOBAL);

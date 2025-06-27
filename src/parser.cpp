@@ -114,7 +114,7 @@ auto Parser::synchronize() -> void
 
         default:;
         }
-
         advance();
+        token = peek();
     }
 }
