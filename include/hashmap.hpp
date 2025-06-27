@@ -227,8 +227,10 @@ class HashMap
         }
     }
 
-    auto contains(const Key &key) const -> bool
+    auto contains(const Key &key) -> bool
     {
+        if (size_ == 0)
+            return false;
         Slot &slot = find_slot(slots, key);
         return slot.state == Slot::State::FILLED;
     }

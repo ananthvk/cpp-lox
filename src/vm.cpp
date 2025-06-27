@@ -171,7 +171,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::PRINT:
             os << pop().to_string() << "\n";
             break;
-        case OpCode::STORE_GLOBAL:
+        case OpCode::DEFINE_GLOBAL:
         {
             auto val = read_constant_long();
             ObjectString *variable_name = val.as_string();
@@ -180,6 +180,26 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // the value
             globals.insert(variable_name, peek(0));
             pop();
+            break;
+        }
+        case OpCode::STORE_GLOBAL:
+        {
+            // Another difference between STORE_GLOBAL and DEFINE_GLOBAL is that this OPCODE does
+            // not consume the value on top of the stack since an assignment expression's value can
+            // be used
+            auto val = read_constant_long();
+            ObjectString *variable_name = val.as_string();
+            // TODO: Potentially inefficient since both contains & insert needs to perform the probe
+            // Create a specialized function later
+            if (!globals.contains(variable_name))
+            {
+                report_error("Runtime Error: Undefined global variable '{}'", variable_name->get());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            else
+            {
+                globals.insert(variable_name, peek(0));
+            }
             break;
         }
         case OpCode::LOAD_GLOBAL:
@@ -191,7 +211,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             auto value = globals.get(variable_name);
             if (!value)
             {
-                report_error("Runtime error: Undefined global variable");
+                report_error("Runtime Error: Undefined global variable '{}'", variable_name->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
             push(value.value());

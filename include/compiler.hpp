@@ -78,7 +78,7 @@ class Compiler
     auto literal() -> void;
     auto string() -> void;
     auto variable() -> void;
-    auto identifier(std::string_view name) -> void;
+    auto identifier(std::string_view name) -> int;
     auto named_variable(Token name) -> void;
 
     /**

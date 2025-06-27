@@ -37,7 +37,7 @@ auto Chunk::write_load_constant(int index, int line) -> void
     }
     else
     {
-        throw std::logic_error("Invalid index for write_load_constant. Overflow: > 0xFFFFFF");
+        throw std::logic_error("Invalid index for write_load_constant. Overflow: > 0xFFFF");
     }
 }
 

@@ -337,37 +337,35 @@ auto Compiler::variable() -> void { named_variable(parser.previous()); }
 auto Compiler::parse_variable(std::string_view err_message) -> int
 {
     parser.consume(TokenType::IDENTIFIER, err_message);
-
     auto token = parser.previous();
-
-    ObjectString *obj = allocator.intern_string(token.lexeme, Allocator::StorageType::DYNAMIC);
-    return chunk.add_constant(obj);
+    return identifier(token.lexeme);
 }
 
 auto Compiler::define_global_variable(int constant_index) -> void
 {
-    if (constant_index <= 0xFFFF)
-    {
-        emit_opcode(OpCode::STORE_GLOBAL);
-        emit_uint16_le(static_cast<uint16_t>(constant_index));
-    }
-    else
-        throw std::logic_error("Too many global variables in chunk");
+    emit_opcode(OpCode::DEFINE_GLOBAL);
+    emit_uint16_le(static_cast<uint16_t>(constant_index));
 }
 
-auto Compiler::identifier(std::string_view name) -> void
+auto Compiler::identifier(std::string_view name) -> int
 {
     ObjectString *obj = allocator.intern_string(name, Allocator::StorageType::DYNAMIC);
-    int index = chunk.add_constant(obj);
-
-    if (index <= 0xFFFFFF)
-        emit_uint16_le(static_cast<uint16_t>(index));
-    else
-        throw std::logic_error("Too many global variables in chunk");
+    return chunk.add_constant(obj);
 }
 
 auto Compiler::named_variable(Token name) -> void
 {
-    emit_opcode(OpCode::LOAD_GLOBAL);
-    identifier(name.lexeme);
+    int index = identifier(name.lexeme);
+
+    if (parser.match(TokenType::EQUAL))
+    {
+        expression();
+        emit_opcode(OpCode::STORE_GLOBAL);
+        emit_uint16_le(static_cast<uint16_t>(index));
+    }
+    else
+    {
+        emit_opcode(OpCode::LOAD_GLOBAL);
+        emit_uint16_le(static_cast<uint16_t>(index));
+    }
 }

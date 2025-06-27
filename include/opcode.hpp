@@ -21,7 +21,8 @@
     X(LESS)                                                                                        \
     X(PRINT)                                                                                       \
     X(POP_TOP)                                                                                     \
-    X(STORE_GLOBAL)                                                                           \
+    X(DEFINE_GLOBAL)                                                                               \
+    X(STORE_GLOBAL)                                                                                \
     X(LOAD_GLOBAL)
 
 enum class OpCode : uint8_t

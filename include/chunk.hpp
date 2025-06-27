@@ -36,6 +36,8 @@ class Chunk
 
     auto add_constant(Value value) -> int
     {
+        if (value_array.size() > 0xFFFF)
+            throw std::logic_error("Too many constants in chunk");
         value_array.push_back(value);
         return static_cast<int>(value_array.size() - 1);
     }
