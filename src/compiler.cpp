@@ -2,8 +2,8 @@
 #include "debug.hpp"
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-                   ErrorReporter &reporter)
-    : source(source), opts(opts), allocator(allocator), lexer(source),
+                   ErrorReporter &reporter, Globals *globals)
+    : source(source), opts(opts), allocator(allocator), globals(globals), lexer(source),
       parser(lexer.begin(), reporter), rules(static_cast<int>(TokenType::TOKEN_COUNT))
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
@@ -365,15 +365,7 @@ auto Compiler::define_global_variable(int constant_index) -> void
 auto Compiler::identifier(std::string_view name) -> int
 {
     ObjectString *obj = allocator.intern_string(name, Allocator::StorageType::DYNAMIC);
-    auto val = constant_strings.get(obj);
-    if (val)
-        return val.value();
-    else
-    {
-        int index = chunk.add_constant(obj);
-        constant_strings.insert(obj, index);
-        return index;
-    }
+    return globals->get_global(obj);
 }
 
 auto Compiler::named_variable(Token name, bool canAssign) -> void

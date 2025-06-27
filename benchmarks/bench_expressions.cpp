@@ -19,10 +19,11 @@ class nullostream : public std::ostream
     nullbuffer m_sb;
 };
 
-static Chunk compile(std::string_view src, ErrorReporter &reporter, Allocator &allocator)
+static Chunk compile(std::string_view src, ErrorReporter &reporter, Allocator &allocator,
+                     Globals *globals)
 {
     CompilerOpts copts;
-    Compiler compiler(src, copts, allocator, reporter);
+    Compiler compiler(src, copts, allocator, reporter, globals);
     auto result = compiler.compile();
     if (result != InterpretResult::OK)
         throw std::logic_error("Source code has syntax errors");
@@ -43,6 +44,7 @@ static void BM_CompileExpression(benchmark::State &state)
 {
     ErrorReporter reporter;
     Allocator allocator;
+    Globals globals;
     const char *src =
         "print "
         "(44*63-(-61*-47--49/(51/(93*-21-(((-32*(11*-50-(((52*-39-(48/(-33/(-96*77-76/99-(((91/"
@@ -52,7 +54,7 @@ static void BM_CompileExpression(benchmark::State &state)
         "-100-63*50+-28/71-58/-29)/-5--39*37--24*-23)-85*-17-96/-72--3*49)--87*76-33/59)*39-77/"
         "-90--44*27)/-91-58*-5-0*-62--50*78;";
     for (auto _ : state)
-        compile(src, reporter, allocator);
+        compile(src, reporter, allocator, &globals);
 }
 
 BENCHMARK(BM_CompileExpression);
@@ -62,7 +64,8 @@ static void BM_RunExpression(benchmark::State &state)
     ErrorReporter reporter;
     Allocator allocator;
     VMOpts opts;
-    VM vm(opts, reporter, allocator);
+    Globals globals;
+    VM vm(opts, reporter, allocator, &globals);
     const char *src =
         "(44*63-(-61*-47--49/(51/(93*-21-(((-32*(11*-50-(((52*-39-(48/(-33/(-96*77-76/99-(((91/"
         "-75-60/-3-87*83--75/19)*79-59*43-85/-50--25*-92)/90-58/67--26*35-33*-100)/69-95/-29)-39/"
@@ -70,7 +73,7 @@ static void BM_RunExpression(benchmark::State &state)
         "-41-61/-75--92*-74)/-83--82/93--59/68)-21*82--7*7-16*-69)/-13-82*-8+58*73-29*43)/"
         "-100-63*50+-28/71-58/-29)/-5--39*37--24*-23)-85*-17-96/-72--3*49)--87*76-33/59)*39-77/"
         "-90--44*27)/-91-58*-5-0*-62--50*78;";
-    auto chunk = compile(src, reporter, allocator);
+    auto chunk = compile(src, reporter, allocator, &globals);
     for (auto _ : state)
         execute(chunk, vm);
 }
@@ -82,14 +85,15 @@ static void BM_RunExpressionNegation(benchmark::State &state)
     ErrorReporter reporter;
     Allocator allocator;
     VMOpts opts;
-    VM vm(opts, reporter, allocator);
+    Globals globals;
+    VM vm(opts, reporter, allocator, &globals);
     const char *src =
         "------------------------------------------------------------------------------------------"
         "------------------------------------------------------------------------------------------"
         "-------------8+---------------------------------------------------------------------------"
         "------------------------------------------------------------------------------------------"
         "----------------------------------------------------------7;";
-    auto chunk = compile(src, reporter, allocator);
+    auto chunk = compile(src, reporter, allocator, &globals);
     for (auto _ : state)
         execute(chunk, vm);
 }
@@ -101,7 +105,8 @@ static void BM_GlobalVariables(benchmark::State &state)
     ErrorReporter reporter;
     Allocator allocator;
     VMOpts opts;
-    VM vm(opts, reporter, allocator);
+    Globals globals;
+    VM vm(opts, reporter, allocator, &globals);
     const char *src =
         "var a = 3;\n"
         "var b = 77;\n"
@@ -166,7 +171,7 @@ static void BM_GlobalVariables(benchmark::State &state)
         "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
         "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
         "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;";
-    auto chunk = compile(src, reporter, allocator);
+    auto chunk = compile(src, reporter, allocator, &globals);
     for (auto _ : state)
         execute(chunk, vm);
 }
@@ -176,7 +181,7 @@ BENCHMARK(BM_GlobalVariables);
 static void BM_CompileGlobalVariables(benchmark::State &state)
 {
     ErrorReporter reporter;
-    Allocator allocator;
+    Globals globals;
     const char *src =
         "var a = 3;\n"
         "var b = 77;\n"
@@ -242,7 +247,10 @@ static void BM_CompileGlobalVariables(benchmark::State &state)
         "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
         "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;";
     for (auto _ : state)
-        compile(src, reporter, allocator);
+    {
+        Allocator allocator;
+        compile(src, reporter, allocator, &globals);
+    }
 }
 
 BENCHMARK(BM_CompileGlobalVariables);

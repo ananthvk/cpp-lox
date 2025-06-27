@@ -74,7 +74,8 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         if (opts.debug_trace_execution)
         {
-            disassemble_instruction(*chunk_, static_cast<int>(ip - chunk_->get_code().data()));
+            disassemble_instruction(*chunk_, static_cast<int>(ip - chunk_->get_code().data()),
+                                    globals);
         }
         if (opts.debug_step_mode_enabled)
         {
@@ -173,12 +174,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             break;
         case OpCode::DEFINE_GLOBAL:
         {
-            auto val = read_constant_long();
-            ObjectString *variable_name = val.as_string();
+            auto index = read_uint16_le();
             // We first insert the value, then pop from the stack because if a garbage collection is
             // triggered in the middle of adding it to the table, the VM will not be able to find
             // the value
-            globals.insert(variable_name, peek(0));
+            auto &global_val = globals->get_internal_value(index);
+            global_val.defined = true;
+            global_val.value = peek(0);
             pop();
             break;
         }
@@ -187,34 +189,27 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // Another difference between STORE_GLOBAL and DEFINE_GLOBAL is that this OPCODE does
             // not consume the value on top of the stack since an assignment expression's value can
             // be used
-            auto val = read_constant_long();
-            ObjectString *variable_name = val.as_string();
-            // TODO: Potentially inefficient since both contains & insert needs to perform the probe
-            // Create a specialized function later
-            if (!globals.contains(variable_name))
+            auto index = read_uint16_le();
+            if (!globals->exists(index) || !globals->is_defined(index))
             {
-                report_error("Runtime Error: Undefined global variable '{}'", variable_name->get());
+                report_error("Runtime Error: Undefined global variable '{}'",
+                             globals->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
             else
-            {
-                globals.insert(variable_name, peek(0));
-            }
+                globals->get_value(index) = peek(0);
             break;
         }
         case OpCode::LOAD_GLOBAL:
         {
-            auto global_index = read_constant_long();
-            ObjectString *variable_name = global_index.as_string();
-            // TODO: This passes the pointer by reference and is not great for performance
-            // Create another overlord or specialize
-            auto value = globals.get(variable_name);
-            if (!value)
+            auto index = read_uint16_le();
+            if (!globals->exists(index) || !globals->is_defined(index))
             {
-                report_error("Runtime Error: Undefined global variable '{}'", variable_name->get());
+                report_error("Runtime Error: Undefined global variable '{}'",
+                             globals->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
-            push(value.value());
+            push(globals->get_value(index));
             break;
         }
         default:

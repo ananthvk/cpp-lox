@@ -2,6 +2,7 @@
 #include "allocator.hpp"
 #include "chunk.hpp"
 #include "error_reporter.hpp"
+#include "globals.hpp"
 #include "hashmap.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -54,6 +55,7 @@ class Compiler
     std::string_view source;
     CompilerOpts opts;
     Allocator &allocator;
+    Globals *globals;
     StringIndexTable constant_strings;
 
     Chunk chunk;
@@ -113,7 +115,7 @@ class Compiler
 
   public:
     Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-             ErrorReporter &reporter);
+             ErrorReporter &reporter, Globals *globals);
 
     auto compile() -> InterpretResult;
 

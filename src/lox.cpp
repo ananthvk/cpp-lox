@@ -10,20 +10,20 @@
 #include <iostream>
 #include <sstream>
 
-auto Lox::execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocator &allocator)
-    -> InterpretResult
+auto Lox::execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocator &allocator,
+                  Globals *globals) -> InterpretResult
 {
     CompilerOpts copts;
     copts.debug_print_tokens = false;
 
-    Compiler compiler(src, copts, allocator, reporter);
+    Compiler compiler(src, copts, allocator, reporter, globals);
     auto result = compiler.compile();
     if (result != InterpretResult::OK)
         return result;
 
     auto chunk = compiler.take_chunk();
 
-    disassemble_chunk(chunk, "program");
+    disassemble_chunk(chunk, "program", globals);
 
     result = vm.run(&chunk, std::cout);
 
@@ -53,12 +53,13 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     ErrorReporter reporter;
     VMOpts vopts;
     Allocator allocator;
+    Globals globals;
     vopts.debug_trace_execution = false;
     vopts.debug_trace_value_stack = false;
     vopts.debug_step_mode_enabled = false;
-    VM vm(vopts, reporter, allocator);
+    VM vm(vopts, reporter, allocator, &globals);
 
-    execute(source, reporter, vm, allocator);
+    execute(source, reporter, vm, allocator, &globals);
     if (reporter.has_messages())
     {
         reporter.display(stderr);
@@ -72,10 +73,11 @@ auto Lox::run_repl() -> int
     ErrorReporter reporter;
     VMOpts vopts;
     Allocator allocator;
+    Globals globals;
     vopts.debug_trace_execution = false;
     vopts.debug_trace_value_stack = false;
     vopts.debug_step_mode_enabled = false;
-    VM vm(vopts, reporter, allocator);
+    VM vm(vopts, reporter, allocator, &globals);
 
     while (true)
     {
@@ -86,7 +88,7 @@ auto Lox::run_repl() -> int
             break;
         if (line == "")
             continue;
-        execute(line, reporter, vm, allocator);
+        execute(line, reporter, vm, allocator, &globals);
         if (reporter.has_messages())
         {
             reporter.display(stderr);
@@ -102,6 +104,7 @@ auto Lox::run_source(std::string_view src) -> int
     VMOpts vopts;
     Allocator allocator;
     ErrorReporter reporter;
+    Globals globals;
 
     copts.debug_print_tokens = false;
 
@@ -109,7 +112,7 @@ auto Lox::run_source(std::string_view src) -> int
     vopts.debug_trace_value_stack = false;
     vopts.debug_step_mode_enabled = false;
 
-    Compiler compiler(src, copts, allocator, reporter);
+    Compiler compiler(src, copts, allocator, reporter, &globals);
     auto result = compiler.compile();
     if (result != InterpretResult::OK)
     {
@@ -119,7 +122,7 @@ auto Lox::run_source(std::string_view src) -> int
 
     auto chunk = compiler.take_chunk();
 
-    VM vm(vopts, reporter, allocator);
+    VM vm(vopts, reporter, allocator, &globals);
     result = vm.run(&chunk, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)

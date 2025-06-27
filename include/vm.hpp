@@ -3,6 +3,7 @@
 #include "chunk.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
+#include "globals.hpp"
 #include "hashmap.hpp"
 #include "result.hpp"
 #include <ostream>
@@ -41,7 +42,7 @@ class VM
     Allocator &allocator;
     const Chunk *chunk_;
     const uint8_t *ip;
-    VMStringValueTable globals;
+    Globals *globals;
 
     auto push(Value value) -> void
     {
@@ -75,6 +76,13 @@ class VM
         return chunk_->get_value_unchecked(static_cast<int>(constant_index));
     }
 
+    auto read_uint16_le() -> uint16_t
+    {
+        uint16_t constant_index = read_byte();
+        constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(read_byte()) << 8);
+        return constant_index;
+    }
+
     auto execute(std::ostream &os) -> InterpretResult;
 
     auto peek(int offset) const -> Value { return *(stack.end() - offset - 1); }
@@ -86,8 +94,9 @@ class VM
     }
 
   public:
-    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator)
-        : opts(opts), reporter(reporter), allocator(allocator), chunk_(nullptr), ip(nullptr)
+    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Globals *globals)
+        : opts(opts), reporter(reporter), allocator(allocator), chunk_(nullptr), ip(nullptr),
+          globals(globals)
     {
         init();
     }
