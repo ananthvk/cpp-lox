@@ -25,6 +25,7 @@ class Lexer
         int line;
         TokenType current_token_type;
         ErrorCode err;
+        Token cached_token;
 
         const_token_iterator(std::string_view source, size_t start, size_t current, int line);
 

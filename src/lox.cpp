@@ -23,7 +23,7 @@ auto Lox::execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocat
 
     auto chunk = compiler.take_chunk();
 
-    disassemble_chunk(chunk, "program", globals);
+    // disassemble_chunk(chunk, "program", globals);
 
     result = vm.run(&chunk, std::cout);
 

@@ -1,6 +1,8 @@
 #include "compiler.hpp"
 #include "debug.hpp"
 
+static void FF(bool canAssign) {}
+
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
                    ErrorReporter &reporter, Globals *globals)
     : source(source), opts(opts), allocator(allocator), globals(globals), lexer(source),
@@ -103,11 +105,22 @@ auto Compiler::expression() -> void { parse_precedence(ParsePrecedence::ASSIGNME
 auto Compiler::number([[maybe_unused]] bool canAssign) -> void
 {
     auto token = parser.previous();
+    // Only deduplicate integer constants
 
     // TODO: Inefficient since a new string is allocated, write own number conversion function
     if (token.token_type == TokenType::NUMBER_INT)
-        chunk.write_load_constant(chunk.add_constant(std::stoll(std::string(token.lexeme))),
-                                  token.line);
+    {
+        auto value = std::stoll(std::string(token.lexeme));
+        auto index_opt = constant_numbers.get(value);
+        if (index_opt)
+            chunk.write_load_constant(index_opt.value(), token.line);
+        else
+        {
+            auto index = chunk.add_constant(value);
+            chunk.write_load_constant(index, token.line);
+            constant_numbers.insert(value, index);
+        }
+    }
     if (token.token_type == TokenType::NUMBER_REAL)
         chunk.write_load_constant(chunk.add_constant(std::stod(std::string(token.lexeme))),
                                   token.line);
@@ -142,12 +155,12 @@ auto Compiler::unary([[maybe_unused]] bool canAssign) -> void
     }
 }
 
-auto Compiler::get_rule(TokenType type) const -> ParseRule { return rules[static_cast<int>(type)]; }
+auto Compiler::get_rule(TokenType type) -> ParseRule & { return rules[static_cast<int>(type)]; }
 
 auto Compiler::binary([[maybe_unused]] bool canAssign) -> void
 {
     auto op = parser.previous().token_type;
-    auto rule = get_rule(op);
+    auto &rule = get_rule(op);
 
     // Parse the right hand side of the infix expression, precedence is one higher
     // so it's left associative
@@ -219,7 +232,7 @@ auto Compiler::ternary([[maybe_unused]] bool canAssign) -> void
 auto Compiler::parse_precedence(ParsePrecedence precedence) -> void
 {
     parser.advance();
-    auto prefix_rule = get_rule(parser.previous().token_type).prefix;
+    auto &prefix_rule = get_rule(parser.previous().token_type).prefix;
     if (prefix_rule == nullptr)
     {
         parser.report_error("Expected expression");
@@ -231,7 +244,7 @@ auto Compiler::parse_precedence(ParsePrecedence precedence) -> void
     while ((+precedence) <= +get_rule(parser.peek().token_type).precedence)
     {
         parser.advance();
-        auto infix_rule = get_rule(parser.previous().token_type).infix;
+        auto &infix_rule = get_rule(parser.previous().token_type).infix;
         infix_rule(canAssign);
     }
 

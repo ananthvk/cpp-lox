@@ -57,6 +57,7 @@ class Compiler
     Allocator &allocator;
     Globals *globals;
     StringIndexTable constant_strings;
+    HashMap<int64_t, int> constant_numbers;
 
     Chunk chunk;
     Lexer lexer;
@@ -75,7 +76,7 @@ class Compiler
 
     auto define_global_variable(int constant_index) -> void;
 
-    auto get_rule(TokenType type) const -> ParseRule;
+    auto get_rule(TokenType type) -> ParseRule &;
 
     /**
      * Parses an expression. Internally this function calls parse_precedence with the lowest

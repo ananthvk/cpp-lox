@@ -311,12 +311,7 @@ auto Lexer::const_token_iterator::operator*() const -> Token
 {
     if (current_token_type == TokenType::END_OF_FILE)
         return Token{};
-    Token token;
-    token.line = line;
-    token.lexeme = source.substr(start, current - start);
-    token.token_type = current_token_type;
-    token.err = err;
-    return token;
+    return cached_token;
 }
 
 auto Lexer::const_token_iterator::operator++() -> const_token_iterator &
@@ -335,6 +330,10 @@ auto Lexer::const_token_iterator::operator++() -> const_token_iterator &
         start = current;
         current_token_type = scan_token();
     }
+    cached_token.line = line;
+    cached_token.lexeme = source.substr(start, current - start);
+    cached_token.token_type = current_token_type;
+    cached_token.err = err;
     return *this;
 }
 
