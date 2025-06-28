@@ -1,7 +1,6 @@
 #include "compiler.hpp"
 #include "debug.hpp"
-
-static void FF(bool canAssign) {}
+#include "fast_float.h"
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
                    ErrorReporter &reporter, Globals *globals)
@@ -107,10 +106,18 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
     auto token = parser.previous();
     // Only deduplicate integer constants
 
-    // TODO: Inefficient since a new string is allocated, write own number conversion function
     if (token.token_type == TokenType::NUMBER_INT)
     {
-        auto value = std::stoll(std::string(token.lexeme));
+        int64_t value;
+        auto answer = fast_float::from_chars(token.lexeme.data(),
+                                             token.lexeme.data() + token.lexeme.size(), value);
+        if (answer.ec != std::errc())
+        {
+            // Since the token is already validated, parsing should not fail here
+            // It may fail if the number is too large
+            throw std::logic_error("Error while parsing number (integer)");
+        }
+
         auto index_opt = constant_numbers.get(value);
         if (index_opt)
             chunk.write_load_constant(index_opt.value(), token.line);
@@ -122,8 +129,15 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
         }
     }
     if (token.token_type == TokenType::NUMBER_REAL)
-        chunk.write_load_constant(chunk.add_constant(std::stod(std::string(token.lexeme))),
-                                  token.line);
+    {
+        double value;
+        auto answer = fast_float::from_chars(token.lexeme.data(),
+                                             token.lexeme.data() + token.lexeme.size(), value);
+        if (answer.ec != std::errc())
+            throw std::logic_error("Error while parsing number (double)");
+
+        chunk.write_load_constant(chunk.add_constant(value), token.line);
+    }
 }
 
 auto Compiler::grouping([[maybe_unused]] bool canAssign) -> void

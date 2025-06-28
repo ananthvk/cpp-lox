@@ -8,7 +8,7 @@ project(
     ],
 )
 
-include_dirs = include_directories(['include'])
+include_dirs = include_directories(['include', 'thirdparty'])
 project_deps = [dependency('fmt')]
 
 sources = files(
