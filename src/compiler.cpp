@@ -113,9 +113,8 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
                                              token.lexeme.data() + token.lexeme.size(), value);
         if (answer.ec != std::errc())
         {
-            // Since the token is already validated, parsing should not fail here
-            // It may fail if the number is too large
-            throw std::logic_error("Error while parsing number (integer)");
+            parser.report_error("Error while parsing number as integer '{}'", token.lexeme);
+            return;
         }
 
         auto index_opt = constant_numbers.get(value);
@@ -134,7 +133,10 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
         auto answer = fast_float::from_chars(token.lexeme.data(),
                                              token.lexeme.data() + token.lexeme.size(), value);
         if (answer.ec != std::errc())
-            throw std::logic_error("Error while parsing number (double)");
+        {
+            parser.report_error("Error while parsing number as double '{}'", token.lexeme);
+            return;
+        }
 
         chunk.write_load_constant(chunk.add_constant(value), token.line);
     }

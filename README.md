@@ -55,5 +55,10 @@ Then run the following command,
 $ ./development.sh
 ```
 
+## Changes from the book
+
+1) The compiler de-duplicates both strings and integers (but not real numbers)
+2) Supports 65k constants, and 65k global variables (accessed with 2 byte unsigned index)
+
 ## TODO
 - [ ] Fix division by zero error
