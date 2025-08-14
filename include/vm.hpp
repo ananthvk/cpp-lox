@@ -6,6 +6,7 @@
 #include "context.hpp"
 #include "hashmap.hpp"
 #include "result.hpp"
+#include "config.hpp"
 #include <ostream>
 
 struct VMOpts
@@ -14,7 +15,7 @@ struct VMOpts
      * Max number of entries allowed in the VM's stack, this stack is used to execute bytecode
      * in the VM. It is set to a default of 1024
      */
-    int value_stack_max = 1024;
+    int value_stack_max = MAX_STACK_EVALUATION_SIZE;
 
     bool debug_trace_execution = false;
 

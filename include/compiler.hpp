@@ -1,8 +1,9 @@
 #pragma once
 #include "allocator.hpp"
 #include "chunk.hpp"
-#include "error_reporter.hpp"
+#include "config.hpp"
 #include "context.hpp"
+#include "error_reporter.hpp"
 #include "hashmap.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -50,13 +51,21 @@ class Compiler
         auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
     };
 
+    struct Local
+    {
+        Token name;
+        int depth;
+    };
+
     using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
 
     std::string_view source;
     CompilerOpts opts;
     Allocator &allocator;
     Context *context;
+    int scope_depth;
     StringIndexTable constant_strings;
+    std::vector<Local> locals;
     HashMap<int64_t, int> constant_numbers;
 
     Chunk chunk;
@@ -99,10 +108,15 @@ class Compiler
      * Statements
      */
     auto statement() -> void;
+    auto block() -> void;
+    auto begin_scope() -> void;
+    auto end_scope() -> void;
     auto declaration() -> void;
     auto print_statement() -> void;
     auto expression_statement() -> void;
     auto var_declaration() -> void;
+    auto declare_variable() -> void;
+    auto add_local(Token name) -> void;
 
 
     /**

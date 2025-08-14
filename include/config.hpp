@@ -1,0 +1,3 @@
+#pragma once
+const int MAX_NUMBER_OF_LOCAL_VARIABLES = 65535;
+const int MAX_STACK_EVALUATION_SIZE = 1024;

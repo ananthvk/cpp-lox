@@ -4,8 +4,9 @@
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
                    ErrorReporter &reporter, Context *context)
-    : source(source), opts(opts), allocator(allocator), context(context), lexer(source),
-      parser(lexer.begin(), reporter), rules(static_cast<int>(TokenType::TOKEN_COUNT))
+    : source(source), opts(opts), allocator(allocator), context(context), scope_depth(0),
+      lexer(source), parser(lexer.begin(), reporter),
+      rules(static_cast<int>(TokenType::TOKEN_COUNT))
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -336,9 +337,39 @@ auto Compiler::statement() -> void
     {
         print_statement();
     }
+    else if (parser.match(TokenType::LEFT_BRACE))
+    {
+        begin_scope();
+        block();
+        end_scope();
+    }
     else
     {
         expression_statement();
+    }
+}
+
+auto Compiler::block() -> void
+{
+    while (!parser.check(TokenType::RIGHT_BRACE) && !parser.check(TokenType::END_OF_FILE))
+    {
+        declaration();
+    }
+    parser.consume(TokenType::RIGHT_BRACE, "Expected \"}\" after a block");
+}
+
+auto Compiler::begin_scope() -> void { scope_depth++; }
+
+auto Compiler::end_scope() -> void
+{
+    scope_depth--;
+
+    // After a scope ends, pop all temporary values from the stack
+    // TODO: Make it more efficient, the current version is O(n)
+    while(!locals.empty() && locals.back().depth > scope_depth)
+    {
+        emit_opcode(OpCode::POP_TOP);
+        locals.pop_back();
     }
 }
 
@@ -376,17 +407,64 @@ auto Compiler::var_declaration() -> void
     define_global_variable(variable_constant_index);
 }
 
+auto Compiler::declare_variable() -> void
+{
+    // If we are in global scope, do not declare the variable
+    if (scope_depth == 0)
+        return;
+
+    // If it's in a scope, create a local variable with this name
+    auto token = parser.previous();
+
+    // Check if a local variable with the same name has been declared in the same scope
+    for (auto it = locals.rbegin(); it != locals.rend(); ++it)
+    {
+        // All other local variables were declared in previous scopes
+        if (it->depth < scope_depth)
+            break;
+        if (it->name.lexeme == token.lexeme)
+        {
+            parser.report_error("Variable '{}' redeclared in the same scope", token.lexeme);
+            return;
+        }
+    }
+
+    add_local(token);
+}
+
+auto Compiler::add_local(Token name) -> void
+{
+    if (locals.size() == MAX_NUMBER_OF_LOCAL_VARIABLES)
+    {
+        parser.report_error("Limit on the number of local variables reached");
+        return;
+    }
+    locals.push_back({name, scope_depth});
+}
+
 auto Compiler::variable(bool canAssign) -> void { named_variable(parser.previous(), canAssign); }
 
 auto Compiler::parse_variable(std::string_view err_message) -> int
 {
     parser.consume(TokenType::IDENTIFIER, err_message);
+    // First declare the variable, does nothing for global variables
+    // For local variables, it stores the variable name along with it's stack position
+    declare_variable();
+
+    if (scope_depth > 0)
+        return 0;
+
     auto token = parser.previous();
     return identifier(token.lexeme);
 }
 
 auto Compiler::define_global_variable(int constant_index) -> void
 {
+    // We are not in the global scope, do not do anything
+    if (scope_depth > 0)
+    {
+        return;
+    }
     emit_opcode(OpCode::DEFINE_GLOBAL);
     emit_uint16_le(static_cast<uint16_t>(constant_index));
 }
