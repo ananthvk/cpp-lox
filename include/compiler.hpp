@@ -2,7 +2,7 @@
 #include "allocator.hpp"
 #include "chunk.hpp"
 #include "error_reporter.hpp"
-#include "globals.hpp"
+#include "context.hpp"
 #include "hashmap.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -55,7 +55,7 @@ class Compiler
     std::string_view source;
     CompilerOpts opts;
     Allocator &allocator;
-    Globals *globals;
+    Context *context;
     StringIndexTable constant_strings;
     HashMap<int64_t, int> constant_numbers;
 
@@ -116,7 +116,7 @@ class Compiler
 
   public:
     Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-             ErrorReporter &reporter, Globals *globals);
+             ErrorReporter &reporter, Context *context);
 
     auto compile() -> InterpretResult;
 

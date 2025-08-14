@@ -75,7 +75,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         if (opts.debug_trace_execution)
         {
             disassemble_instruction(*chunk_, static_cast<int>(ip - chunk_->get_code().data()),
-                                    globals);
+                                    context);
         }
         if (opts.debug_step_mode_enabled)
         {
@@ -185,7 +185,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // We first insert the value, then pop from the stack because if a garbage collection is
             // triggered in the middle of adding it to the table, the VM will not be able to find
             // the value
-            auto &global_val = globals->get_internal_value(index);
+            auto &global_val = context->get_internal_value(index);
             global_val.defined = true;
             global_val.value = peek(0);
             if (!peek(0).is_uninitialized())
@@ -201,35 +201,35 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // not consume the value on top of the stack since an assignment expression's value can
             // be used
             auto index = read_uint16_le();
-            if (!globals->exists(index) || !globals->is_defined(index))
+            if (!context->exists(index) || !context->is_defined(index))
             {
                 report_error("Runtime Error: Undefined global variable '{}'",
-                             globals->get_name(index)->get());
+                             context->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
             else
             {
-                globals->get_value(index) = peek(0);
-                globals->set_initialized(index, true);
+                context->get_value(index) = peek(0);
+                context->set_initialized(index, true);
             }
             break;
         }
         case OpCode::LOAD_GLOBAL:
         {
             auto index = read_uint16_le();
-            if (!globals->exists(index) || !globals->is_defined(index))
+            if (!context->exists(index) || !context->is_defined(index))
             {
                 report_error("Runtime Error: Undefined global variable '{}'",
-                             globals->get_name(index)->get());
+                             context->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
-            if (!globals->is_initialized(index))
+            if (!context->is_initialized(index))
             {
                 report_error("Runtime Error: Uninitialized access of global variable '{}'",
-                             globals->get_name(index)->get());
+                             context->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
-            push(globals->get_value(index));
+            push(context->get_value(index));
             break;
         }
         default:

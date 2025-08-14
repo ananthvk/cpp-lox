@@ -3,8 +3,8 @@
 #include "fast_float.h"
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-                   ErrorReporter &reporter, Globals *globals)
-    : source(source), opts(opts), allocator(allocator), globals(globals), lexer(source),
+                   ErrorReporter &reporter, Context *context)
+    : source(source), opts(opts), allocator(allocator), context(context), lexer(source),
       parser(lexer.begin(), reporter), rules(static_cast<int>(TokenType::TOKEN_COUNT))
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
@@ -394,7 +394,7 @@ auto Compiler::define_global_variable(int constant_index) -> void
 auto Compiler::identifier(std::string_view name) -> int
 {
     ObjectString *obj = allocator.intern_string(name, Allocator::StorageType::DYNAMIC);
-    return globals->get_global(obj);
+    return context->get_global(obj);
 }
 
 auto Compiler::named_variable(Token name, bool canAssign) -> void

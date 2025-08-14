@@ -3,7 +3,7 @@
 #include "chunk.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
-#include "globals.hpp"
+#include "context.hpp"
 #include "hashmap.hpp"
 #include "result.hpp"
 #include <ostream>
@@ -42,7 +42,7 @@ class VM
     Allocator &allocator;
     const Chunk *chunk_;
     const uint8_t *ip;
-    Globals *globals;
+    Context *context;
 
     auto push(Value value) -> void
     {
@@ -94,9 +94,9 @@ class VM
     }
 
   public:
-    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Globals *globals)
+    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
         : opts(opts), reporter(reporter), allocator(allocator), chunk_(nullptr), ip(nullptr),
-          globals(globals)
+          context(context)
     {
         init();
     }

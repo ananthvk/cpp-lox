@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "value.hpp"
 
-class Globals
+class Context
 {
   public:
     struct GlobalValue

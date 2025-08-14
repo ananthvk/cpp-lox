@@ -43,16 +43,16 @@ auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk) -> int
     return offset + 3;
 }
 
-auto global_instruction(OpCode op, int offset, const Chunk &chunk, Globals *globals) -> int
+auto global_instruction(OpCode op, int offset, const Chunk &chunk, Context *context) -> int
 {
     const auto &code = chunk.get_code();
     uint16_t constant_index = code[offset + 1];
     constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
     fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
 
-    if (globals->exists(constant_index))
+    if (context->exists(constant_index))
     {
-        fmt::print(fmt::fg(fmt::color::green), "'{}'\n", globals->get_name(constant_index)->get());
+        fmt::print(fmt::fg(fmt::color::green), "'{}'\n", context->get_name(constant_index)->get());
     }
     else
     {
@@ -61,18 +61,18 @@ auto global_instruction(OpCode op, int offset, const Chunk &chunk, Globals *glob
     return offset + 3;
 }
 
-auto disassemble_chunk(const Chunk &chunk, const std::string &name, Globals *globals) -> void
+auto disassemble_chunk(const Chunk &chunk, const std::string &name, Context *context) -> void
 {
     fmt::print(fmt::fg(fmt::color::white) | fmt::emphasis::bold, "== {} ({} bytes) ==\n", name,
                chunk.get_code().size());
     const auto &code = chunk.get_code();
     for (int offset = 0; offset < static_cast<int>(code.size());)
     {
-        offset = disassemble_instruction(chunk, offset, globals);
+        offset = disassemble_instruction(chunk, offset, context);
     }
 }
 
-auto disassemble_instruction(const Chunk &chunk, int offset, Globals *globals) -> int
+auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -> int
 {
     fmt::print(fmt::fg(fmt::color::gray), "{:04} ", offset);
 
@@ -102,7 +102,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Globals *globals) -
     case OpCode::STORE_GLOBAL:
     case OpCode::LOAD_GLOBAL:
     case OpCode::DEFINE_GLOBAL:
-        return global_instruction(instruction, offset, chunk, globals);
+        return global_instruction(instruction, offset, chunk, context);
     case OpCode::TRUE:
     case OpCode::FALSE:
     case OpCode::NIL:
