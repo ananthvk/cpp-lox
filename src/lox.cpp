@@ -74,9 +74,9 @@ auto Lox::run_repl() -> int
     VMOpts vopts;
     Allocator allocator;
     Context context;
-    vopts.debug_trace_execution = false;
-    vopts.debug_trace_value_stack = false;
-    vopts.debug_step_mode_enabled = false;
+    vopts.debug_trace_execution = true;
+    vopts.debug_trace_value_stack = true;
+    vopts.debug_step_mode_enabled = true;
     VM vm(vopts, reporter, allocator, &context);
 
     while (true)
