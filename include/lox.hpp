@@ -8,7 +8,7 @@
 class Lox
 {
     auto execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocator &allocator,
-                 Globals *globals) -> InterpretResult;
+                 Context *context) -> InterpretResult;
 
   public:
     auto run_repl() -> int;
