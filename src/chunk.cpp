@@ -33,7 +33,7 @@ auto Chunk::write_load_constant(int index, int line) -> void
     else if (index <= 0xFFFF)
     {
         write_simple_op(OpCode::LOAD_CONSTANT_LONG, line);
-        write_uint16_le(index, line);
+        write_uint16_le(static_cast<uint16_t>(index), line);
     }
     else
     {

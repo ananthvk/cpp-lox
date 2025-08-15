@@ -55,6 +55,7 @@ class Compiler
     {
         Token name;
         int depth;
+        bool uninitialized;
     };
 
     using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
@@ -83,7 +84,6 @@ class Compiler
     auto emit_uint16_le(uint16_t bytes) -> void;
     auto emit_return() -> void;
 
-    auto define_global_variable(int constant_index) -> void;
 
     auto get_rule(TokenType type) -> ParseRule &;
 
@@ -101,8 +101,6 @@ class Compiler
     auto literal(bool canAssign) -> void;
     auto string(bool canAssign) -> void;
     auto variable(bool canAssign) -> void;
-    auto identifier(std::string_view name) -> int;
-    auto named_variable(Token name, bool canAssign) -> void;
 
     /**
      * Statements
@@ -115,9 +113,16 @@ class Compiler
     auto print_statement() -> void;
     auto expression_statement() -> void;
     auto var_declaration() -> void;
-    auto declare_variable() -> void;
-    auto add_local(Token name) -> void;
 
+    /**
+     * Helper functions to declare and define variables
+     */
+    auto identifier(std::string_view name) -> int;
+    auto declare_variable() -> void;
+    auto define_variable(int constant_index) -> void;
+    auto add_local(Token name) -> void;
+    auto resolve_local(Token name) -> int;
+    auto named_variable(Token name, bool canAssign) -> void;
 
     /**
      * This function parses any expression at `precedence` level or higher

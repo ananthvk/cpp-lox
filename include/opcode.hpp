@@ -24,7 +24,9 @@
     X(POP_TOP)                                                                                     \
     X(DEFINE_GLOBAL)                                                                               \
     X(STORE_GLOBAL)                                                                                \
-    X(LOAD_GLOBAL)
+    X(LOAD_GLOBAL)                                                                                 \
+    X(STORE_LOCAL)                                                                                 \
+    X(LOAD_LOCAL)
 
 enum class OpCode : uint8_t
 {

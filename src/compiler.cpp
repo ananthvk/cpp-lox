@@ -366,7 +366,7 @@ auto Compiler::end_scope() -> void
 
     // After a scope ends, pop all temporary values from the stack
     // TODO: Make it more efficient, the current version is O(n)
-    while(!locals.empty() && locals.back().depth > scope_depth)
+    while (!locals.empty() && locals.back().depth > scope_depth)
     {
         emit_opcode(OpCode::POP_TOP);
         locals.pop_back();
@@ -404,7 +404,7 @@ auto Compiler::var_declaration() -> void
 
     parser.consume(TokenType::SEMICOLON, "Expected ';' after variable declaration");
 
-    define_global_variable(variable_constant_index);
+    define_variable(variable_constant_index);
 }
 
 auto Compiler::declare_variable() -> void
@@ -439,7 +439,7 @@ auto Compiler::add_local(Token name) -> void
         parser.report_error("Limit on the number of local variables reached");
         return;
     }
-    locals.push_back({name, scope_depth});
+    locals.push_back({name, scope_depth, true});
 }
 
 auto Compiler::variable(bool canAssign) -> void { named_variable(parser.previous(), canAssign); }
@@ -458,11 +458,12 @@ auto Compiler::parse_variable(std::string_view err_message) -> int
     return identifier(token.lexeme);
 }
 
-auto Compiler::define_global_variable(int constant_index) -> void
+auto Compiler::define_variable(int constant_index) -> void
 {
     // We are not in the global scope, do not do anything
     if (scope_depth > 0)
     {
+        locals.back().uninitialized = false;
         return;
     }
     emit_opcode(OpCode::DEFINE_GLOBAL);
@@ -475,19 +476,45 @@ auto Compiler::identifier(std::string_view name) -> int
     return context->get_global(obj);
 }
 
+auto Compiler::resolve_local(Token name) -> int
+{
+    for (int i = static_cast<int>(locals.size()) - 1; i >= 0; i--)
+    {
+        if (locals[i].name.lexeme == name.lexeme)
+        {
+            if (locals[i].uninitialized)
+            {
+                parser.report_error("Can't use local variable in it's own initializer");
+                return -1;
+            }
+            return i;
+        }
+    }
+    return -1;
+}
+
 auto Compiler::named_variable(Token name, bool canAssign) -> void
 {
-    int index = identifier(name.lexeme);
+    OpCode store_op = OpCode::STORE_LOCAL, load_op = OpCode::LOAD_LOCAL;
+    int index = resolve_local(name);
+    // If it's not a local variable, it's a global variable
+    if (index == -1)
+    {
+        index = identifier(name.lexeme);
+        store_op = OpCode::STORE_GLOBAL;
+        load_op = OpCode::LOAD_GLOBAL;
+    }
+
 
     if (canAssign && parser.match(TokenType::EQUAL))
     {
         expression();
-        emit_opcode(OpCode::STORE_GLOBAL);
+        emit_opcode(store_op);
         emit_uint16_le(static_cast<uint16_t>(index));
     }
     else
     {
-        emit_opcode(OpCode::LOAD_GLOBAL);
+        emit_opcode(load_op);
         emit_uint16_le(static_cast<uint16_t>(index));
     }
 }
