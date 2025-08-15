@@ -1,12 +1,12 @@
 #pragma once
 #include "allocator.hpp"
 #include "chunk.hpp"
+#include "config.hpp"
+#include "context.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
-#include "context.hpp"
 #include "hashmap.hpp"
 #include "result.hpp"
-#include "config.hpp"
 #include <ostream>
 
 struct VMOpts
@@ -105,4 +105,6 @@ class VM
     auto init() -> void;
 
     auto run(const Chunk *chunk, std::ostream &os) -> InterpretResult;
+
+    auto clear_evaluation_stack() -> void { stack.clear(); }
 };

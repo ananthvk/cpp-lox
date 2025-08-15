@@ -76,7 +76,7 @@ auto Lox::run_repl() -> int
     Context context;
     vopts.debug_trace_execution = true;
     vopts.debug_trace_value_stack = true;
-    vopts.debug_step_mode_enabled = true;
+    vopts.debug_step_mode_enabled = false;
     VM vm(vopts, reporter, allocator, &context);
 
     while (true)
@@ -94,10 +94,18 @@ auto Lox::run_repl() -> int
             reporter.display(stderr);
             reporter.clear();
         }
+        // Clear the vm evaluation stack (in case of errors while executing inside a scope)
+        // Errors occur when an unkown global variable is referenced within a scope, after which the
+        // local variables remain on the stack
+        vm.clear_evaluation_stack();
     }
     return 0;
 }
 
+/**
+ * This function is used for automated testing of the interpreter/compiler
+ * Pass the source code of the program as a string argument after "-c"
+ */
 auto Lox::run_source(std::string_view src) -> int
 {
     CompilerOpts copts;

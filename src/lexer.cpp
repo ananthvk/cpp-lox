@@ -66,6 +66,7 @@ auto Lexer::const_token_iterator::skip_whitespace() -> void
             {
                 return;
             }
+            break;
         default:
             return;
         }

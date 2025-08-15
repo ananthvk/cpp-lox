@@ -232,6 +232,30 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             push(context->get_value(index));
             break;
         }
+        case OpCode::LOAD_LOCAL:
+        {
+            auto slot = read_uint16_le();
+            if (slot >= stack.size())
+            {
+                report_error("Runtime Error: Local variable does not declared");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (stack[slot].is_uninitialized())
+            {
+                // TODO: Also report variable name
+                report_error("Runtime Error: Uninitialized access of local variable");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            push(stack[slot]);
+            break;
+        }
+        case OpCode::STORE_LOCAL:
+        {
+            auto slot = read_uint16_le();
+            stack[slot] = peek(0);
+            // Do not pop the value here since assignment is an expression
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }
