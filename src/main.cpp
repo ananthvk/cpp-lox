@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
                              cxxopts::value<int>()->default_value("1024"))
         
         ("c,command",        "Execute the given command and exit",
-                             cxxopts::value<bool>()->default_value("false"))
+                             cxxopts::value<std::string>())
 
         ("script",           "The lox program file to execute",
                              cxxopts::value<std::string>())
@@ -54,11 +54,22 @@ int main(int argc, char *argv[])
             fmt::println("Invalid number of arguments: expected a single argument or none");
             fmt::println("Check out 'cpplox --help' for usage");
         }
+
+        Lox lox;
+
+        if (result.count("command") != 0)
+            return lox.run_source(result["command"].as<std::string>());
+
+        if (result.count("script") == 0)
+            return lox.run_repl();
+
+        // Run the given file
+        return lox.run_file(result["script"].as<std::string>());
     }
     catch (std::exception &e)
     {
 
-        fmt::print(fmt::fg(fmt::color::red), "System Error: {}\n", e.what());
+        fmt::print(fmt::fg(fmt::color::red), "Error: {}\n", e.what());
         exit(1);
     }
     return 0;
