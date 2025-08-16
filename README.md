@@ -58,7 +58,29 @@ $ ./development.sh
 ## Changes from the book
 
 1) The compiler de-duplicates both strings and integers (but not real numbers)
+
 2) Supports 65k constants, and 65k global variables (accessed with 2 byte unsigned index)
+
+3) `const` variables
+
+In global scope,
+```
+If a constant of the same name has already been declared, do not allow
+redeclaration with var Example:
+>> const x = 32;
+>> var x = 50; // Not allowed
+
+>> const x = 80;
+>> const x = 90; // Not Allowed
+
+>> var x = 95;
+>> var x = 100; // Allowed
+```
+
+One difference is that redeclaration with const is not allowed since it helps make the vm simpler, otherwise an extra flag/byte needs to be maintained to identify if it's a const declaration or a var declaration.
+
+
+In local scope redeclaration of any form is disallowed
 
 ## TODO
 - [ ] Fix division by zero error

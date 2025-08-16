@@ -321,6 +321,10 @@ auto Compiler::declaration() -> void
     {
         var_declaration();
     }
+    else if (parser.match(TokenType::CONST))
+    {
+        const_declaration();
+    }
     else
     {
         statement();
@@ -396,7 +400,7 @@ auto Compiler::expression_statement() -> void
 
 auto Compiler::var_declaration() -> void
 {
-    int variable_constant_index = parse_variable("Expected variable name after 'var'");
+    int variable_constant_index = parse_variable("Expected variable name after 'var'", false);
     if (parser.match(TokenType::EQUAL))
         expression();
     else
@@ -404,10 +408,25 @@ auto Compiler::var_declaration() -> void
 
     parser.consume(TokenType::SEMICOLON, "Expected ';' after variable declaration");
 
-    define_variable(variable_constant_index);
+    define_variable(variable_constant_index, false);
 }
 
-auto Compiler::declare_variable() -> void
+auto Compiler::const_declaration() -> void
+{
+    int const_constant_index = parse_variable("Expected variable name after 'const'", true);
+    if (parser.match(TokenType::EQUAL))
+        expression();
+    else
+    {
+        parser.report_error("Expected initializer after const declaration");
+        return;
+    }
+
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after const declaration");
+    define_variable(const_constant_index, true);
+}
+
+auto Compiler::declare_variable(bool is_constant) -> void
 {
     // If we are in global scope, do not declare the variable
     if (scope_depth == 0)
@@ -429,27 +448,27 @@ auto Compiler::declare_variable() -> void
         }
     }
 
-    add_local(token);
+    add_local(token, is_constant);
 }
 
-auto Compiler::add_local(Token name) -> void
+auto Compiler::add_local(Token name, bool is_const) -> void
 {
     if (locals.size() == MAX_NUMBER_OF_LOCAL_VARIABLES)
     {
         parser.report_error("Limit on the number of local variables reached");
         return;
     }
-    locals.push_back({name, scope_depth, true});
+    locals.push_back({name, scope_depth, true, is_const});
 }
 
 auto Compiler::variable(bool canAssign) -> void { named_variable(parser.previous(), canAssign); }
 
-auto Compiler::parse_variable(std::string_view err_message) -> int
+auto Compiler::parse_variable(std::string_view err_message, bool is_constant) -> int
 {
     parser.consume(TokenType::IDENTIFIER, err_message);
     // First declare the variable, does nothing for global variables
     // For local variables, it stores the variable name along with it's stack position
-    declare_variable();
+    declare_variable(is_constant);
 
     if (scope_depth > 0)
         return 0;
@@ -458,7 +477,7 @@ auto Compiler::parse_variable(std::string_view err_message) -> int
     return identifier(token.lexeme);
 }
 
-auto Compiler::define_variable(int constant_index) -> void
+auto Compiler::define_variable(int constant_index, bool is_const) -> void
 {
     // We are not in the global scope, do not do anything
     if (scope_depth > 0)
@@ -466,6 +485,14 @@ auto Compiler::define_variable(int constant_index) -> void
         locals.back().uninitialized = false;
         return;
     }
+    auto &val = context->get_internal_value(constant_index);
+    if (val.defined && val.is_const != is_const)
+    {
+        parser.report_error("Syntax Error: Variable '{}' has been declared, cannot be redeclared",
+                            context->get_name(constant_index)->get());
+        return;
+    }
+    val.is_const = is_const;
     emit_opcode(OpCode::DEFINE_GLOBAL);
     emit_uint16_le(static_cast<uint16_t>(constant_index));
 }
@@ -496,6 +523,7 @@ auto Compiler::resolve_local(Token name) -> int
 auto Compiler::named_variable(Token name, bool canAssign) -> void
 {
     OpCode store_op = OpCode::STORE_LOCAL, load_op = OpCode::LOAD_LOCAL;
+    bool is_local = true;
     int index = resolve_local(name);
     // If it's not a local variable, it's a global variable
     if (index == -1)
@@ -503,11 +531,19 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
         index = identifier(name.lexeme);
         store_op = OpCode::STORE_GLOBAL;
         load_op = OpCode::LOAD_GLOBAL;
+        is_local = false;
     }
 
 
     if (canAssign && parser.match(TokenType::EQUAL))
     {
+        // If it's a const variable, disallow assignment
+        if (is_local && locals[index].is_const)
+        {
+            parser.report_error("Syntax Error: Assignment to const variable '{}'",
+                                locals[index].name.lexeme);
+            return;
+        }
         expression();
         emit_opcode(store_op);
         emit_uint16_le(static_cast<uint16_t>(index));

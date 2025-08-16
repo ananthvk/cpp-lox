@@ -56,6 +56,7 @@ class Compiler
         Token name;
         int depth;
         bool uninitialized;
+        bool is_const;
     };
 
     using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
@@ -113,14 +114,15 @@ class Compiler
     auto print_statement() -> void;
     auto expression_statement() -> void;
     auto var_declaration() -> void;
+    auto const_declaration() -> void;
 
     /**
      * Helper functions to declare and define variables
      */
     auto identifier(std::string_view name) -> int;
-    auto declare_variable() -> void;
-    auto define_variable(int constant_index) -> void;
-    auto add_local(Token name) -> void;
+    auto declare_variable(bool is_constant) -> void;
+    auto define_variable(int constant_index, bool is_const) -> void;
+    auto add_local(Token name, bool is_constant) -> void;
     auto resolve_local(Token name) -> int;
     auto named_variable(Token name, bool canAssign) -> void;
 
@@ -131,7 +133,7 @@ class Compiler
      */
     auto parse_precedence(ParsePrecedence precedence) -> void;
 
-    auto parse_variable(std::string_view err_message) -> int;
+    auto parse_variable(std::string_view err_message, bool is_constant) -> int;
 
   public:
     Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,

@@ -186,6 +186,14 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // triggered in the middle of adding it to the table, the VM will not be able to find
             // the value
             auto &global_val = context->get_internal_value(index);
+
+            if (global_val.defined && global_val.is_const)
+            {
+                report_error("Runtime Error: Cannot redeclare const variable '{}'",
+                             context->get_name(index)->get());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+
             global_val.defined = true;
             global_val.value = peek(0);
             if (!peek(0).is_uninitialized())
@@ -204,6 +212,12 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             if (!context->exists(index) || !context->is_defined(index))
             {
                 report_error("Runtime Error: Undefined global variable '{}'",
+                             context->get_name(index)->get());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            else if (context->get_internal_value(index).is_const)
+            {
+                report_error("Runtime Error: Assignment to const variable '{}'",
                              context->get_name(index)->get());
                 return InterpretResult::RUNTIME_ERROR;
             }
