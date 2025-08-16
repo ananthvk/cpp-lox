@@ -11,8 +11,9 @@ class Context
         Value value;
         bool defined;
         bool initialized;
+        bool is_const;
 
-        GlobalValue() : value(), defined(false), initialized(false) {}
+        GlobalValue() : value(), defined(false), initialized(false), is_const(false) {}
     };
 
   private:
