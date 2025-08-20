@@ -100,6 +100,37 @@ auto Compiler::emit_byte(uint8_t byte) -> void { chunk.write_byte(byte, parser.p
 
 auto Compiler::emit_return() -> void { emit_opcode(OpCode::RETURN); }
 
+auto Compiler::emit_jump(OpCode code) -> int
+{
+    emit_opcode(code);
+    emit_uint16_le(0);
+    // Returns offset to the start byte of the two-byte jump location
+    // [code] 00000000 00000000
+    //        ^
+    return static_cast<int>(chunk.get_code().size()) - 2;
+}
+
+// This function patches a JUMP instruction by filling in the two byte offset with the jump location
+auto Compiler::patch_jump(int offset) -> void
+{
+    // `jump` is the number of bytes to move the ip forward so that it can jump to the last byte
+    // For example,
+    //  1 byte   2 byte jmp    1    1    1
+    //  [JUMP] [00..] [00..] [..] [..] [..]
+    //    0      1      2     3    4    5
+    //  In this case, size=6, offset=1, so jump is calculated to be 3
+    //  That means that after executing the jump, ip will move from 3 to 6
+    int jump = static_cast<int>(chunk.get_code().size()) - offset - 2;
+
+    if (jump > UINT16_MAX)
+    {
+        parser.report_error("Too much code to jump over");
+    }
+
+    chunk.get_code()[offset] = static_cast<uint8_t>(jump & 0xFF);
+    chunk.get_code()[offset + 1] = static_cast<uint8_t>((jump >> 8) & 0xFF);
+}
+
 auto Compiler::expression() -> void { parse_precedence(ParsePrecedence::ASSIGNMENT); }
 
 auto Compiler::number([[maybe_unused]] bool canAssign) -> void
@@ -341,6 +372,10 @@ auto Compiler::statement() -> void
     {
         print_statement();
     }
+    else if (parser.match(TokenType::IF))
+    {
+        if_statement();
+    }
     else if (parser.match(TokenType::LEFT_BRACE))
     {
         begin_scope();
@@ -553,4 +588,16 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
         emit_opcode(load_op);
         emit_uint16_le(static_cast<uint16_t>(index));
     }
+}
+
+auto Compiler::if_statement() -> void
+{
+    parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'if'");
+    expression();
+    parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after if condition");
+
+    int then_jump = emit_jump(OpCode::JUMP_IF_FALSE);
+    statement();
+
+    patch_jump(then_jump);
 }

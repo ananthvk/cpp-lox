@@ -26,7 +26,8 @@
     X(STORE_GLOBAL)                                                                                \
     X(LOAD_GLOBAL)                                                                                 \
     X(STORE_LOCAL)                                                                                 \
-    X(LOAD_LOCAL)
+    X(LOAD_LOCAL)                                                                                  \
+    X(JUMP_IF_FALSE)
 
 enum class OpCode : uint8_t
 {
