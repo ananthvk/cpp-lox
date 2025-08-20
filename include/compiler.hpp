@@ -84,6 +84,8 @@ class Compiler
     auto emit_byte(uint8_t byte) -> void;
     auto emit_uint16_le(uint16_t bytes) -> void;
     auto emit_return() -> void;
+    auto emit_jump(OpCode code) -> int;
+    auto patch_jump(int offset) -> void;
 
 
     auto get_rule(TokenType type) -> ParseRule &;
@@ -115,6 +117,7 @@ class Compiler
     auto expression_statement() -> void;
     auto var_declaration() -> void;
     auto const_declaration() -> void;
+    auto if_statement() -> void;
 
     /**
      * Helper functions to declare and define variables

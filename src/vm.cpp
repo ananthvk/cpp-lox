@@ -179,6 +179,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::PRINT:
             os << pop().to_string() << "\n";
             break;
+        case OpCode::JUMP_IF_FALSE:
+        {
+            uint16_t offset = read_uint16_le();
+            if (peek(0).is_falsey())
+                ip += offset;
+            break;
+        }
         case OpCode::DEFINE_GLOBAL:
         {
             auto index = read_uint16_le();

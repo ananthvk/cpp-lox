@@ -23,6 +23,16 @@ auto constant_instruction(OpCode op, int offset, const Chunk &chunk) -> int
     return offset + 2;
 }
 
+auto jump_instruction(OpCode op, int offset, const Chunk &chunk) -> int
+{
+    const auto &code = chunk.get_code();
+    uint16_t jmp = code[offset + 1];
+    jmp |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
+    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), jmp);
+    fmt::print(fmt::fg(fmt::color::green), "L{}\n", chunk.get_line_number(offset + 3 + jmp));
+    return offset + 3;
+}
+
 /**
  * An instruction that has an unsigned 2 byte operand
  */
@@ -127,6 +137,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::PRINT:
     case OpCode::POP_TOP:
         return simple_instruction(instruction, offset);
+    case OpCode::JUMP_IF_FALSE:
+        return jump_instruction(instruction, offset, chunk);
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");
         return offset + 1;
