@@ -29,6 +29,7 @@ auto jump_instruction(OpCode op, int offset, const Chunk &chunk) -> int
     uint16_t jmp = code[offset + 1];
     jmp |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
     fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), jmp);
+    fmt::print(fmt::fg(fmt::color::gray), "{:04} ", (offset + 3 + jmp));
     fmt::print(fmt::fg(fmt::color::green), "L{}\n", chunk.get_line_number(offset + 3 + jmp));
     return offset + 3;
 }
@@ -138,6 +139,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::POP_TOP:
         return simple_instruction(instruction, offset);
     case OpCode::JUMP_IF_FALSE:
+    case OpCode::POP_JUMP_IF_FALSE:
+    case OpCode::JUMP_FORWARD:
         return jump_instruction(instruction, offset, chunk);
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");

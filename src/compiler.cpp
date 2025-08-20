@@ -596,8 +596,23 @@ auto Compiler::if_statement() -> void
     expression();
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after if condition");
 
-    int then_jump = emit_jump(OpCode::JUMP_IF_FALSE);
+    int then_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
     statement();
 
-    patch_jump(then_jump);
+
+    if (parser.match(TokenType::ELSE))
+    {
+        // After the end of the if block, emit a jump statement to after the else block
+        int else_jump = emit_jump(OpCode::JUMP_FORWARD);
+        patch_jump(then_jump);
+        statement();
+        patch_jump(else_jump);
+    }
+    else
+    {
+        // If there is no else statement this works correctly and there is no fall through
+        // If the condition is truthy, it'll execute the then block and executes the next bytecode
+        // If it's falsey, it skips the block and directly executes the next bytecode
+        patch_jump(then_jump);
+    }
 }
