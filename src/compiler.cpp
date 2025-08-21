@@ -131,6 +131,19 @@ auto Compiler::patch_jump(int offset) -> void
     chunk.get_code()[offset + 1] = static_cast<uint8_t>((jump >> 8) & 0xFF);
 }
 
+auto Compiler::emit_jump_back(int absolute_location) -> void
+{
+    emit_opcode(OpCode::JUMP_BACKWARD);
+
+    // +2 to account for the size of the operand of this bytecode
+    int offset = chunk.get_code().size() - absolute_location + 2;
+    if (offset > UINT16_MAX)
+    {
+        parser.report_error("Too much code to jump back");
+    }
+    emit_uint16_le(static_cast<uint16_t>(offset));
+}
+
 auto Compiler::expression() -> void { parse_precedence(ParsePrecedence::ASSIGNMENT); }
 
 auto Compiler::number([[maybe_unused]] bool canAssign) -> void
@@ -409,6 +422,10 @@ auto Compiler::statement() -> void
     {
         if_statement();
     }
+    else if (parser.match(TokenType::WHILE))
+    {
+        while_statement();
+    }
     else if (parser.match(TokenType::LEFT_BRACE))
     {
         begin_scope();
@@ -648,4 +665,21 @@ auto Compiler::if_statement() -> void
         // If it's falsey, it skips the block and directly executes the next bytecode
         patch_jump(then_jump);
     }
+}
+
+auto Compiler::while_statement() -> void
+{
+    int loop_begin = chunk.get_code().size();
+    parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'while'");
+    expression();
+    parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after while condition");
+
+    int exit_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+
+    // Compile the loop body
+    statement();
+    // After the body, jump back to the loop start
+    emit_jump_back(loop_begin);
+
+    patch_jump(exit_jump);
 }
