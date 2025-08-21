@@ -141,6 +141,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::JUMP_IF_FALSE:
     case OpCode::POP_JUMP_IF_FALSE:
     case OpCode::JUMP_FORWARD:
+    case OpCode::JUMP_IF_TRUE:
         return jump_instruction(instruction, offset, chunk);
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");
