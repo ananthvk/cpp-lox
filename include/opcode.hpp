@@ -30,7 +30,8 @@
     X(JUMP_IF_FALSE)                                                                               \
     X(JUMP_IF_TRUE)                                                                                \
     X(POP_JUMP_IF_FALSE)                                                                           \
-    X(JUMP_FORWARD)
+    X(JUMP_FORWARD)                                                                                \
+    X(JUMP_BACKWARD)
 
 enum class OpCode : uint8_t
 {

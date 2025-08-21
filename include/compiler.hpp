@@ -84,7 +84,9 @@ class Compiler
     auto emit_byte(uint8_t byte) -> void;
     auto emit_uint16_le(uint16_t bytes) -> void;
     auto emit_return() -> void;
+
     auto emit_jump(OpCode code) -> int;
+    auto emit_jump_back(int absolute_location) -> void;
     auto patch_jump(int offset) -> void;
 
 
@@ -124,6 +126,7 @@ class Compiler
     auto var_declaration() -> void;
     auto const_declaration() -> void;
     auto if_statement() -> void;
+    auto while_statement() -> void;
 
     /**
      * Helper functions to declare and define variables

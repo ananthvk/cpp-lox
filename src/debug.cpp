@@ -11,7 +11,7 @@ auto simple_instruction(OpCode op, int offset) -> int
 auto constant_instruction(OpCode op, int offset, const Chunk &chunk) -> int
 {
     uint8_t constant_index = chunk.get_code()[offset + 1];
-    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:4d} ", opcode_to_string(op), constant_index);
+    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
     if (auto value = chunk.get_value(constant_index))
     {
         fmt::print(fmt::fg(fmt::color::green), "'{}'\n", value.value().to_string());
@@ -23,14 +23,16 @@ auto constant_instruction(OpCode op, int offset, const Chunk &chunk) -> int
     return offset + 2;
 }
 
-auto jump_instruction(OpCode op, int offset, const Chunk &chunk) -> int
+// If direction = 1, it means it's a foward offset, and if it's -1, it's a backward offset
+auto jump_instruction(OpCode op, int offset, const Chunk &chunk, int direction) -> int
 {
     const auto &code = chunk.get_code();
     uint16_t jmp = code[offset + 1];
     jmp |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
-    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), jmp);
-    fmt::print(fmt::fg(fmt::color::gray), "{:04} ", (offset + 3 + jmp));
-    fmt::print(fmt::fg(fmt::color::green), "L{}\n", chunk.get_line_number(offset + 3 + jmp));
+    fmt::print(fmt::fg(fmt::color::blue), "{:<16} {:8d} ", opcode_to_string(op), jmp);
+    int loc = (offset + 3 + direction * static_cast<int>(jmp));
+    fmt::print(fmt::fg(fmt::color::gray), "{:04} ", loc);
+    fmt::print(fmt::fg(fmt::color::green), "L{}\n", chunk.get_line_number(loc));
     return offset + 3;
 }
 
@@ -142,7 +144,10 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::POP_JUMP_IF_FALSE:
     case OpCode::JUMP_FORWARD:
     case OpCode::JUMP_IF_TRUE:
-        return jump_instruction(instruction, offset, chunk);
+        return jump_instruction(instruction, offset, chunk, 1);
+    case OpCode::JUMP_BACKWARD:
+        return jump_instruction(instruction, offset, chunk, -1);
+
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");
         return offset + 1;
