@@ -156,7 +156,9 @@ struct Value
             return !as_bool();
         if (is_nil())
             return true;
-        return true;
+        return is_nil() || (is_bool() && !as_bool());
+
+        return false;
     }
 
     auto is_uninitialized() const -> bool { return uninitialized; }

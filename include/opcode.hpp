@@ -28,6 +28,7 @@
     X(STORE_LOCAL)                                                                                 \
     X(LOAD_LOCAL)                                                                                  \
     X(JUMP_IF_FALSE)                                                                               \
+    X(JUMP_IF_TRUE)                                                                                \
     X(POP_JUMP_IF_FALSE)                                                                           \
     X(JUMP_FORWARD)
 

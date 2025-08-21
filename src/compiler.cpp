@@ -33,7 +33,7 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     rules[+TokenType::STRING]           = {F(string),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_INT]       = {F(number),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NUMBER_REAL]      = {F(number),      nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::AND]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::AND]              = {nullptr,        F(and_),          ParsePrecedence::AND};
     rules[+TokenType::CLASS]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONST]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::ELSE]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -42,8 +42,8 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     rules[+TokenType::FUN]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::IF]               = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::NIL]              = {F(literal),     nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::NOT]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::OR]               = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::NOT]              = {F(unary),       nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::OR]               = {nullptr,        F(or_),           ParsePrecedence::OR};
     rules[+TokenType::PRINT]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RETURN]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::SUPER]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -196,11 +196,44 @@ auto Compiler::unary([[maybe_unused]] bool canAssign) -> void
         emit_opcode(OpCode::NEGATE);
         break;
     case TokenType::BANG:
+    case TokenType::NOT:
         emit_opcode(OpCode::NOT);
         break;
     default:
         return;
     }
+}
+
+auto Compiler::and_(bool canAssign) -> void
+{
+    // When this and is parsed, the left hand expression has already been compiled.
+    // At runtime, the value of the left hand side expression will remain at the top of the stack.
+
+    // If LHS value is false, `and` short circuits and skips the right hand side expression using
+    // a jump
+    int end_jump = emit_jump(OpCode::JUMP_IF_FALSE);
+
+    // If LHS value is true, the jump does not execute, and the LHS expression value is
+    // discared. The value of the expression becomes the value of RHS expression
+    emit_opcode(OpCode::POP_TOP);
+
+    // This function call parses the entire right hand side expression after and
+    parse_precedence(ParsePrecedence::AND);
+
+    patch_jump(end_jump);
+}
+
+auto Compiler::or_(bool canAssign) -> void
+{
+    // Difference between 'or', 'and' is that for 'or', we jump if the LHS becomes true
+    int end_jump = emit_jump(OpCode::JUMP_IF_TRUE);
+
+    // If LHS value is false, discard it
+    emit_opcode(OpCode::POP_TOP);
+
+    parse_precedence(ParsePrecedence::OR);
+
+    patch_jump(end_jump);
 }
 
 auto Compiler::get_rule(TokenType type) -> ParseRule & { return rules[static_cast<int>(type)]; }

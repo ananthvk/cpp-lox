@@ -106,6 +106,12 @@ class Compiler
     auto variable(bool canAssign) -> void;
 
     /**
+     * Logical operators
+     */
+    auto and_(bool canAssign) -> void;
+    auto or_(bool canAssign) -> void;
+
+    /**
      * Statements
      */
     auto statement() -> void;

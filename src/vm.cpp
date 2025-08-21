@@ -186,6 +186,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 ip += offset;
             break;
         }
+        case OpCode::JUMP_IF_TRUE:
+        {
+            uint16_t offset = read_uint16_le();
+            if (!(peek(0).is_falsey()))
+                ip += offset;
+            break;
+        }
         case OpCode::POP_JUMP_IF_FALSE:
         {
             uint16_t offset = read_uint16_le();
