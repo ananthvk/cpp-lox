@@ -117,6 +117,16 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::SUBTRACT:
     case OpCode::MULTIPLY:
     case OpCode::DIVIDE:
+    case OpCode::TRUE:
+    case OpCode::FALSE:
+    case OpCode::NIL:
+    case OpCode::UNINITIALIZED:
+    case OpCode::NOT:
+    case OpCode::GREATER:
+    case OpCode::LESS:
+    case OpCode::EQUAL:
+    case OpCode::PRINT:
+    case OpCode::POP_TOP:
         return simple_instruction(instruction, offset);
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
@@ -129,17 +139,6 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::LOAD_LOCAL:
     case OpCode::STORE_LOCAL:
         return local_instruction(instruction, offset, chunk, context);
-    case OpCode::TRUE:
-    case OpCode::FALSE:
-    case OpCode::NIL:
-    case OpCode::UNINITIALIZED:
-    case OpCode::NOT:
-    case OpCode::GREATER:
-    case OpCode::LESS:
-    case OpCode::EQUAL:
-    case OpCode::PRINT:
-    case OpCode::POP_TOP:
-        return simple_instruction(instruction, offset);
     case OpCode::JUMP_IF_FALSE:
     case OpCode::POP_JUMP_IF_FALSE:
     case OpCode::JUMP_FORWARD:

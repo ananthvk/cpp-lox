@@ -127,6 +127,7 @@ class Compiler
     auto const_declaration() -> void;
     auto if_statement() -> void;
     auto while_statement() -> void;
+    auto for_statement() -> void;
 
     /**
      * Helper functions to declare and define variables
