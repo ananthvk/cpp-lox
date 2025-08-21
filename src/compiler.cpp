@@ -136,7 +136,7 @@ auto Compiler::emit_jump_back(int absolute_location) -> void
     emit_opcode(OpCode::JUMP_BACKWARD);
 
     // +2 to account for the size of the operand of this bytecode
-    int offset = chunk.get_code().size() - absolute_location + 2;
+    int offset = static_cast<int>(chunk.get_code().size()) - absolute_location + 2;
     if (offset > UINT16_MAX)
     {
         parser.report_error("Too much code to jump back");
@@ -426,6 +426,10 @@ auto Compiler::statement() -> void
     {
         while_statement();
     }
+    else if (parser.match(TokenType::FOR))
+    {
+        for_statement();
+    }
     else if (parser.match(TokenType::LEFT_BRACE))
     {
         begin_scope();
@@ -669,7 +673,7 @@ auto Compiler::if_statement() -> void
 
 auto Compiler::while_statement() -> void
 {
-    int loop_begin = chunk.get_code().size();
+    int loop_begin = static_cast<int>(chunk.get_code().size());
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'while'");
     expression();
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after while condition");
@@ -682,4 +686,87 @@ auto Compiler::while_statement() -> void
     emit_jump_back(loop_begin);
 
     patch_jump(exit_jump);
+}
+
+auto Compiler::for_statement() -> void
+{
+    // A for statement is of the form:
+    // for (initializer; condition; update) { ... body ...}
+    // Initializer, condition, and update can all be omitted
+
+    // Start a new scope so that loop variables are scoped only to the loop
+    begin_scope();
+
+    parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'for'");
+
+    // All the below statements consume the ";" after the end of the initializer
+    if (parser.match(TokenType::SEMICOLON))
+    {
+        // There is no initializer
+    }
+    else if (parser.match(TokenType::VAR))
+    {
+        var_declaration();
+    }
+    else if (parser.match(TokenType::CONST))
+    {
+        const_declaration();
+    }
+    else
+    {
+        expression_statement();
+    }
+
+    // Compile the test condition
+    // Note: This expression has to be executed in every iteration of the loop, so set loop_begin to
+    // this location
+    int loop_begin = static_cast<int>(chunk.get_code().size());
+    int exit_jump = -1;
+    if (!parser.match(TokenType::SEMICOLON))
+    {
+        expression();
+        parser.consume(TokenType::SEMICOLON, "Expected ';' after loop condition");
+
+        // If the condition evaluates to false, jump out of the loop
+        exit_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+    }
+
+    // Compile the update/increment expression
+    // Note: Since we are not building an AST before generating the bytecode, we need to add extra
+    // JUMP instructions to make it compile in a single pass.
+
+    // Example:
+    // [INITIALIZER]
+    // [CONDITION]
+    // <JUMP TO BODY>
+    // [INCREMENT EXPRESSION]
+    // <JUMP TO CONDITION>
+    // [BODY]
+    // <JUMP TO INCREMENT EXPRESSION>
+    if (!parser.match(TokenType::RIGHT_PAREN))
+    {
+        // Emit a jump to start of body of the loop
+        int body_jump = emit_jump(OpCode::JUMP_FORWARD);
+        int increment_begin = chunk.get_code().size();
+
+        // Compile the increment/update expression and discard the result
+        expression();
+        emit_opcode(OpCode::POP_TOP);
+        parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after for statement");
+
+        emit_jump_back(loop_begin);
+        loop_begin = increment_begin;
+        patch_jump(body_jump);
+    }
+
+    // Compile the loop body
+    statement();
+    emit_jump_back(loop_begin);
+
+    if (exit_jump != -1)
+    {
+        // If there was a loop condition, backpatch it to the loop's end
+        patch_jump(exit_jump);
+    }
+    end_scope();
 }
