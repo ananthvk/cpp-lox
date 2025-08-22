@@ -107,6 +107,29 @@ redeclaration with var Example:
 
 One difference is that redeclaration with const is not allowed since it helps make the vm simpler, otherwise an extra flag/byte needs to be maintained to identify if it's a const declaration or a var declaration.
 
+4) `switch` statement
+
+Supports C-style switch statements with cases and default:
+
+```lox
+switch (value) {
+    case 1:
+        print "one";
+        break;
+    case 2:
+        var foo = "hello";
+        print foo;
+        break;
+    default:
+        print "other";
+}
+```
+- Both the selector and the case value can be expressions  
+- Each arm of the switch statement defines a local scope, so variables can be declared within it
+- There is no break statement, there is no fallthrough
+- Cases cannot appear after the default statement
+
+5) 
 
 In local scope redeclaration of any form is disallowed
 
