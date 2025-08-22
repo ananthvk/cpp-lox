@@ -829,10 +829,17 @@ auto Compiler::switch_statement() -> void
 
             parser.consume(TokenType::COLON, "Expected ':' after case or default statement");
 
+            if (parser.check(TokenType::DEFAULT) || parser.check(TokenType::CASE) ||
+                parser.check(TokenType::RIGHT_BRACE))
+            {
+                parser.report_error("Empty cases not allowed in switch statement");
+            }
+
             // Add declarations (both statements & variable declarations) to the current arm until
             // we hit a case, default keyword or a right brace
             while (!(parser.check(TokenType::RIGHT_BRACE) || parser.check(TokenType::CASE) ||
-                     parser.check(TokenType::DEFAULT)))
+                     parser.check(TokenType::DEFAULT)) &&
+                   !parser.check(TokenType::END_OF_FILE))
             {
                 declaration();
             }
