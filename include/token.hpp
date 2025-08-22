@@ -48,6 +48,9 @@
     X(END_OF_FILE)                                                                                 \
     X(COLON)                                                                                       \
     X(QUESTION_MARK)                                                                               \
+    X(SWITCH)                                                                                      \
+    X(CASE)                                                                                        \
+    X(DEFAULT)                                                                                     \
     X(TOKEN_COUNT)
 
 enum class TokenType : uint8_t

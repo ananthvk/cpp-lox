@@ -212,6 +212,11 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             ip -= offset;
             break;
         }
+        case OpCode::DUP_TOP:
+        {
+            push(peek(0));
+            break;
+        }
         case OpCode::DEFINE_GLOBAL:
         {
             auto index = read_uint16_le();

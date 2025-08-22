@@ -151,6 +151,8 @@ auto Lexer::const_token_iterator::get_identifier_type() const -> TokenType
         {
             switch (source[start + 1])
             {
+            case 'a':
+                return check_keyword(2, 2, "se", TokenType::CASE);
             case 'l':
                 return check_keyword(2, 3, "ass", TokenType::CLASS);
             case 'o':
@@ -158,6 +160,8 @@ auto Lexer::const_token_iterator::get_identifier_type() const -> TokenType
             }
         }
         break;
+    case 'd':
+        return check_keyword(1, 6, "efault", TokenType::DEFAULT);
     case 'e':
         return check_keyword(1, 3, "lse", TokenType::ELSE);
     case 'f':
@@ -195,7 +199,17 @@ auto Lexer::const_token_iterator::get_identifier_type() const -> TokenType
     case 'r':
         return check_keyword(1, 5, "eturn", TokenType::RETURN);
     case 's':
-        return check_keyword(1, 4, "uper", TokenType::SUPER);
+        if (lexeme_length() > 1)
+        {
+            switch (source[start + 1])
+            {
+            case 'w':
+                return check_keyword(2, 4, "itch", TokenType::SWITCH);
+            case 'u':
+                return check_keyword(2, 3, "per", TokenType::SUPER);
+            }
+        }
+        break;
     case 't':
         if (lexeme_length() > 1)
         {
