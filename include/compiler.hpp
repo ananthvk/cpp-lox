@@ -128,6 +128,7 @@ class Compiler
     auto if_statement() -> void;
     auto while_statement() -> void;
     auto for_statement() -> void;
+    auto switch_statement() -> void;
 
     /**
      * Helper functions to declare and define variables

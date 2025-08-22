@@ -430,6 +430,10 @@ auto Compiler::statement() -> void
     {
         for_statement();
     }
+    else if (parser.match(TokenType::SWITCH))
+    {
+        switch_statement();
+    }
     else if (parser.match(TokenType::LEFT_BRACE))
     {
         begin_scope();
@@ -769,4 +773,86 @@ auto Compiler::for_statement() -> void
         patch_jump(exit_jump);
     }
     end_scope();
+}
+
+auto Compiler::switch_statement() -> void
+{
+    // Parenthesis around expression are optional
+
+    expression();
+    parser.consume(TokenType::LEFT_BRACE, "Expected '{' after switch statement");
+    std::vector<int> exit_jumps;
+
+    bool default_case_compiled = false;
+
+
+    while (!parser.check(TokenType::RIGHT_BRACE) && !parser.check(TokenType::END_OF_FILE))
+    {
+        // Look for a case or default statement
+        if (parser.match(TokenType::CASE) || parser.match(TokenType::DEFAULT))
+        {
+            // Duplicate the value of the switch variable since EQUAL consumes it
+            if (parser.previous().token_type == TokenType::CASE)
+            {
+                emit_opcode(OpCode::DUP_TOP);
+            }
+
+            begin_scope();
+            // Just add a dummy local variable so that the local variable stack offset will be
+            // computed correctly
+            auto dummy = parser.previous();
+            dummy.lexeme = "<switch_variable>";
+            add_local(dummy, false);
+
+            int skip_jump = -1;
+
+            if (parser.previous().token_type == TokenType::CASE)
+            {
+                if (default_case_compiled)
+                {
+                    parser.report_error("Cannot have cases following the 'default' case");
+                }
+                expression();
+                // Check for equality
+                emit_opcode(OpCode::EQUAL);
+                skip_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+            }
+            else
+            {
+                if (default_case_compiled)
+                {
+                    parser.report_error(
+                        "Cannot have multiple 'default' statements in a single switch case");
+                }
+                default_case_compiled = true;
+            }
+
+            parser.consume(TokenType::COLON, "Expected ':' after case or default statement");
+
+            // Add declarations (both statements & variable declarations) to the current arm until
+            // we hit a case, default keyword or a right brace
+            while (!(parser.check(TokenType::RIGHT_BRACE) || parser.check(TokenType::CASE) ||
+                     parser.check(TokenType::DEFAULT)))
+            {
+                declaration();
+            }
+
+            end_scope();
+
+            int exit_jump = emit_jump(OpCode::JUMP_FORWARD);
+            exit_jumps.push_back(exit_jump);
+            if (skip_jump != -1)
+            {
+                patch_jump(skip_jump);
+            }
+        }
+        else
+        {
+            parser.report_error("Expected 'case' or 'default' statements inside switch statement");
+            return;
+        }
+    }
+    parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after switch statement");
+    for (auto exit_jump : exit_jumps)
+        patch_jump(exit_jump);
 }
