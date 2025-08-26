@@ -914,6 +914,7 @@ auto Compiler::break_statement() -> void
     if (loop_depth == 0)
         parser.report_error("Cannot use break statement outside loop");
     parser.consume(TokenType::SEMICOLON, "Expected ';' after break statement");
+    parser.report_error("NOT YET IMPLEMENTED");
 }
 
 auto Compiler::continue_statement() -> void
