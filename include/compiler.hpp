@@ -76,6 +76,10 @@ class Compiler
 
     std::vector<ParseRule> rules;
 
+    int loop_depth;
+    int loop_scope_depth;
+    int loop_start_offset;
+
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
 
@@ -129,6 +133,8 @@ class Compiler
     auto while_statement() -> void;
     auto for_statement() -> void;
     auto switch_statement() -> void;
+    auto break_statement() -> void;
+    auto continue_statement() -> void;
 
     /**
      * Helper functions to declare and define variables

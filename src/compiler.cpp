@@ -6,7 +6,8 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
                    ErrorReporter &reporter, Context *context)
     : source(source), opts(opts), allocator(allocator), context(context), scope_depth(0),
       lexer(source), parser(lexer.begin(), reporter),
-      rules(static_cast<int>(TokenType::TOKEN_COUNT))
+      rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
+      loop_start_offset(-1)
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -54,6 +55,13 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     rules[+TokenType::ERROR]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::END_OF_FILE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::QUESTION_MARK]    = {nullptr,        F(ternary),       ParsePrecedence::CONDITIONAL};
+    rules[+TokenType::COLON]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::SWITCH]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::CASE]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::DEFAULT]          = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
+
     // clang-format on
 #undef F
 }
@@ -440,6 +448,14 @@ auto Compiler::statement() -> void
         block();
         end_scope();
     }
+    else if (parser.match(TokenType::CONTINUE))
+    {
+        continue_statement();
+    }
+    else if (parser.match(TokenType::BREAK))
+    {
+        break_statement();
+    }
     else
     {
         expression_statement();
@@ -677,19 +693,32 @@ auto Compiler::if_statement() -> void
 
 auto Compiler::while_statement() -> void
 {
+    loop_depth++;
+    begin_scope();
     int loop_begin = static_cast<int>(chunk.get_code().size());
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'while'");
     expression();
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after while condition");
 
+    int outer_loop_scope_depth = loop_scope_depth;
+    int outer_loop_start_offset = loop_start_offset;
+    loop_scope_depth = scope_depth;
+
     int exit_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
 
+    loop_start_offset = loop_begin;
     // Compile the loop body
     statement();
     // After the body, jump back to the loop start
     emit_jump_back(loop_begin);
 
     patch_jump(exit_jump);
+    loop_depth--;
+
+    loop_scope_depth = outer_loop_scope_depth;
+    loop_start_offset = outer_loop_start_offset;
+
+    end_scope();
 }
 
 auto Compiler::for_statement() -> void
@@ -698,8 +727,11 @@ auto Compiler::for_statement() -> void
     // for (initializer; condition; update) { ... body ...}
     // Initializer, condition, and update can all be omitted
 
+    loop_depth++;
+
     // Start a new scope so that loop variables are scoped only to the loop
     begin_scope();
+
 
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'for'");
 
@@ -720,6 +752,12 @@ auto Compiler::for_statement() -> void
     {
         expression_statement();
     }
+
+    // Store the previous (enclosing) loop scope depth & loop start offset
+    int outer_loop_scope_depth = loop_scope_depth;
+    int outer_loop_start_offset = loop_start_offset;
+
+    loop_scope_depth = scope_depth;
 
     // Compile the test condition
     // Note: This expression has to be executed in every iteration of the loop, so set loop_begin to
@@ -763,6 +801,8 @@ auto Compiler::for_statement() -> void
         patch_jump(body_jump);
     }
 
+    loop_start_offset = loop_begin;
+
     // Compile the loop body
     statement();
     emit_jump_back(loop_begin);
@@ -772,7 +812,12 @@ auto Compiler::for_statement() -> void
         // If there was a loop condition, backpatch it to the loop's end
         patch_jump(exit_jump);
     }
+
+    loop_scope_depth = outer_loop_scope_depth;
+    loop_start_offset = outer_loop_start_offset;
+
     end_scope();
+    loop_depth--;
 }
 
 auto Compiler::switch_statement() -> void
@@ -862,4 +907,29 @@ auto Compiler::switch_statement() -> void
     parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after switch statement");
     for (auto exit_jump : exit_jumps)
         patch_jump(exit_jump);
+}
+
+auto Compiler::break_statement() -> void
+{
+    if (loop_depth == 0)
+        parser.report_error("Cannot use break statement outside loop");
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after break statement");
+}
+
+auto Compiler::continue_statement() -> void
+{
+    if (loop_depth == 0)
+        parser.report_error("Cannot use continue statement outside loop");
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after continue statement");
+
+    // POP locals created in the loop body
+    for (int i = static_cast<int>(locals.size()) - 1; i >= 0; i--)
+    {
+        if (locals[i].depth <= loop_scope_depth)
+            break;
+        emit_opcode(OpCode::POP_TOP);
+    }
+
+    // Add a backward jump to the loop test condition / initialization
+    emit_jump_back(loop_start_offset);
 }

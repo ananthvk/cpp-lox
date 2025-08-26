@@ -156,10 +156,21 @@ auto Lexer::const_token_iterator::get_identifier_type() const -> TokenType
             case 'l':
                 return check_keyword(2, 3, "ass", TokenType::CLASS);
             case 'o':
-                return check_keyword(2, 3, "nst", TokenType::CONST);
+                if (lexeme_length() > 3 && source[start + 2] == 'n')
+                {
+                    switch (source[start + 3])
+                    {
+                    case 's':
+                        return check_keyword(4, 1, "t", TokenType::CONST);
+                    case 't':
+                        return check_keyword(4, 4, "inue", TokenType::CONTINUE);
+                    }
+                }
             }
         }
         break;
+    case 'b':
+        return check_keyword(1, 4, "reak", TokenType::BREAK);
     case 'd':
         return check_keyword(1, 6, "efault", TokenType::DEFAULT);
     case 'e':

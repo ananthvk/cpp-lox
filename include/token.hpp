@@ -51,6 +51,8 @@
     X(SWITCH)                                                                                      \
     X(CASE)                                                                                        \
     X(DEFAULT)                                                                                     \
+    X(BREAK)                                                                                       \
+    X(CONTINUE)                                                                                    \
     X(TOKEN_COUNT)
 
 enum class TokenType : uint8_t
