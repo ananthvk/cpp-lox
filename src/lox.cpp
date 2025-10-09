@@ -25,15 +25,13 @@ auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM 
     if (result != InterpretResult::OK)
         return result;
 
-    auto chunk = obj->get();
-
     if (lox_opts.dump_bytecode)
-        disassemble_chunk(*chunk, "program", context);
+        disassemble_chunk(*obj->get(), "program", context);
 
     if (lox_opts.compile_only)
         return InterpretResult::OK;
 
-    result = vm.run(chunk, std::cout);
+    result = vm.run(obj, std::cout);
 
     return result;
 }
@@ -127,10 +125,9 @@ auto Lox::run_source(std::string_view src) -> int
     if (lox_opts.compile_only)
         return 0;
 
-    auto chunk = obj->get();
 
     VM vm(vm_opts, reporter, allocator, &context);
-    result = vm.run(chunk, std::cout);
+    result = vm.run(obj, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)
     {

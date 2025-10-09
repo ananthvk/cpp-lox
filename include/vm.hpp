@@ -5,7 +5,9 @@
 #include "context.hpp"
 #include "debug.hpp"
 #include "error_reporter.hpp"
+#include "function.hpp"
 #include "hashmap.hpp"
+#include "object.hpp"
 #include "result.hpp"
 #include <ostream>
 
@@ -17,6 +19,8 @@ struct VMOpts
      */
     int value_stack_max = MAX_STACK_EVALUATION_SIZE;
 
+    int frames_max = MAX_FRAME_SIZE;
+
     bool debug_trace_execution = false;
 
     bool debug_trace_value_stack = false;
@@ -27,7 +31,15 @@ struct VMOpts
     bool debug_step_mode_enabled = false;
 };
 
+struct CallFrame
+{
+    ObjectFunction *function;
+    uint8_t *ip;
+    Value *slots;
+};
+
 struct VMStringValueTableHasher
+
 {
     auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
 };
@@ -37,44 +49,49 @@ using VMStringValueTable = HashMap<ObjectString *, Value, VMStringValueTableHash
 class VM
 {
   private:
-    std::vector<Value> stack;
+    std::vector<Value> evalstack;
     VMOpts opts;
     ErrorReporter &reporter;
     Allocator &allocator;
-    const Chunk *chunk_;
-    const uint8_t *ip;
     Context *context;
+
+    std::vector<CallFrame> frames;
+    CallFrame *current_frame;
 
     auto push(Value value) -> void
     {
-        if (static_cast<int>(stack.size()) == opts.value_stack_max)
+        if (static_cast<int>(evalstack.size()) == opts.value_stack_max)
         {
             // TODO: Throw a custom exception here
             throw std::runtime_error("Stack overflow");
         }
-        stack.push_back(value);
+        evalstack.push_back(value);
     }
 
     auto pop() -> Value
     {
-        if (stack.size() == 0)
+        if (evalstack.size() == 0)
         {
             throw std::runtime_error("Stack underflow");
         }
-        Value value = stack.back();
-        stack.pop_back();
+        Value value = evalstack.back();
+        evalstack.pop_back();
         return value;
     }
 
-    auto read_byte() -> uint8_t { return *ip++; }
+    auto read_byte() -> uint8_t { return *current_frame->ip++; }
 
-    auto read_constant() -> Value { return chunk_->get_value_unchecked(read_byte()); }
+    auto read_constant() -> Value
+    {
+        return current_frame->function->get()->get_value_unchecked(read_byte());
+    }
 
     auto read_constant_long() -> Value
     {
         uint16_t constant_index = read_byte();
         constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(read_byte()) << 8);
-        return chunk_->get_value_unchecked(static_cast<int>(constant_index));
+        return current_frame->function->get()->get_value_unchecked(
+            static_cast<int>(constant_index));
     }
 
     auto read_uint16_le() -> uint16_t
@@ -86,25 +103,27 @@ class VM
 
     auto execute(std::ostream &os) -> InterpretResult;
 
-    auto peek(int offset) const -> Value { return *(stack.end() - offset - 1); }
+    auto peek(int offset) const -> Value { return *(evalstack.end() - offset - 1); }
 
     template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
     {
-        int offset = static_cast<int>(ip - chunk_->get_code().data());
-        reporter.report(ErrorReporter::ERROR, chunk_->get_line_number(offset), message, args...);
+        int offset =
+            static_cast<int>(current_frame->ip - current_frame->function->get()->get_code().data());
+        reporter.report(ErrorReporter::ERROR,
+                        current_frame->function->get()->get_line_number(offset), message, args...);
     }
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
-        : opts(opts), reporter(reporter), allocator(allocator), chunk_(nullptr), ip(nullptr),
-          context(context)
+        : opts(opts), reporter(reporter), allocator(allocator), context(context),
+          current_frame(nullptr)
     {
         init();
     }
 
     auto init() -> void;
 
-    auto run(const Chunk *chunk, std::ostream &os) -> InterpretResult;
+    auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
 
-    auto clear_evaluation_stack() -> void { stack.clear(); }
+    auto clear_evaluation_stack() -> void { evalstack.clear(); }
 };
