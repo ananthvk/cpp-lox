@@ -1,4 +1,5 @@
 #pragma once
+#include "function.hpp"
 #include "hashmap.hpp"
 #include "object.hpp"
 #include "utils.hpp"
@@ -144,6 +145,15 @@ class Allocator
         -> ObjectString *
     {
         return intern_string(sv.data(), sv.size(), storage_type);
+    }
+
+    auto new_object(int arity, std::string_view name) -> ObjectFunction *
+    {
+        auto chunk = std::make_unique<Chunk>();
+        auto interned_name = intern_string(name);
+        auto obj = new ObjectFunction(arity, std::move(chunk), interned_name);
+        objs.push_back(obj);
+        return obj;
     }
 
     // Note: Removed static strings, and instead opted to intern all strings so that checking for

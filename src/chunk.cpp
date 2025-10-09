@@ -1,4 +1,5 @@
 #include "chunk.hpp"
+#include "object.hpp"
 
 auto Chunk::write_simple_op(OpCode op, int line) -> void
 {

@@ -38,37 +38,9 @@ struct Value
         Object *o;
     } data;
 
-    auto to_string() const -> std::string
-    {
-        switch (type)
-        {
-        case Value::NIL:
-            return "nil";
-        case Value::NUMBER_REAL:
-            return fmt::format("{:.6g}", data.d);
-        case Value::NUMBER_INT:
-            return std::to_string(data.i);
-        case Value::OBJECT:
-        {
-            switch (data.o->get_type())
-            {
-            case ObjectType::STRING:
-                return std::string(static_cast<ObjectString *>(data.o)->get());
-            default:
-                break;
-            }
-            break;
-        }
+    auto to_string() const -> std::string;
 
-        case Value::BOOLEAN:
-            if (data.b)
-                return "true";
-            else
-                return "false";
-            break;
-        }
-        throw std::logic_error("Invalid value type passed to to_string");
-    }
+    auto operator==(Value other) const -> bool;
 
     template <typename T> Value(T value, bool uninitialized = false)
     {
@@ -132,6 +104,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::STRING;
     }
 
+    auto is_function() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::FUNCTION;
+    }
+
     auto coerce_integer() const -> int64_t
     {
         if (is_integer())
@@ -170,32 +147,5 @@ struct Value
         uninitialized = false;
         type = ValueType::NIL;
         memset(reinterpret_cast<void *>(&data), 0, sizeof(data));
-    }
-
-    auto operator==(Value other) const -> bool
-    {
-        if (type != other.type)
-            return false;
-        switch (type)
-        {
-        case ValueType::NIL:
-            return true;
-        case ValueType::BOOLEAN:
-            return as_bool() == other.as_bool();
-        case ValueType::NUMBER_INT:
-            return as_integer() == other.as_integer();
-        case ValueType::OBJECT:
-            switch (data.o->get_type())
-            {
-            case ObjectType::STRING:
-                return *as_string() == *other.as_string();
-            }
-            return false;
-        case Value::NUMBER_REAL:
-            // Note: Comparing doubles like this is incorrect due to floating point precision errors
-            // TODO: Fix this by either defining an epsilon, or do not allow == between doubles
-            return fabs(as_real() - other.as_real()) < EPSILON;
-        }
-        return false;
     }
 };

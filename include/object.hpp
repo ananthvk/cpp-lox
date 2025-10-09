@@ -1,13 +1,16 @@
 #pragma once
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 #include <string_view>
 #include <vector>
 
+
 enum class ObjectType : uint8_t
 {
-    STRING
+    STRING,
+    FUNCTION
 };
 
 class Object
