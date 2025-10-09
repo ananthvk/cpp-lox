@@ -11,7 +11,8 @@ class ErrorReporter
     {
         WARNING,
         ERROR,
-        FATAL
+        FATAL,
+        ERROR_STACK_TRACE
     };
 
     struct Message
@@ -74,6 +75,12 @@ class ErrorReporter
                 if (!include_errors)
                     break;
                 color = fmt::color::red;
+                should_print = true;
+                break;
+            case Level::ERROR_STACK_TRACE:
+                if (!include_errors)
+                    break;
+                color = fmt::color::magenta;
                 should_print = true;
                 break;
             case Level::FATAL:

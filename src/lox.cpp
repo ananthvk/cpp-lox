@@ -109,6 +109,7 @@ auto Lox::run_repl() -> int
         // Errors occur when an unkown global variable is referenced within a scope, after which the
         // local variables remain on the stack
         vm.clear_evaluation_stack();
+        vm.clear_frames();
     }
     return 0;
 }

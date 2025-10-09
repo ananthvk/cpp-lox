@@ -10,7 +10,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
-    rules[+TokenType::LEFT_PAREN]       = {F(grouping),    nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::LEFT_PAREN]       = {F(grouping),    F(call),          ParsePrecedence::CALL};
     rules[+TokenType::RIGHT_PAREN]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::LEFT_BRACE]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RIGHT_BRACE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -1005,4 +1005,35 @@ auto Compiler::continue_statement() -> void
 
     // Add a backward jump to the loop test condition / initialization
     emit_jump_back(loop_start_offset);
+}
+
+auto Compiler::call(bool canAssign) -> void
+{
+    auto arg_count = argument_list();
+    emit_opcode(OpCode::CALL);
+    emit_byte(arg_count);
+}
+
+auto Compiler::argument_list() -> uint8_t
+{
+    int arg_count = 0;
+    if (parser.check(TokenType::RIGHT_PAREN))
+    {
+        parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after arguments");
+        return 0;
+    }
+    while (1)
+    {
+        expression();
+        if (arg_count == MAX_FUNCTION_PARAMETERS)
+        {
+            parser.report_error("Too many arguments: {}", arg_count);
+            break;
+        }
+        arg_count++;
+        if (!parser.match(TokenType::COMMA))
+            break;
+    }
+    parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after arguments");
+    return static_cast<uint8_t>(arg_count);
 }

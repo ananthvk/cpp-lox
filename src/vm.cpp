@@ -309,11 +309,54 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             // Do not pop the value here since assignment is an expression
             break;
         }
+        case OpCode::CALL:
+        {
+            // We need the argument count so that we can peek to get the function being executed
+            auto arg_count = read_byte();
+            if (!call_value(peek(arg_count), arg_count))
+            {
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            // After the call, set current frame to previous frame
+            current_frame = &frames[frame_count - 1];
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }
     }
     return InterpretResult::OK;
+}
+
+auto VM::call_value(Value callee, int arg_count) -> bool
+{
+    if (callee.is_function())
+    {
+        return call(static_cast<ObjectFunction *>(callee.as_object()), arg_count);
+    }
+    report_error("invalid call to non function, can only call functions and classes");
+    return false;
+}
+
+auto VM::call(ObjectFunction *function, int arg_count) -> bool
+{
+    if (arg_count != function->arity())
+    {
+        report_error("Expected {} arguments to call {}(), got {}", function->arity(),
+                     function->name()->get(), arg_count);
+        return false;
+    }
+    if (frame_count == MAX_FRAME_SIZE)
+    {
+        report_error("Stack overflow: too many frames");
+        return false;
+    }
+    auto new_frame = &frames[frame_count++];
+    new_frame->function = function;
+    new_frame->ip = function->get()->get_code().data();
+    // From the top of the eval stack, skip the args, and -1 so that the function is at slot 0
+    new_frame->slots = evalstack.data() + (evalstack.size() - arg_count - 1);
+    return true;
 }
 
 auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
@@ -322,14 +365,8 @@ auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
     {
         throw std::logic_error("function is null");
     }
-
-    // This is the reason why the compiler reserves the first stack slot
-    // It's the current function being  executed
-    
     push(Value{function});
-    current_frame = &frames[0];
-    current_frame->function = function;
-    current_frame->ip = function->get()->get_code().data();
-    current_frame->slots = evalstack.data();
+    call(function, 0);
+    current_frame = &frames[frame_count - 1];
     return execute(os);
 }

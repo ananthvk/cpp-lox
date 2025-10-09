@@ -56,6 +56,15 @@ auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk) -> int
     return offset + 3;
 }
 
+auto instruction_call(OpCode op, int offset, const Chunk &chunk) -> int
+{
+    const auto &code = chunk.get_code();
+    uint8_t arguments = code[offset + 1];
+    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), +arguments);
+    fmt::print(fmt::fg(fmt::color::green), "'{} arguments'\n", arguments);
+    return offset + 2;
+}
+
 auto global_instruction(OpCode op, int offset, const Chunk &chunk, Context *context) -> int
 {
     const auto &code = chunk.get_code();
@@ -129,6 +138,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::POP_TOP:
     case OpCode::DUP_TOP:
         return simple_instruction(instruction, offset);
+    case OpCode::CALL:
+        return instruction_call(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
