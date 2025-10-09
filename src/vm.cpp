@@ -54,9 +54,8 @@ auto VM::init() -> void
 {
     // Reserve a few more elements to ensure that we do not trigger resize of the vector when the
     // stack is full
-    stack.reserve(opts.value_stack_max + 4);
-    chunk_ = nullptr;
-    ip = nullptr;
+    evalstack.reserve(opts.value_stack_max + 4);
+    frames.resize(opts.frames_max);
 }
 
 auto VM::execute(std::ostream &os) -> InterpretResult
@@ -66,7 +65,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         if (opts.debug_trace_value_stack)
         {
             fmt::print("[ ");
-            for (auto elem : stack)
+            for (auto elem : evalstack)
             {
                 fmt::print(fmt::fg(fmt::color::beige), "{}, ", elem.to_string());
             }
@@ -74,8 +73,10 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         if (opts.debug_trace_execution)
         {
-            disassemble_instruction(*chunk_, static_cast<int>(ip - chunk_->get_code().data()),
-                                    context);
+            auto current_chunk = current_frame->function->get();
+            disassemble_instruction(
+                *current_chunk,
+                static_cast<int>(current_frame->ip - current_chunk->get_code().data()), context);
         }
         if (opts.debug_step_mode_enabled)
         {
@@ -108,7 +109,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
              * BM_RunExpressionNegation       1.68 us         1.68 us       408390
              * So there is a performance gain when negating in place
              */
-            auto &v = stack.back();
+            auto &v = evalstack.back();
             if (v.is_real())
                 v.data.d = -v.as_real();
             else if (v.is_integer())
@@ -183,33 +184,33 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         {
             uint16_t offset = read_uint16_le();
             if (peek(0).is_falsey())
-                ip += offset;
+                current_frame->ip += offset;
             break;
         }
         case OpCode::JUMP_IF_TRUE:
         {
             uint16_t offset = read_uint16_le();
             if (!(peek(0).is_falsey()))
-                ip += offset;
+                current_frame->ip += offset;
             break;
         }
         case OpCode::POP_JUMP_IF_FALSE:
         {
             uint16_t offset = read_uint16_le();
             if (pop().is_falsey())
-                ip += offset;
+                current_frame->ip += offset;
             break;
         }
         case OpCode::JUMP_FORWARD:
         {
             uint16_t offset = read_uint16_le();
-            ip += offset;
+            current_frame->ip += offset;
             break;
         }
         case OpCode::JUMP_BACKWARD:
         {
             uint16_t offset = read_uint16_le();
-            ip -= offset;
+            current_frame->ip -= offset;
             break;
         }
         case OpCode::DUP_TOP:
@@ -287,24 +288,24 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::LOAD_LOCAL:
         {
             auto slot = read_uint16_le();
-            if (slot >= stack.size())
+            if (slot >= evalstack.size())
             {
                 report_error("Runtime Error: Local variable does not declared");
                 return InterpretResult::RUNTIME_ERROR;
             }
-            if (stack[slot].is_uninitialized())
+            if (current_frame->slots[slot].is_uninitialized())
             {
                 // TODO: Also report variable name
                 report_error("Runtime Error: Uninitialized access of local variable");
                 return InterpretResult::RUNTIME_ERROR;
             }
-            push(stack[slot]);
+            push(current_frame->slots[slot]);
             break;
         }
         case OpCode::STORE_LOCAL:
         {
             auto slot = read_uint16_le();
-            stack[slot] = peek(0);
+            current_frame->slots[slot] = peek(0);
             // Do not pop the value here since assignment is an expression
             break;
         }
@@ -315,13 +316,20 @@ auto VM::execute(std::ostream &os) -> InterpretResult
     return InterpretResult::OK;
 }
 
-auto VM::run(const Chunk *chunk, std::ostream &os) -> InterpretResult
+auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
 {
-    if (chunk == nullptr)
+    if (function == nullptr)
     {
-        throw std::logic_error("chunk is null");
+        throw std::logic_error("function is null");
     }
-    this->chunk_ = chunk;
-    this->ip = chunk->get_code().data();
+
+    // This is the reason why the compiler reserves the first stack slot
+    // It's the current function being  executed
+    
+    push(Value{function});
+    current_frame = &frames[0];
+    current_frame->function = function;
+    current_frame->ip = function->get()->get_code().data();
+    current_frame->slots = evalstack.data();
     return execute(os);
 }
