@@ -3,11 +3,11 @@
 #include "fast_float.h"
 
 Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-                   ErrorReporter &reporter, Context *context)
+                   ErrorReporter &reporter, Context *context, FunctionType function_type)
     : source(source), opts(opts), allocator(allocator), context(context), scope_depth(0),
       lexer(source), parser(lexer.begin(), reporter),
       rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
-      loop_start_offset(-1)
+      loop_start_offset(-1), function_type(function_type)
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -61,12 +61,18 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
     rules[+TokenType::DEFAULT]          = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    
+    function = allocator.new_function(0, "");
+    
+    // Reserve the first slot of the locals array
+    auto token = Token{};
+    add_local(token, false);
 
     // clang-format on
 #undef F
 }
 
-auto Compiler::compile() -> InterpretResult
+auto Compiler::compile() -> std::pair<ObjectFunction *, InterpretResult>
 {
     if (opts.debug_print_tokens)
     {
@@ -80,22 +86,22 @@ auto Compiler::compile() -> InterpretResult
 
     emit_return();
 
+    // TODO: Delete the object in the allocator
+
     if (parser.had_error())
-        return InterpretResult::COMPILE_ERROR;
+        return {nullptr, InterpretResult::COMPILE_ERROR};
 
-    return InterpretResult::OK;
+    return {function, InterpretResult::OK};
 }
-
-auto Compiler::take_chunk() -> Chunk && { return std::move(chunk); }
 
 auto Compiler::emit_opcode(OpCode code) -> void
 {
-    chunk.write_simple_op(code, parser.previous().line);
+    chunk()->write_simple_op(code, parser.previous().line);
 }
 
 auto Compiler::emit_uint16_le(uint16_t bytes) -> void
 {
-    chunk.write_uint16_le(bytes, parser.previous().line);
+    chunk()->write_uint16_le(bytes, parser.previous().line);
 }
 
 auto Compiler::emit_opcode(OpCode code, uint8_t byte) -> void
@@ -104,7 +110,10 @@ auto Compiler::emit_opcode(OpCode code, uint8_t byte) -> void
     emit_byte(byte);
 }
 
-auto Compiler::emit_byte(uint8_t byte) -> void { chunk.write_byte(byte, parser.previous().line); }
+auto Compiler::emit_byte(uint8_t byte) -> void
+{
+    chunk()->write_byte(byte, parser.previous().line);
+}
 
 auto Compiler::emit_return() -> void { emit_opcode(OpCode::RETURN); }
 
@@ -115,7 +124,7 @@ auto Compiler::emit_jump(OpCode code) -> int
     // Returns offset to the start byte of the two-byte jump location
     // [code] 00000000 00000000
     //        ^
-    return static_cast<int>(chunk.get_code().size()) - 2;
+    return static_cast<int>(chunk()->get_code().size()) - 2;
 }
 
 // This function patches a JUMP instruction by filling in the two byte offset with the jump location
@@ -128,15 +137,15 @@ auto Compiler::patch_jump(int offset) -> void
     //    0      1      2     3    4    5
     //  In this case, size=6, offset=1, so jump is calculated to be 3
     //  That means that after executing the jump, ip will move from 3 to 6
-    int jump = static_cast<int>(chunk.get_code().size()) - offset - 2;
+    int jump = static_cast<int>(chunk()->get_code().size()) - offset - 2;
 
     if (jump > UINT16_MAX)
     {
         parser.report_error("Too much code to jump over");
     }
 
-    chunk.get_code()[offset] = static_cast<uint8_t>(jump & 0xFF);
-    chunk.get_code()[offset + 1] = static_cast<uint8_t>((jump >> 8) & 0xFF);
+    chunk()->get_code()[offset] = static_cast<uint8_t>(jump & 0xFF);
+    chunk()->get_code()[offset + 1] = static_cast<uint8_t>((jump >> 8) & 0xFF);
 }
 
 auto Compiler::emit_jump_back(int absolute_location) -> void
@@ -144,7 +153,7 @@ auto Compiler::emit_jump_back(int absolute_location) -> void
     emit_opcode(OpCode::JUMP_BACKWARD);
 
     // +2 to account for the size of the operand of this bytecode
-    int offset = static_cast<int>(chunk.get_code().size()) - absolute_location + 2;
+    int offset = static_cast<int>(chunk()->get_code().size()) - absolute_location + 2;
     if (offset > UINT16_MAX)
     {
         parser.report_error("Too much code to jump back");
@@ -172,11 +181,11 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
 
         auto index_opt = constant_numbers.get(value);
         if (index_opt)
-            chunk.write_load_constant(index_opt.value(), token.line);
+            chunk()->write_load_constant(index_opt.value(), token.line);
         else
         {
-            auto index = chunk.add_constant(value);
-            chunk.write_load_constant(index, token.line);
+            auto index = chunk()->add_constant(value);
+            chunk()->write_load_constant(index, token.line);
             constant_numbers.insert(value, index);
         }
     }
@@ -191,7 +200,7 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
             return;
         }
 
-        chunk.write_load_constant(chunk.add_constant(value), token.line);
+        chunk()->write_load_constant(chunk()->add_constant(value), token.line);
     }
 }
 
@@ -389,12 +398,12 @@ auto Compiler::string([[maybe_unused]] bool canAssign) -> void
     auto val = constant_strings.get(obj);
     if (val)
     {
-        chunk.write_load_constant(val.value(), token.line);
+        chunk()->write_load_constant(val.value(), token.line);
     }
     else
     {
-        int index = chunk.add_constant(obj);
-        chunk.write_load_constant(index, token.line);
+        int index = chunk()->add_constant(obj);
+        chunk()->write_load_constant(index, token.line);
         constant_strings.insert(obj, index);
     }
 }
@@ -695,7 +704,7 @@ auto Compiler::while_statement() -> void
 {
     loop_depth++;
     begin_scope();
-    int loop_begin = static_cast<int>(chunk.get_code().size());
+    int loop_begin = static_cast<int>(chunk()->get_code().size());
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after 'while'");
     expression();
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after while condition");
@@ -762,7 +771,7 @@ auto Compiler::for_statement() -> void
     // Compile the test condition
     // Note: This expression has to be executed in every iteration of the loop, so set loop_begin to
     // this location
-    int loop_begin = static_cast<int>(chunk.get_code().size());
+    int loop_begin = static_cast<int>(chunk()->get_code().size());
     int exit_jump = -1;
     if (!parser.match(TokenType::SEMICOLON))
     {
@@ -789,7 +798,7 @@ auto Compiler::for_statement() -> void
     {
         // Emit a jump to start of body of the loop
         int body_jump = emit_jump(OpCode::JUMP_FORWARD);
-        int increment_begin = chunk.get_code().size();
+        int increment_begin = chunk()->get_code().size();
 
         // Compile the increment/update expression and discard the result
         expression();

@@ -19,8 +19,17 @@ auto Value::to_string() const -> std::string
         case ObjectType::STRING:
             return std::string(static_cast<ObjectString *>(data.o)->get());
         case ObjectType::FUNCTION:
-            return "function <" +
-                   std::string(static_cast<ObjectFunction *>(data.o)->name()->get()) + ">";
+        {
+            auto name = static_cast<ObjectFunction *>(data.o)->name()->get();
+            if (name == "")
+            {
+                return "<script>";
+            }
+            else
+            {
+                return std::string("function <") + std::string(name) + std::string(">");
+            }
+        }
         default:
             throw std::logic_error("invalid object type");
             break;

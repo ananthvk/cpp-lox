@@ -147,7 +147,7 @@ class Allocator
         return intern_string(sv.data(), sv.size(), storage_type);
     }
 
-    auto new_object(int arity, std::string_view name) -> ObjectFunction *
+    auto new_function(int arity, std::string_view name) -> ObjectFunction *
     {
         auto chunk = std::make_unique<Chunk>();
         auto interned_name = intern_string(name);

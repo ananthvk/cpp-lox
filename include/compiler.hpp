@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "context.hpp"
 #include "error_reporter.hpp"
+#include "function.hpp"
 #include "hashmap.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -70,7 +71,7 @@ class Compiler
     std::vector<Local> locals;
     HashMap<int64_t, int> constant_numbers;
 
-    Chunk chunk;
+    ObjectFunction *function;
     Lexer lexer;
     Parser parser;
 
@@ -79,6 +80,8 @@ class Compiler
     int loop_depth;
     int loop_scope_depth;
     int loop_start_offset;
+
+    FunctionType function_type;
 
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
@@ -155,14 +158,11 @@ class Compiler
 
     auto parse_variable(std::string_view err_message, bool is_constant) -> int;
 
+    auto chunk() -> Chunk * { return function->get(); }
+
   public:
     Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-             ErrorReporter &reporter, Context *context);
+             ErrorReporter &reporter, Context *context, FunctionType function_type);
 
-    auto compile() -> InterpretResult;
-
-    /**
-     * @brief Transfers ownership of the Chunk object held by the compiler
-     */
-    auto take_chunk() -> Chunk &&;
+    auto compile() -> std::pair<ObjectFunction *, InterpretResult>;
 };
