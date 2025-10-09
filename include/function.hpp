@@ -2,6 +2,12 @@
 #include "chunk.hpp"
 #include "object.hpp"
 
+enum class FunctionType
+{
+    FUNCTION,
+    SCRIPT
+};
+
 /**
  * Represents a runtime object. Use the allocator class to create new objects.
  */
