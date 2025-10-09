@@ -57,6 +57,7 @@ class VM
 
     std::vector<CallFrame> frames;
     CallFrame *current_frame;
+    int frame_count;
 
     auto push(Value value) -> void
     {
@@ -107,16 +108,40 @@ class VM
 
     template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
     {
+        // TODO: Add flag to enable/disable stack traces
+        // For now just use the error reporter to report it
         int offset =
             static_cast<int>(current_frame->ip - current_frame->function->get()->get_code().data());
         reporter.report(ErrorReporter::ERROR,
                         current_frame->function->get()->get_line_number(offset), message, args...);
+        for (int i = (frame_count - 1); i >= 0; i--)
+        {
+            CallFrame *frame = &frames[i];
+            ObjectFunction *func = frame->function;
+            int instruction = static_cast<int>(frame->ip - func->get()->get_code().data() - 1);
+
+            std::string_view func_name = func->name()->get();
+            if (func_name == "")
+            {
+                reporter.report(ErrorReporter::ERROR_STACK_TRACE,
+                                func->get()->get_line_number(instruction), "in {}", "script");
+            }
+            else
+            {
+                reporter.report(ErrorReporter::ERROR_STACK_TRACE,
+                                func->get()->get_line_number(instruction), "in {}()", func_name);
+            }
+        }
     }
+
+    auto call_value(Value callee, int arg_count) -> bool;
+
+    auto call(ObjectFunction *function, int arg_count) -> bool;
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
         : opts(opts), reporter(reporter), allocator(allocator), context(context),
-          current_frame(nullptr)
+          current_frame(nullptr), frame_count(0)
     {
         init();
     }
@@ -126,4 +151,6 @@ class VM
     auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
 
     auto clear_evaluation_stack() -> void { evalstack.clear(); }
+
+    auto clear_frames() -> void { frame_count = 0; }
 };

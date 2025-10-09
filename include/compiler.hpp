@@ -120,6 +120,12 @@ class Compiler
     auto or_(bool canAssign) -> void;
 
     /**
+     * Function call
+     */
+    auto call(bool canAssign) -> void;
+    auto argument_list() -> uint8_t;
+
+    /**
      * Statements
      */
     auto statement() -> void;
