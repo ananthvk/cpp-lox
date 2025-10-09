@@ -87,7 +87,29 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         switch (op)
         {
         case OpCode::RETURN:
-            return InterpretResult::OK;
+        {
+            auto result = pop();
+            --frame_count;
+            if (frame_count == 0)
+            {
+                // The main script has finished executing, pop the script from the stack
+                pop();
+                return InterpretResult::OK;
+            }
+
+            // Otherwise, discard all stack values that were used by the function, and continue
+            // executing the previous function
+
+            // TODO: Inefficient, implement stack top pointer
+            int top = static_cast<int>(current_frame->slots - evalstack.data());
+            int n = evalstack.size() - top;
+            for (int i = 0; i < n; i++)
+                evalstack.pop_back();
+
+            push(result);
+            current_frame = &frames[frame_count - 1];
+            break;
+        }
         case OpCode::LOAD_CONSTANT:
             push(read_constant());
             break;
@@ -317,7 +339,8 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             {
                 return InterpretResult::RUNTIME_ERROR;
             }
-            // After the call, set current frame to previous frame
+            // After the call, a new frame is created for the function
+            // move the frame pointer to the new function
             current_frame = &frames[frame_count - 1];
             break;
         }

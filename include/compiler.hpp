@@ -129,7 +129,7 @@ class Compiler
      * Statements
      */
     auto statement() -> void;
-    auto compile_function(FunctionType function_type, std::string_view name) -> void;
+    auto compile_function(FunctionType fun_type, std::string_view name) -> void;
     // Compiles a list of variables, separated by a comma and ending with end_type. doesn't consume
     // Token end_type
     auto parameters(TokenType end_type) -> void;
@@ -148,6 +148,7 @@ class Compiler
     auto for_statement() -> void;
     auto switch_statement() -> void;
     auto break_statement() -> void;
+    auto return_statement() -> void;
     auto continue_statement() -> void;
 
     /**
