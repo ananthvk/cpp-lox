@@ -13,12 +13,22 @@
 Lox::Lox(const CompilerOpts &compiler_opts, const VMOpts &vm_opts, const LoxOpts &lox_opts)
     : compiler_opts(compiler_opts), vm_opts(vm_opts), lox_opts(lox_opts)
 {
+    if (lox_opts.dump_bytecode)
+    {
+        this->compiler_opts.dump_function_bytecode = true;
+    }
 }
 
 auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM &vm,
                               Allocator &allocator, Context *context) -> InterpretResult
 {
-    Compiler compiler(src, compiler_opts, allocator, reporter, context, FunctionType::SCRIPT);
+    Lexer lexer(src);
+    if (compiler_opts.debug_print_tokens)
+    {
+        print_tokens(lexer);
+    }
+    Parser parser(lexer.begin(), reporter);
+    Compiler compiler(parser, compiler_opts, allocator, context, FunctionType::SCRIPT);
 
     auto [obj, result] = compiler.compile();
 
@@ -113,7 +123,10 @@ auto Lox::run_source(std::string_view src) -> int
     ErrorReporter reporter;
     Context context;
 
-    Compiler compiler(src, compiler_opts, allocator, reporter, &context, FunctionType::SCRIPT);
+    Lexer lexer(src);
+    Parser parser(lexer.begin(), reporter);
+
+    Compiler compiler(parser, compiler_opts, allocator, &context, FunctionType::SCRIPT);
 
     auto [obj, result] = compiler.compile();
     if (result != InterpretResult::OK)

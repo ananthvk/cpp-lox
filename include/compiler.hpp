@@ -15,6 +15,8 @@
 struct CompilerOpts
 {
     bool debug_print_tokens = false;
+
+    bool dump_function_bytecode = false;
 };
 
 enum class ParsePrecedence
@@ -62,7 +64,6 @@ class Compiler
 
     using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
 
-    std::string_view source;
     CompilerOpts opts;
     Allocator &allocator;
     Context *context;
@@ -72,8 +73,7 @@ class Compiler
     HashMap<int64_t, int> constant_numbers;
 
     ObjectFunction *function;
-    Lexer lexer;
-    Parser parser;
+    Parser &parser;
 
     std::vector<ParseRule> rules;
 
@@ -82,7 +82,6 @@ class Compiler
     int loop_start_offset;
 
     FunctionType function_type;
-
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
 
@@ -124,6 +123,10 @@ class Compiler
      * Statements
      */
     auto statement() -> void;
+    auto compile_function(FunctionType function_type, std::string_view name) -> void;
+    // Compiles a list of variables, separated by a comma and ending with end_type. doesn't consume
+    // Token end_type
+    auto parameters(TokenType end_type) -> void;
     auto block() -> void;
     auto begin_scope() -> void;
     auto end_scope() -> void;
@@ -131,6 +134,8 @@ class Compiler
     auto print_statement() -> void;
     auto expression_statement() -> void;
     auto var_declaration() -> void;
+    auto fun_declaration() -> void;
+    auto mark_initialized() -> void;
     auto const_declaration() -> void;
     auto if_statement() -> void;
     auto while_statement() -> void;
@@ -161,8 +166,8 @@ class Compiler
     auto chunk() -> Chunk * { return function->get(); }
 
   public:
-    Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-             ErrorReporter &reporter, Context *context, FunctionType function_type);
+    Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
+             FunctionType function_type);
 
     auto compile() -> std::pair<ObjectFunction *, InterpretResult>;
 };

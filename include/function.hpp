@@ -29,6 +29,8 @@ class ObjectFunction : public Object
 
     auto name() const -> ObjectString * { return name_; }
 
+    auto set_name(ObjectString *new_name) -> void { name_ = new_name; }
+
     auto get() const -> Chunk * { return chunk.get(); }
 
     auto operator==(const ObjectFunction &other) const -> bool { return this == &other; }
@@ -42,4 +44,5 @@ class ObjectFunction : public Object
     ObjectString &operator=(ObjectFunction &&other) noexcept = delete;
 
     friend class Allocator;
+    friend class Compiler;
 };
