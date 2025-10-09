@@ -2,10 +2,9 @@
 #include "debug.hpp"
 #include "fast_float.h"
 
-Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator &allocator,
-                   ErrorReporter &reporter, Context *context, FunctionType function_type)
-    : source(source), opts(opts), allocator(allocator), context(context), scope_depth(0),
-      lexer(source), parser(lexer.begin(), reporter),
+Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
+                   FunctionType function_type)
+    : opts(opts), allocator(allocator), context(context), scope_depth(0), parser(parser),
       rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
       loop_start_offset(-1), function_type(function_type)
 {
@@ -74,11 +73,6 @@ Compiler::Compiler(std::string_view source, const CompilerOpts &opts, Allocator 
 
 auto Compiler::compile() -> std::pair<ObjectFunction *, InterpretResult>
 {
-    if (opts.debug_print_tokens)
-    {
-        print_tokens(lexer);
-    }
-
     while (!parser.match(TokenType::END_OF_FILE))
     {
         declaration();
@@ -419,6 +413,10 @@ auto Compiler::declaration() -> void
     {
         const_declaration();
     }
+    else if (parser.match(TokenType::FUN))
+    {
+        fun_declaration();
+    }
     else
     {
         statement();
@@ -527,6 +525,71 @@ auto Compiler::var_declaration() -> void
     parser.consume(TokenType::SEMICOLON, "Expected ';' after variable declaration");
 
     define_variable(variable_constant_index, false);
+}
+
+auto Compiler::fun_declaration() -> void
+{
+    int function_name_constant_index = parse_variable("Expected function name after 'fun'", false);
+    // Mark the function as initialized if in local scope so that a function can refer
+    // to itself in it's body. This is to support recursive local functions.
+    mark_initialized();
+    std::string_view function_name = parser.previous().lexeme;
+    compile_function(FunctionType::FUNCTION, function_name);
+    define_variable(function_name_constant_index, false);
+}
+
+auto Compiler::compile_function(FunctionType function_type, std::string_view name) -> void
+{
+    // The compiler used to compile the function uses the same parser as the parent compiler
+    // so that it consumes the complete function.
+    Compiler compiler(parser, opts, allocator, context, FunctionType::FUNCTION);
+    compiler.function->set_name(allocator.intern_string(name, Allocator::StorageType::DYNAMIC));
+    compiler.begin_scope();
+    parser.consume(TokenType::LEFT_PAREN, "Expected '(' after function name");
+    compiler.parameters(TokenType::RIGHT_PAREN);
+    parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after function parameters");
+    parser.consume(TokenType::LEFT_BRACE, "Expected '{' before function body");
+
+    compiler.block();
+    compiler.emit_return();
+
+    auto fn = compiler.function;
+    if (opts.dump_function_bytecode)
+    {
+        disassemble_chunk(*fn->get(), std::string("function ") + std::string(name), context);
+    }
+
+    int index = chunk()->add_constant(Value{fn});
+    chunk()->write_load_constant(index, parser.previous().line);
+}
+
+auto Compiler::parameters(TokenType end_type) -> void
+{
+    if (parser.check(end_type))
+        // No parameters
+        return;
+    while (1)
+    {
+        function->arity_++;
+        if (function->arity_ > MAX_FUNCTION_PARAMETERS)
+        {
+            parser.report_error("Too many parameters ({}), has to be less than {}",
+                                function->arity_, MAX_FUNCTION_PARAMETERS);
+            return;
+        }
+        int parameter_constant_index = parse_variable("Expected parameter name", false);
+        define_variable(parameter_constant_index, false);
+        if (!parser.match(TokenType::COMMA))
+            return;
+    }
+}
+
+auto Compiler::mark_initialized() -> void
+{
+    if (scope_depth > 0)
+    {
+        locals.back().uninitialized = false;
+    }
 }
 
 auto Compiler::const_declaration() -> void
