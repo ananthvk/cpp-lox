@@ -109,7 +109,11 @@ auto Compiler::emit_byte(uint8_t byte) -> void
     chunk()->write_byte(byte, parser.previous().line);
 }
 
-auto Compiler::emit_return() -> void { emit_opcode(OpCode::RETURN); }
+auto Compiler::emit_return() -> void
+{
+    emit_opcode(OpCode::NIL);
+    emit_opcode(OpCode::RETURN);
+}
 
 auto Compiler::emit_jump(OpCode code) -> int
 {
@@ -463,6 +467,10 @@ auto Compiler::statement() -> void
     {
         break_statement();
     }
+    else if (parser.match(TokenType::RETURN))
+    {
+        return_statement();
+    }
     else
     {
         expression_statement();
@@ -538,7 +546,8 @@ auto Compiler::fun_declaration() -> void
     define_variable(function_name_constant_index, false);
 }
 
-auto Compiler::compile_function(FunctionType function_type, std::string_view name) -> void
+auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)
+    -> void
 {
     // The compiler used to compile the function uses the same parser as the parent compiler
     // so that it consumes the complete function.
@@ -861,7 +870,7 @@ auto Compiler::for_statement() -> void
     {
         // Emit a jump to start of body of the loop
         int body_jump = emit_jump(OpCode::JUMP_FORWARD);
-        int increment_begin = chunk()->get_code().size();
+        int increment_begin = static_cast<int>(chunk()->get_code().size());
 
         // Compile the increment/update expression and discard the result
         expression();
@@ -1036,4 +1045,21 @@ auto Compiler::argument_list() -> uint8_t
     }
     parser.consume(TokenType::RIGHT_PAREN, "Expected ')' after arguments");
     return static_cast<uint8_t>(arg_count);
+}
+
+auto Compiler::return_statement() -> void
+{
+    if (function_type == FunctionType::SCRIPT)
+    {
+        parser.report_error("cannot return from top level script, must be used inside a function");
+    }
+    if (parser.match(TokenType::SEMICOLON))
+    {
+        // No value to return
+        emit_return();
+        return;
+    }
+    expression();
+    parser.consume(TokenType::SEMICOLON, "Expected ';' after return statement");
+    emit_opcode(OpCode::RETURN);
 }

@@ -110,10 +110,6 @@ class VM
     {
         // TODO: Add flag to enable/disable stack traces
         // For now just use the error reporter to report it
-        int offset =
-            static_cast<int>(current_frame->ip - current_frame->function->get()->get_code().data());
-        reporter.report(ErrorReporter::ERROR,
-                        current_frame->function->get()->get_line_number(offset), message, args...);
         for (int i = (frame_count - 1); i >= 0; i--)
         {
             CallFrame *frame = &frames[i];
@@ -132,6 +128,10 @@ class VM
                                 func->get()->get_line_number(instruction), "in {}()", func_name);
             }
         }
+        int offset =
+            static_cast<int>(current_frame->ip - current_frame->function->get()->get_code().data());
+        reporter.report(ErrorReporter::ERROR,
+                        current_frame->function->get()->get_line_number(offset), message, args...);
     }
 
     auto call_value(Value callee, int arg_count) -> bool;
