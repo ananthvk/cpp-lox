@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "object.hpp"
 #include "opcode.hpp"
 #include "value.hpp"
 

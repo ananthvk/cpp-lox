@@ -19,6 +19,7 @@ sources = files(
     'src/lox.cpp',
     'src/parser.cpp',
     'src/vm.cpp',
+    'src/value.cpp',
 )
 
 subdir('flags')
