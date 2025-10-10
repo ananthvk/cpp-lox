@@ -11,7 +11,7 @@ def test_const_declaration(run_lox):
         run_lox(
             """
             const x = 32;
-            print x;
+            echo x;
             """
         )
         == "32"
@@ -38,9 +38,9 @@ def test_const_in_block_scope(run_lox):
             const x = 10;
             {
                 const x = 20;
-                print x;
+                echo x;
             }
-            print x;
+            echo x;
             """
         )
         == "20\n10"
@@ -54,7 +54,7 @@ def test_const_outside_block_scope(run_lox):
             {
                 const x = 32;
             }
-            print x;
+            echo x;
         """
         )
         assert False, "Should raise an error for accessing const outside scope"
@@ -90,7 +90,7 @@ def test_const_with_expression(run_lox):
         run_lox(
             """
             const x = 10 + 20;
-            print x;
+            echo x;
             """
         )
         == "30"
@@ -103,8 +103,8 @@ def test_const_and_var_different_names_global(run_lox):
             """
             const x = 10;
             var y = 20;
-            print x;
-            print y;
+            echo x;
+            echo y;
             """
         )
         == "10\n20"
@@ -158,7 +158,7 @@ def test_var_redeclare_global(run_lox):
             """
             var x = 32;
             var x = 64;
-            print x;
+            echo x;
             """
         )
         == "64"

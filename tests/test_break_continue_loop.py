@@ -5,7 +5,7 @@ def test_continue_in_for_loop_basic(run_lox):
             """
     for (var i = 1; i <= 5; i = i + 1) {
         if (i == 3) continue;
-        print i;
+        echo i;
     }
     """
         )
@@ -23,7 +23,7 @@ def test_continue_multiple_conditions_while(run_lox):
         if (i == 2) continue;
         if (i == 5) continue;
         if (i == 8) continue;
-        print i;
+        echo i;
     }
     """
         )
@@ -37,7 +37,7 @@ def test_continue_in_for_loop_skip_even(run_lox):
             """
     for (var i = 1; i <= 6; i = i + 1) {
         if (i == 2 or i == 4 or i == 6) continue;
-        print i;
+        echo i;
     }
     """
         )
@@ -55,8 +55,8 @@ def test_continue_nested_while_outer(run_lox):
         if (i == 2) continue;
         var j = 1;
         while (j <= 2) {
-            print i;
-            print j;
+            echo i;
+            echo j;
             j = j + 1;
         }
     }
@@ -78,8 +78,8 @@ def test_continue_nested_while_inner(run_lox):
                 j = j + 1;
                 continue;
             }
-            print i;
-            print j;
+            echo i;
+            echo j;
             j = j + 1;
         }
         i = i + 1;
@@ -96,7 +96,7 @@ def test_continue_with_complex_condition_for(run_lox):
             """
     for (var i = 1; i <= 8; i = i + 1) {
         if (i > 2 and i < 6) continue;
-        print i;
+        echo i;
     }
     """
         )
@@ -111,9 +111,9 @@ def test_continue_at_loop_end_while(run_lox):
     var i = 0;
     while (i < 4) {
         i = i + 1;
-        print i;
+        echo i;
         if (i == 4) continue;
-        print "after";
+        echo "after";
     }
     """
         )
@@ -132,7 +132,7 @@ def test_continue_with_variable_assignment_for(run_lox):
             continue;
         }
         sum = sum + i;
-        print sum;
+        echo sum;
     }
     """
         )
@@ -148,9 +148,9 @@ def test_continue_all_iterations_while(run_lox):
     while (i < 3) {
         i = i + 1;
         continue;
-        print "never printed";
+        echo "never printed";
     }
-    print "done";
+    echo "done";
     """
         )
         == "done"

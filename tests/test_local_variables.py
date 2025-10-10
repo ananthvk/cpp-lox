@@ -4,7 +4,7 @@ def test_basic_local_variables(run_lox):
             """
     {
         var x = 10;
-        print x;
+        echo x;
     }
     """
         )
@@ -19,9 +19,9 @@ def test_nested_scope_shadowing(run_lox):
     var a = "global";
     {
         var a = "local";
-        print a;
+        echo a;
     }
-    print a;
+    echo a;
     """
         )
         == """local
@@ -37,9 +37,9 @@ def test_multiple_variables_same_scope(run_lox):
         var x = 1;
         var y = 2;
         var z = 3;
-        print x;
-        print y;
-        print z;
+        echo x;
+        echo y;
+        echo z;
     }
     """
         )
@@ -55,11 +55,11 @@ def test_variable_reassignment_in_scope(run_lox):
             """
     {
         var a = 5;
-        print a;
+        echo a;
         a = 10;
-        print a;
+        echo a;
         a = 15;
-        print a;
+        echo a;
     }
     """
         )
@@ -78,9 +78,9 @@ def test_deep_nesting_access(run_lox):
         var middle = "middle";
         {
             var inner = "inner";
-            print outer;
-            print middle;
-            print inner;
+            echo outer;
+            echo middle;
+            echo inner;
         }
     }
     """
@@ -100,7 +100,7 @@ def test_scope_isolation(run_lox):
     }
     {
         var a = 2;
-        print a;
+        echo a;
     }
     """
         )
@@ -114,13 +114,13 @@ def test_mixed_global_local_operations(run_lox):
             """
     var global_var = 100;
     {
-        print global_var;
+        echo global_var;
         var local_var = 200;
         global_var = 300;
-        print global_var;
-        print local_var;
+        echo global_var;
+        echo local_var;
     }
-    print global_var;
+    echo global_var;
     """
         )
         == """100
@@ -137,11 +137,11 @@ def test_variable_scope_with_expressions(run_lox):
     var x = 5;
     {
         var y = x + 3;
-        print y;
+        echo y;
         x = y * 2;
-        print x;
+        echo x;
     }
-    print x;
+    echo x;
     """
         )
         == """8
@@ -156,15 +156,15 @@ def test_sequential_scopes_with_same_names(run_lox):
             """
     {
         var temp = 1;
-        print temp;
+        echo temp;
     }
     {
         var temp = 2;
-        print temp;
+        echo temp;
     }
     {
         var temp = 3;
-        print temp;
+        echo temp;
     }
     """
         )
@@ -181,20 +181,20 @@ def test_complex_nested_shadowing(run_lox):
     var name = "global";
     {
         var name = "outer";
-        print name;
+        echo name;
         {
-            print name;
+            echo name;
             var name = "inner";
-            print name;
+            echo name;
             {
                 var name = "deepest";
-                print name;
+                echo name;
             }
-            print name;
+            echo name;
         }
-        print name;
+        echo name;
     }
-    print name;
+    echo name;
     """
         )
         == """outer
@@ -215,16 +215,16 @@ def test_local_global_shadowing(run_lox):
     var outer2 = "bye world";
     {
         var outer1 = "inside scope";
-        print outer1;
+        echo outer1;
         {
             outer1 = "deep";
-            print outer2;
+            echo outer2;
         }
         var outer2 = "inside scope";
-        print outer1;
+        echo outer1;
     }
-    print outer1;
-    print outer2;
+    echo outer1;
+    echo outer2;
                    """
         )
         == """inside scope
@@ -315,10 +315,10 @@ def test_many_locals_256_variables(run_lox):
                     var y61 = 253; var y62 = 254; var y63 = 255; var y64 = 256;
                     
                     // Test that all variables are accessible
-                    print v1;
-                    print w32;
-                    print x64;
-                    print y64;
+                    echo v1;
+                    echo w32;
+                    echo x64;
+                    echo y64;
                 }
             }
         }
@@ -339,41 +339,41 @@ def test_global_complex(run_lox):
             """
     {
         var a = 1;
-        print a;
+        echo a;
         {
-            print a;
+            echo a;
             var b = 2;
             {
                 var c = 3;
-                print b;
-                print c;
+                echo b;
+                echo c;
                 {
                     var d = 4;
-                    print d;
+                    echo d;
                 }
                 var e = 5;
-                print e;
+                echo e;
                 e = c;
-                print e;
+                echo e;
                 var b = 20;
-                print b;
+                echo b;
             }
-            print b;
+            echo b;
             var a = 95;
-            print a;
+            echo a;
             a = 100;
-            print a;
+            echo a;
         }
-        print a;
+        echo a;
         var f = 6;
-        print f;
+        echo f;
         {
             var g = 7;
-            print g;
+            echo g;
             f = 70;
-            print f;
+            echo f;
         }
-        print f;
+        echo f;
     }
     """
         )
