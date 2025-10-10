@@ -58,6 +58,7 @@ class VM
     std::vector<CallFrame> frames;
     CallFrame *current_frame;
     int frame_count;
+    std::ostream *output_stream;
 
     auto push(Value value) -> void
     {
@@ -106,6 +107,32 @@ class VM
 
     auto peek(int offset) const -> Value { return *(evalstack.end() - offset - 1); }
 
+    auto call_value(Value callee, int arg_count) -> bool;
+
+    auto call(ObjectFunction *function, int arg_count) -> bool;
+
+  public:
+    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
+        : opts(opts), reporter(reporter), allocator(allocator), context(context),
+          current_frame(nullptr), frame_count(0)
+    {
+        init();
+    }
+
+    auto init() -> void;
+
+    auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
+
+    auto clear_evaluation_stack() -> void { evalstack.clear(); }
+
+    auto clear_frames() -> void { frame_count = 0; }
+
+    auto get_allocator() -> Allocator * { return &allocator; }
+
+    auto define_native_function(std::string_view name, int arity, NativeFunction func) -> void;
+
+    auto register_native_functions() -> void;
+
     template <typename... Args> auto report_error(const std::string &message, Args... args) -> void
     {
         // TODO: Add flag to enable/disable stack traces
@@ -134,27 +161,5 @@ class VM
                         current_frame->function->get()->get_line_number(offset), message, args...);
     }
 
-    auto call_value(Value callee, int arg_count) -> bool;
-
-    auto call(ObjectFunction *function, int arg_count) -> bool;
-
-  public:
-    VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
-        : opts(opts), reporter(reporter), allocator(allocator), context(context),
-          current_frame(nullptr), frame_count(0)
-    {
-        init();
-    }
-
-    auto init() -> void;
-
-    auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
-
-    auto clear_evaluation_stack() -> void { evalstack.clear(); }
-
-    auto clear_frames() -> void { frame_count = 0; }
-
-    auto define_native_function(std::string_view name, int arity, NativeFunction func) -> void;
-
-    auto register_native_functions() -> void; 
+    auto get_output_stream() -> std::ostream & { return *output_stream; }
 };

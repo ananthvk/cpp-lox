@@ -133,6 +133,12 @@ switch (value) {
 
 In local scope redeclaration of any form is disallowed
 
+6) Other native functions
+
+- `sqrt(number) double`
+- `exit(integer)`
+- `input() string`
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements

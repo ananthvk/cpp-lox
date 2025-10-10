@@ -9,6 +9,8 @@ enum class FunctionType
     SCRIPT
 };
 
+class VM;
+
 /**
  * Represents a runtime function. Use the allocator class to create new objects.
  */
@@ -49,7 +51,9 @@ class ObjectFunction : public Object
 };
 
 // Function pointer to a native function
-typedef Value (*NativeFunction)(int argCount, Value *args);
+// The return value is a pair, first contains the value returned. And second is set to true if the call
+// executed successfuly, false otherwise.
+typedef std::pair<Value,bool> (*NativeFunction)(VM *vm, int argCount, Value *args);
 
 /**
  * Represents a native function. Use the allocator class to create new objects.
