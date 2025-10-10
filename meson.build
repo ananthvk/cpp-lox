@@ -20,7 +20,11 @@ sources = files(
     'src/parser.cpp',
     'src/vm.cpp',
     'src/value.cpp',
-    'src/native/time.cpp'
+    'src/register_native_functions.cpp',
+    'src/native/time.cpp',
+    'src/native/math.cpp',
+    'src/native/stdlib.cpp',
+    'src/native/stdio.cpp'
 )
 
 subdir('flags')

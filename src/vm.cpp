@@ -1,6 +1,5 @@
 #include "vm.hpp"
 #include "debug.hpp"
-#include "native.hpp"
 
 // TODO: When both operands are integers, division converts them to double before performing the
 // operation. Provide an integer division operator (like //)
@@ -58,6 +57,7 @@ auto VM::init() -> void
     evalstack.reserve(opts.value_stack_max + 4);
     frames.resize(opts.frames_max);
     register_native_functions();
+    output_stream = nullptr;
 }
 
 auto VM::execute(std::ostream &os) -> InterpretResult
@@ -354,7 +354,8 @@ auto VM::execute(std::ostream &os) -> InterpretResult
 }
 
 auto VM::call_value(Value callee, int arg_count) -> bool
-{;
+{
+    ;
     if (callee.is_function())
     {
         return call(static_cast<ObjectFunction *>(callee.as_object()), arg_count);
@@ -362,14 +363,20 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     else if (callee.is_native_function())
     {
         ObjectNativeFunction *func = static_cast<ObjectNativeFunction *>(callee.as_object());
-        if (arg_count != func->arity())
+        // If the arity is set to -1, do not check for number of arguments
+        if (func->arity() != -1 && arg_count != func->arity())
         {
             report_error("Expected {} arguments to call native function, got {}", func->arity(),
                          arg_count);
             return false;
         }
         NativeFunction native_func = func->get();
-        Value result = native_func(arg_count, &evalstack[evalstack.size() - arg_count - 1]);
+        auto [result, ok] =
+            native_func(this, arg_count, &evalstack[evalstack.size() - arg_count - 1]);
+        if (!ok)
+        {
+            return false;
+        }
 
         // TODO: Inefficient, implement stack top pointer
         for (int i = 0; i < arg_count + 1; i++)
@@ -419,6 +426,7 @@ auto VM::define_native_function(std::string_view name, int arity, NativeFunction
 
 auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
 {
+    output_stream = &os;
     if (function == nullptr)
     {
         throw std::logic_error("function is null");
@@ -428,5 +436,3 @@ auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
     current_frame = &frames[frame_count - 1];
     return execute(os);
 }
-
-auto VM::register_native_functions() -> void { define_native_function("clock", 0, native_clock); }
