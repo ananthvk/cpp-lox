@@ -109,6 +109,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::FUNCTION;
     }
 
+    auto is_native_function() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::NATIVE_FUNCTION;
+    }
+
     auto coerce_integer() const -> int64_t
     {
         if (is_integer())

@@ -1,6 +1,7 @@
 #pragma once
 #include "chunk.hpp"
 #include "object.hpp"
+#include "value.hpp"
 
 enum class FunctionType
 {
@@ -9,7 +10,7 @@ enum class FunctionType
 };
 
 /**
- * Represents a runtime object. Use the allocator class to create new objects.
+ * Represents a runtime function. Use the allocator class to create new objects.
  */
 class ObjectFunction : public Object
 {
@@ -42,6 +43,43 @@ class ObjectFunction : public Object
     // Move not allowed
     ObjectFunction(ObjectFunction &&other) noexcept = delete;
     ObjectString &operator=(ObjectFunction &&other) noexcept = delete;
+
+    friend class Allocator;
+    friend class Compiler;
+};
+
+// Function pointer to a native function
+typedef Value (*NativeFunction)(int argCount, Value *args);
+
+/**
+ * Represents a native function. Use the allocator class to create new objects.
+ */
+class ObjectNativeFunction : public Object
+{
+    int arity_;
+    NativeFunction function;
+
+    ObjectNativeFunction(int arity, NativeFunction function) : arity_(arity), function(function) {}
+
+  public:
+    auto get_type() const -> ObjectType override { return ObjectType::NATIVE_FUNCTION; }
+
+    auto arity() const -> size_t { return arity_; }
+
+    auto get() const -> NativeFunction { return function; }
+
+    auto operator==(const ObjectNativeFunction &other) const -> bool
+    {
+        return this->function == other.function;
+    }
+
+    // Copy not allowed
+    ObjectNativeFunction(const ObjectString &other) = delete;
+    ObjectNativeFunction &operator=(const ObjectString &other) = delete;
+
+    // Move not allowed
+    ObjectNativeFunction(ObjectNativeFunction &&other) noexcept = delete;
+    ObjectString &operator=(ObjectNativeFunction &&other) noexcept = delete;
 
     friend class Allocator;
     friend class Compiler;

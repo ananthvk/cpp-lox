@@ -10,7 +10,8 @@
 enum class ObjectType : uint8_t
 {
     STRING,
-    FUNCTION
+    FUNCTION,
+    NATIVE_FUNCTION
 };
 
 class Object

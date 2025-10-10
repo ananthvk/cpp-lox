@@ -153,4 +153,8 @@ class VM
     auto clear_evaluation_stack() -> void { evalstack.clear(); }
 
     auto clear_frames() -> void { frame_count = 0; }
+
+    auto define_native_function(std::string_view name, int arity, NativeFunction func) -> void;
+
+    auto register_native_functions() -> void; 
 };
