@@ -135,9 +135,14 @@ In local scope redeclaration of any form is disallowed
 
 6) Other native functions
 
-- `sqrt(number) double`
-- `exit(integer)`
-- `input() string`
+- `sqrt(number) double` - Returns the square root of the number
+- `exit(integer)` - Exits the interpreter with the status code
+- `input() string` - Takes a line of input from `stdin`, does not include terminating `\n`
+- `print(args...)` - Prints all the arguments, separated by a space
+- `println(args...)` - Prints all the arguments, separated by a space, and adds a newline at the end
+
+7) `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
+Do not use this statement unless needed, and instead use the `print()` and `println()` functions.
 
 ## TODO
 - [ ] Fix division by zero error
