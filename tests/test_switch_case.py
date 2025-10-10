@@ -4,10 +4,10 @@ def test_basic_switch_case(run_lox):
             """
     var x = 2;
     switch (x) {
-        case 1: print "one";
-        case 2: print "two";
-        case 3: print "three";
-        default: print "other";
+        case 1: echo "one";
+        case 2: echo "two";
+        case 3: echo "three";
+        default: echo "other";
     }
     """
         )
@@ -21,10 +21,10 @@ def test_switch_case_string(run_lox):
             """
     var fruit = "apple";
     switch (fruit) {
-        case "banana": print "yellow";
-        case "apple": print "red";
-        case "orange": print "orange";
-        default: print "unknown";
+        case "banana": echo "yellow";
+        case "apple": echo "red";
+        case "orange": echo "orange";
+        default: echo "unknown";
     }
     """
         )
@@ -38,9 +38,9 @@ def test_switch_case_default(run_lox):
             """
     var x = 99;
     switch (x) {
-        case 1: print "one";
-        case 2: print "two";
-        default: print "default case";
+        case 1: echo "one";
+        case 2: echo "two";
+        default: echo "default case";
     }
     """
         )
@@ -56,10 +56,10 @@ def test_switch_case_scoped_variables(run_lox):
     switch (x) {
         case 1:
             var local = "case one";
-            print local;
+            echo local;
         case 2:
             var local = "case two";
-            print local;
+            echo local;
     }
     """
         )
@@ -73,10 +73,10 @@ def test_switch_case_no_match_no_default(run_lox):
             """
     var x = 5;
     switch (x) {
-        case 1: print "one";
-        case 2: print "two";
+        case 1: echo "one";
+        case 2: echo "two";
     }
-    print "after switch";
+    echo "after switch";
     """
         )
         == "after switch"
@@ -89,9 +89,9 @@ def test_switch_case_expression_evaluation(run_lox):
             """
     var y = 2;
     switch (1 + 1) {
-        case 1: print "one";
-        case 2: print "match";
-        case 3: print "three";
+        case 1: echo "one";
+        case 2: echo "match";
+        case 3: echo "three";
     }
     """
         )
@@ -107,13 +107,13 @@ def test_switch_case_scope_default_case(run_lox):
     switch (x) {
         case 1:
             var local = "case one";
-            print local;
+            echo local;
         case 2:
             var local = "case two";
-            print local;
+            echo local;
         default:
             var local = "some other case";
-            print local;
+            echo local;
     }
     """
         )
@@ -130,15 +130,15 @@ def test_switch_case_scope_variable_isolation(run_lox):
     switch (x) {
         case 1:
             var local = "case one";
-            print local;
+            echo local;
         case 2:
             var local = "case two";
-            print local;
+            echo local;
         default:
             var local = "some other case";
-            print local;
+            echo local;
     }
-    print outside;
+    echo outside;
     """
         )
         == "case one\noutside"
@@ -154,15 +154,15 @@ def test_switch_case_scope_same_variable_name(run_lox):
     switch (x) {
         case 1:
             var local = "case one";
-            print local;
+            echo local;
         case 2:
             var local = "case two";
-            print local;
+            echo local;
         default:
             var local = "some other case";
-            print local;
+            echo local;
     }
-    print local;
+    echo local;
     """
         )
         == "case two\nglobal local"
@@ -178,14 +178,14 @@ def test_switch_case_scope_multiple_variables(run_lox):
         case 1:
             var local = "case one";
             var another = "another var";
-            print local;
-            print another;
+            echo local;
+            echo another;
         case 2:
             var local = "case two";
-            print local;
+            echo local;
         default:
             var local = "some other case";
-            print local;
+            echo local;
     }
     """
         )
@@ -202,15 +202,15 @@ def test_switch_case_scope_same_variable_name_const(run_lox):
     switch (x) {
         case 1:
             const local = "case one";
-            print local;
+            echo local;
         case 2:
             const local = "case two";
-            print local;
+            echo local;
         default:
             const local = "some other case";
-            print local;
+            echo local;
     }
-    print local;
+    echo local;
     """
         )
         == "case two\nglobal local"

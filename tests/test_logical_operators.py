@@ -10,7 +10,7 @@ def test_logical_operators_basic(run_lox):
         "True or True",
     ]
     for expression in expressions:
-        assert str(eval(expression)).lower() == run_lox(f"print {expression.lower()};")
+        assert str(eval(expression)).lower() == run_lox(f"echo {expression.lower()};")
 
 
 def test_logical_operators_short_circuit_and(run_lox):
@@ -23,7 +23,7 @@ def test_logical_operators_short_circuit_and(run_lox):
         '"" and true',
     ]
     for expression in expressions:
-        result = run_lox(f"print {expression};")
+        result = run_lox(f"echo {expression};")
         assert result in ["false", "nil", "true", ""]
 
 
@@ -37,7 +37,7 @@ def test_logical_operators_short_circuit_or(run_lox):
         "42 or nil",
     ]
     for expression in expressions:
-        result = run_lox(f"print {expression};")
+        result = run_lox(f"echo {expression};")
         assert result in ["true", "hello", "1", "42"]
 
 
@@ -53,7 +53,7 @@ def test_logical_operators_falsy_values(run_lox):
     ]
     expected = ["false", "nil", "nil", "false", "nil", "false"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_logical_operators_truthy_values(run_lox):
@@ -68,7 +68,7 @@ def test_logical_operators_truthy_values(run_lox):
     ]
     expected = ["0", "", "42", "world", "123", "negative"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_logical_operators_chaining(run_lox):
@@ -83,7 +83,7 @@ def test_logical_operators_chaining(run_lox):
     ]
     expected = ["true", "false", "true", "false", "true", "false"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_logical_operators_mixed_types(run_lox):
@@ -98,7 +98,7 @@ def test_logical_operators_mixed_types(run_lox):
     ]
     expected = ["true", "string", "nil", "0", "3.14", "fallback"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_logical_operators_precedence(run_lox):
@@ -111,7 +111,7 @@ def test_logical_operators_precedence(run_lox):
     ]
     expected = ["true", "true", "true", "false"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_not_operator_basic(run_lox):
@@ -127,7 +127,7 @@ def test_not_operator_basic(run_lox):
     ]
     expected = ["false", "true", "true", "false", "false", "false", "false"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_not_operator_double_negation(run_lox):
@@ -141,7 +141,7 @@ def test_not_operator_double_negation(run_lox):
     ]
     expected = ["true", "false", "false", "true", "true"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_not_operator_with_logical_combinations(run_lox):
@@ -156,7 +156,7 @@ def test_not_operator_with_logical_combinations(run_lox):
     ]
     expected = ["false", "true", "true", "false", "true", "true"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_not_operator_precedence(run_lox):
@@ -169,7 +169,7 @@ def test_not_operator_precedence(run_lox):
     ]
     expected = ["false", "true", "true", "true"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result
 
 
 def test_not_operator_complex_expressions(run_lox):
@@ -183,4 +183,4 @@ def test_not_operator_complex_expressions(run_lox):
     ]
     expected = ["true", "false", "true", "false", "false"]
     for expression, expected_result in zip(expressions, expected):
-        assert run_lox(f"print {expression};") == expected_result
+        assert run_lox(f"echo {expression};") == expected_result

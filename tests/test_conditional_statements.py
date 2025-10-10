@@ -2,7 +2,7 @@ def test_basic_if_true(run_lox):
     assert (
         run_lox(
             """
-    if (true) print "executed";
+    if (true) echo "executed";
     """
         )
         == "executed"
@@ -13,8 +13,8 @@ def test_basic_if_false(run_lox):
     assert (
         run_lox(
             """
-    if (false) print "not executed";
-    print "always executed";
+    if (false) echo "not executed";
+    echo "always executed";
     """
         )
         == "always executed"
@@ -26,9 +26,9 @@ def test_if_else_true_condition(run_lox):
         run_lox(
             """
     if (true) {
-        print "if branch";
+        echo "if branch";
     } else {
-        print "else branch";
+        echo "else branch";
     }
     """
         )
@@ -41,9 +41,9 @@ def test_if_else_false_condition(run_lox):
         run_lox(
             """
     if (false) {
-        print "if branch";
+        echo "if branch";
     } else {
-        print "else branch";
+        echo "else branch";
     }
     """
         )
@@ -57,7 +57,7 @@ def test_if_with_expression_condition(run_lox):
             """
     var x = 5;
     if (x > 3) {
-        print "x is greater than 3";
+        echo "x is greater than 3";
     }
     """
         )
@@ -72,9 +72,9 @@ def test_nested_if_statements(run_lox):
     var x = 10;
     if (x > 5) {
         if (x > 8) {
-            print "x is greater than 8";
+            echo "x is greater than 8";
         } else {
-            print "x is between 5 and 8";
+            echo "x is between 5 and 8";
         }
     }
     """
@@ -89,13 +89,13 @@ def test_if_else_chain(run_lox):
             """
     var score = 85;
     if (score >= 90) {
-        print "A";
+        echo "A";
     } else if (score >= 80) {
-        print "B";
+        echo "B";
     } else if (score >= 70) {
-        print "C";
+        echo "C";
     } else {
-        print "F";
+        echo "F";
     }
     """
         )
@@ -110,9 +110,9 @@ def test_if_statement_with_block_scope(run_lox):
     var x = "global";
     if (true) {
         var x = "local";
-        print x;
+        echo x;
     }
-    print x;
+    echo x;
     """
         )
         == """local

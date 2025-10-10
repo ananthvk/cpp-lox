@@ -6,7 +6,7 @@ def test_factorial_recursion(run_lox):
         if (n <= 1) return 1;
         return n * factorial(n - 1);
     }
-    print factorial(5);
+    echo factorial(5);
     """
         )
         == "120"
@@ -21,7 +21,7 @@ def test_fibonacci_recursion(run_lox):
         if (n <= 1) return n;
         return fib(n - 1) + fib(n - 2);
     }
-    print fib(7);
+    echo fib(7);
     """
         )
         == "13"
@@ -34,10 +34,10 @@ def test_countdown_recursion(run_lox):
             """
     fun countdown(n) {
         if (n <= 0) {
-            print "Done!";
+            echo "Done!";
             return;
         }
-        print n;
+        echo n;
         countdown(n - 1);
     }
     countdown(3);
@@ -55,7 +55,7 @@ def test_sum_recursion(run_lox):
         if (n <= 0) return 0;
         return n + sum(n - 1);
     }
-    print sum(4);
+    echo sum(4);
     """
         )
         == "10"
@@ -76,8 +76,8 @@ def test_mutual_recursion(run_lox):
         return isEven(n - 1);
     }
     
-    print isEven(4);
-    print isOdd(3);
+    echo isEven(4);
+    echo isOdd(3);
     """
         )
         == "true\ntrue"

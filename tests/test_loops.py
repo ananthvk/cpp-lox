@@ -4,7 +4,7 @@ def test_basic_while_loop(run_lox):
             """
     var i = 0;
     while (i < 3) {
-        print i;
+        echo i;
         i = i + 1;
     }
     """
@@ -18,9 +18,9 @@ def test_while_loop_false_condition(run_lox):
         run_lox(
             """
     while (false) {
-        print "never";
+        echo "never";
     }
-    print "done";
+    echo "done";
     """
         )
         == "done"
@@ -34,7 +34,7 @@ def test_while_loop_with_local_variables(run_lox):
     var x = 5;
     while (x > 0) {
         var y = x * 2;
-        print y;
+        echo y;
         x = x - 1;
     }
     """
@@ -51,7 +51,7 @@ def test_nested_while_loops(run_lox):
     while (i <= 2) {
         var j = 1;
         while (j <= 2) {
-            print i + j;
+            echo i + j;
             j = j + 1;
         }
         i = i + 1;
@@ -70,7 +70,7 @@ def test_while_loop_empty_body(run_lox):
     while (i < 3) {
         i = i + 1;
     }
-    print i;
+    echo i;
     """
         )
         == "3"
@@ -85,10 +85,10 @@ def test_while_loop_variable_scope(run_lox):
     var i = 0;
     while (i < 2) {
         var x = "inner";
-        print x;
+        echo x;
         i = i + 1;
     }
-    print x;
+    echo x;
     """
         )
         == "inner\ninner\nouter"
@@ -100,7 +100,7 @@ def test_basic_for_loop(run_lox):
         run_lox(
             """
     for (var i = 0; i < 3; i = i + 1) {
-        print i;
+        echo i;
     }
     """
         )
@@ -114,7 +114,7 @@ def test_for_loop_no_initialization(run_lox):
             """
     var i = 0;
     for (; i < 3; i = i + 1) {
-        print i;
+        echo i;
     }
     """
         )
@@ -128,7 +128,7 @@ def test_for_loop_no_increment(run_lox):
         run_lox(
             """
     for (var i = 0; i < 3;) {
-        print i;
+        echo i;
         i = i + 1;
     }
     """
@@ -143,7 +143,7 @@ def test_nested_for_loops(run_lox):
             """
     for (var i = 1; i <= 2; i = i + 1) {
         for (var j = 1; j <= 2; j = j + 1) {
-            print i + j;
+            echo i + j;
         }
     }
     """
