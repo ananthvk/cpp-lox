@@ -135,11 +135,17 @@ In local scope redeclaration of any form is disallowed
 
 6) Other native functions
 
-- `sqrt(number) double` - Returns the square root of the number
-- `exit(integer)` - Exits the interpreter with the status code
+- `sqrt(value number) double` - Returns the square root of the number
+- `exit(status_code int)` - Exits the interpreter with the status code
 - `input() string` - Takes a line of input from `stdin`, does not include terminating `\n`
 - `print(args...)` - Prints all the arguments, separated by a space
 - `println(args...)` - Prints all the arguments, separated by a space, and adds a newline at the end
+- `len(str string) int` - Returns the length of the string
+- `to_string(value) string` - Converts the given value into a string
+- `type(value) string` - Returns the type of the value as string
+- `rand() double` - Returns a random double between [0, 1) (inclusive of 0, exclusive of 1)
+- `randint(m int, n int) int` - Returns a random integer between m & n (inclusive at both ends)
+- `assert(value bool, message string)` - Raises a runtime error & prints the message if value is false. Does nothing if value is true
 
 7) `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
 Do not use this statement unless needed, and instead use the `print()` and `println()` functions.

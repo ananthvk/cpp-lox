@@ -17,14 +17,16 @@ sources = files(
     'src/debug.cpp',
     'src/lexer.cpp',
     'src/lox.cpp',
-    'src/parser.cpp',
-    'src/vm.cpp',
-    'src/value.cpp',
-    'src/register_native_functions.cpp',
-    'src/native/time.cpp',
     'src/native/math.cpp',
+    'src/native/stdio.cpp',
     'src/native/stdlib.cpp',
-    'src/native/stdio.cpp'
+    'src/native/string.cpp',
+    'src/native/test.cpp',
+    'src/native/time.cpp',
+    'src/parser.cpp',
+    'src/register_native_functions.cpp',
+    'src/value.cpp',
+    'src/vm.cpp',
 )
 
 subdir('flags')

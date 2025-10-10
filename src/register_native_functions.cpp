@@ -1,10 +1,12 @@
 #include "vm.hpp"
 #include "function.hpp"
 
-void register_time(VM *vm);
-void register_stdio(VM *vm);
-void register_stdlib(VM *vm);
-void register_math(VM *vm);
+auto register_time(VM *vm) -> void;
+auto register_stdio(VM *vm) -> void;
+auto register_stdlib(VM *vm) -> void;
+auto register_math(VM *vm) -> void;
+auto register_string(VM *vm) -> void;
+auto register_test(VM *vm) -> void;
 
 auto VM::register_native_functions() -> void
 {
@@ -12,4 +14,6 @@ auto VM::register_native_functions() -> void
     register_stdio(this);
     register_stdlib(this);
     register_math(this);
+    register_string(this);
+    register_test(this);
 }
