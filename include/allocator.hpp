@@ -156,6 +156,13 @@ class Allocator
         return obj;
     }
 
+    auto new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *
+    {
+        auto obj = new ObjectNativeFunction(arity, function);
+        objs.push_back(obj);
+        return obj;
+    }
+
     // Note: Removed static strings, and instead opted to intern all strings so that checking for
     // equality becomes easier
 

@@ -9,7 +9,7 @@ auto Value::to_string() const -> std::string
     case Value::NIL:
         return "nil";
     case Value::NUMBER_REAL:
-        return fmt::format("{:.6g}", data.d);
+        return fmt::format("{:.16g}", data.d);
     case Value::NUMBER_INT:
         return std::to_string(data.i);
     case Value::OBJECT:
@@ -27,9 +27,11 @@ auto Value::to_string() const -> std::string
             }
             else
             {
-                return std::string("function <") + std::string(name) + std::string(">");
+                return std::string("<function ") + std::string(name) + std::string(">");
             }
         }
+        case ObjectType::NATIVE_FUNCTION:
+            return std::string("<native function>");
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -66,6 +68,8 @@ auto Value::operator==(Value other) const -> bool
             return *as_string() == *other.as_string();
         // Checks if both functions point to the same in memory object
         case ObjectType::FUNCTION:
+            return as_object() == other.as_object();
+        case ObjectType::NATIVE_FUNCTION:
             return as_object() == other.as_object();
         }
         return false;
