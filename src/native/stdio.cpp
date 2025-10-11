@@ -2,7 +2,7 @@
 #include "vm.hpp"
 #include <iostream>
 
-auto native_stdio_getline(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+auto native_getline(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
 {
     std::string line;
     // TODO: Check for failure
@@ -13,7 +13,7 @@ auto native_stdio_getline(VM *vm, int arg_count, Value *values) -> std::pair<Val
 }
 
 // Prints all the arguments passed to it, also flushes the output stream at the end
-auto native_stdio_print(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+auto native_print(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
 {
     // TODO: Add error checking
     auto &os = vm->get_output_stream();
@@ -33,10 +33,10 @@ auto native_stdio_print(VM *vm, int arg_count, Value *values) -> std::pair<Value
 
 // Prints all the arguments passed to it, also adds a newline and flushes the output stream at the
 // end
-auto native_stdio_println(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+auto native_println(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
 {
     auto &os = vm->get_output_stream();
-    auto [value, ok] = native_stdio_print(vm, arg_count, values);
+    auto [value, ok] = native_print(vm, arg_count, values);
     if (!ok)
         return {Value{}, ok};
     os << std::endl;
@@ -45,7 +45,7 @@ auto native_stdio_println(VM *vm, int arg_count, Value *values) -> std::pair<Val
 
 auto register_stdio(VM *vm) -> void
 {
-    vm->define_native_function("input", 0, native_stdio_getline);
-    vm->define_native_function("println", -1, native_stdio_println);
-    vm->define_native_function("print", -1, native_stdio_print);
+    vm->define_native_function("input", 0, native_getline);
+    vm->define_native_function("println", -1, native_println);
+    vm->define_native_function("print", -1, native_print);
 }

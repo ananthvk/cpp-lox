@@ -1,6 +1,7 @@
 #pragma once
 #include "object.hpp"
 
+#include "fast_float.h"
 #include <fmt/format.h>
 #include <math.h>
 #include <stddef.h>
@@ -123,6 +124,29 @@ struct Value
         throw std::logic_error("Invalid type coersion to int");
     }
 
+    auto to_integer_try_parse() const -> std::pair<int64_t, bool>
+    {
+        if (is_integer())
+            return {data.i, true};
+        if (is_real())
+            return {static_cast<int64_t>(data.d), true};
+        if (is_string())
+        {
+            // Try converting the string to an integer
+            auto as_string = to_string();
+
+            int64_t value;
+            auto answer = fast_float::from_chars(as_string.data(),
+                                                 as_string.data() + as_string.size(), value);
+            if (answer.ec != std::errc())
+            {
+                return {0, false};
+            }
+            return {value, true};
+        }
+        return {0, false};
+    }
+
     auto coerce_real() const -> double
     {
         if (is_integer())
@@ -130,6 +154,29 @@ struct Value
         if (is_real())
             return data.d;
         throw std::logic_error("Invalid type coersion to double");
+    }
+
+    auto to_double_try_parse() const -> std::pair<double, bool>
+    {
+        if (is_integer())
+            return {static_cast<double>(data.i), true};
+        if (is_real())
+            return {data.d, true};
+        if (is_string())
+        {
+            // Try converting the string to an integer
+            auto as_string = to_string();
+
+            double value;
+            auto answer = fast_float::from_chars(as_string.data(),
+                                                 as_string.data() + as_string.size(), value);
+            if (answer.ec != std::errc())
+            {
+                return {0, false};
+            }
+            return {value, true};
+        }
+        return {0, false};
     }
 
     auto is_falsey() const -> bool

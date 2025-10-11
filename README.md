@@ -142,6 +142,8 @@ In local scope redeclaration of any form is disallowed
 - `println(args...)` - Prints all the arguments, separated by a space, and adds a newline at the end
 - `len(str string) int` - Returns the length of the string
 - `to_string(value) string` - Converts the given value into a string
+- `to_int(value) int` - Converts the given value into an int
+- `to_double(value) double` - Converts the given value into a double
 - `type(value) string` - Returns the type of the value as string
 - `rand() double` - Returns a random double between [0, 1) (inclusive of 0, exclusive of 1)
 - `randint(m int, n int) int` - Returns a random integer between m & n (inclusive at both ends)

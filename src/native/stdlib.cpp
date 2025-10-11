@@ -1,7 +1,7 @@
 #include "value.hpp"
 #include "vm.hpp"
 
-auto native_stdlib_exit(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+auto native_exit(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
 {
     Value val = values[1];
     if (!val.is_integer())
@@ -13,7 +13,7 @@ auto native_stdlib_exit(VM *vm, int arg_count, Value *values) -> std::pair<Value
     return {Value{}, true};
 }
 
-auto native_stdlib_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+auto native_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
 {
     Value val = values[1];
     if (val.is_integer())
@@ -52,21 +52,8 @@ auto native_stdlib_type(VM *vm, int arg_count, Value *values) -> std::pair<Value
     }
 }
 
-auto native_stdlib_assert(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
-{
-    Value val = values[1];
-    if (!val.is_integer())
-    {
-        vm->report_error("invalid argument type to call exit(), must be an integer");
-        return {Value{}, false};
-    }
-    exit(static_cast<int>(val.as_integer()));
-    return {Value{}, true};
-}
-
 auto register_stdlib(VM *vm) -> void
 {
-    vm->define_native_function("exit", 1, native_stdlib_exit);
-    vm->define_native_function("type", 1, native_stdlib_type);
-    vm->define_native_function("assert", 2, native_stdlib_assert);
+    vm->define_native_function("exit", 1, native_exit);
+    vm->define_native_function("type", 1, native_type);
 }
