@@ -163,6 +163,13 @@ class Allocator
         return obj;
     }
 
+    auto new_closure(ObjectFunction *function) -> ObjectClosure *
+    {
+        auto obj = new ObjectClosure(function);
+        objs.push_back(obj);
+        return obj;
+    }
+
     // Note: Removed static strings, and instead opted to intern all strings so that checking for
     // equality becomes easier
 

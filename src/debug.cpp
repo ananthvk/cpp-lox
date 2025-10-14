@@ -143,6 +143,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
+    case OpCode::CLOSURE:
         return instruction_uint16_le(instruction, offset, chunk);
     case OpCode::STORE_GLOBAL:
     case OpCode::LOAD_GLOBAL:

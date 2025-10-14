@@ -33,7 +33,8 @@
     X(JUMP_FORWARD)                                                                                \
     X(JUMP_BACKWARD)                                                                               \
     X(DUP_TOP)                                                                                     \
-    X(CALL)
+    X(CALL)                                                                                        \
+    X(CLOSURE)
 
 enum class OpCode : uint8_t
 {
