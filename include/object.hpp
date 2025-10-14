@@ -11,6 +11,7 @@ enum class ObjectType : uint8_t
 {
     STRING,
     FUNCTION,
+    CLOSURE,
     NATIVE_FUNCTION
 };
 

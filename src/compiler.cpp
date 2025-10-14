@@ -569,7 +569,10 @@ auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::str
     }
 
     int index = chunk()->add_constant(Value{fn});
-    chunk()->write_load_constant(index, parser.previous().line);
+    // Instead of loading the constant, emit an OP_CLOSURE instruction to tell the VM
+    // to wrap the function in a closure
+    emit_opcode(OpCode::CLOSURE);
+    emit_uint16_le(index);
 }
 
 auto Compiler::parameters(TokenType end_type) -> void

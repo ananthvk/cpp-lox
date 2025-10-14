@@ -22,13 +22,19 @@ auto Value::to_string() const -> std::string
         {
             auto name = static_cast<ObjectFunction *>(data.o)->name()->get();
             if (name == "")
-            {
                 return "<script>";
-            }
             else
-            {
                 return std::string("<function ") + std::string(name) + std::string(">");
-            }
+            break;
+        }
+        case ObjectType::CLOSURE:
+        {
+            auto name = static_cast<ObjectClosure *>(data.o)->get()->name()->get();
+            if (name == "")
+                return "<script>";
+            else
+                return std::string("<function ") + std::string(name) + std::string(">");
+            break;
         }
         case ObjectType::NATIVE_FUNCTION:
             return std::string("<native function>");
@@ -68,6 +74,8 @@ auto Value::operator==(Value other) const -> bool
             return *as_string() == *other.as_string();
         // Checks if both functions point to the same in memory object
         case ObjectType::FUNCTION:
+            return as_object() == other.as_object();
+        case ObjectType::CLOSURE:
             return as_object() == other.as_object();
         case ObjectType::NATIVE_FUNCTION:
             return as_object() == other.as_object();

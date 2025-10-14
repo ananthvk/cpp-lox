@@ -33,7 +33,7 @@ struct VMOpts
 
 struct CallFrame
 {
-    ObjectFunction *function;
+    ObjectClosure *closure;
     uint8_t *ip;
     Value *slots;
 };
@@ -85,14 +85,14 @@ class VM
 
     auto read_constant() -> Value
     {
-        return current_frame->function->get()->get_value_unchecked(read_byte());
+        return current_frame->closure->get()->get()->get_value_unchecked(read_byte());
     }
 
     auto read_constant_long() -> Value
     {
         uint16_t constant_index = read_byte();
         constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(read_byte()) << 8);
-        return current_frame->function->get()->get_value_unchecked(
+        return current_frame->closure->get()->get()->get_value_unchecked(
             static_cast<int>(constant_index));
     }
 
@@ -117,7 +117,7 @@ class VM
 
     auto call_value(Value callee, int arg_count) -> bool;
 
-    auto call(ObjectFunction *function, int arg_count) -> bool;
+    auto call(ObjectClosure *closure, int arg_count) -> bool;
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
@@ -131,9 +131,7 @@ class VM
 
     auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
 
-    auto clear_evaluation_stack() -> void { 
-        stack_top = evalstack.data();
-    }
+    auto clear_evaluation_stack() -> void { stack_top = evalstack.data(); }
 
     auto clear_frames() -> void { frame_count = 0; }
 
@@ -150,7 +148,7 @@ class VM
         for (int i = (frame_count - 1); i >= 0; i--)
         {
             CallFrame *frame = &frames[i];
-            ObjectFunction *func = frame->function;
+            ObjectFunction *func = frame->closure->get();
             int instruction = static_cast<int>(frame->ip - func->get()->get_code().data() - 1);
 
             std::string_view func_name = func->name()->get();
@@ -165,10 +163,11 @@ class VM
                                 func->get()->get_line_number(instruction), "in {}()", func_name);
             }
         }
-        int offset =
-            static_cast<int>(current_frame->ip - current_frame->function->get()->get_code().data());
+        int offset = static_cast<int>(current_frame->ip -
+                                      current_frame->closure->get()->get()->get_code().data());
         reporter.report(ErrorReporter::ERROR,
-                        current_frame->function->get()->get_line_number(offset), message, args...);
+                        current_frame->closure->get()->get()->get_line_number(offset), message,
+                        args...);
     }
 
     auto get_output_stream() -> std::ostream & { return *output_stream; }

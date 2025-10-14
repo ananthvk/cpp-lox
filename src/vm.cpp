@@ -74,7 +74,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         if (opts.debug_trace_execution)
         {
-            auto current_chunk = current_frame->function->get();
+            auto current_chunk = current_frame->closure->get()->get();
             disassemble_instruction(
                 *current_chunk,
                 static_cast<int>(current_frame->ip - current_chunk->get_code().data()), context);
@@ -341,6 +341,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             current_frame = &frames[frame_count - 1];
             break;
         }
+        case OpCode::CLOSURE:
+        {
+            ObjectFunction *func = static_cast<ObjectFunction *>(read_constant_long().as_object());
+            ObjectClosure *closure = allocator.new_closure(func);
+            push(Value{closure});
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }
@@ -353,7 +360,11 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     ;
     if (callee.is_function())
     {
-        return call(static_cast<ObjectFunction *>(callee.as_object()), arg_count);
+        throw std::logic_error("naked functions should not exist");
+    }
+    if (callee.is_closure())
+    {
+        return call(static_cast<ObjectClosure *>(callee.as_object()), arg_count);
     }
     else if (callee.is_native_function())
     {
@@ -367,7 +378,8 @@ auto VM::call_value(Value callee, int arg_count) -> bool
         }
         NativeFunction native_func = func->get();
         // One is subtracted so that the pointer points to the function on the stack
-        // i.e. the arguments start from args[1] .... while args[0] contains the function object itself
+        // i.e. the arguments start from args[1] .... while args[0] contains the function object
+        // itself
         auto [result, ok] = native_func(this, arg_count, stack_top - arg_count - 1);
         if (!ok)
         {
@@ -381,12 +393,12 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     return false;
 }
 
-auto VM::call(ObjectFunction *function, int arg_count) -> bool
+auto VM::call(ObjectClosure *closure, int arg_count) -> bool
 {
-    if (arg_count != function->arity())
+    if (arg_count != closure->get()->arity())
     {
-        report_error("Expected {} arguments to call {}(), got {}", function->arity(),
-                     function->name()->get(), arg_count);
+        report_error("Expected {} arguments to call {}(), got {}", closure->get()->arity(),
+                     closure->get()->name()->get(), arg_count);
         return false;
     }
     if (frame_count == MAX_FRAME_SIZE)
@@ -395,8 +407,8 @@ auto VM::call(ObjectFunction *function, int arg_count) -> bool
         return false;
     }
     auto new_frame = &frames[frame_count++];
-    new_frame->function = function;
-    new_frame->ip = function->get()->get_code().data();
+    new_frame->closure = closure;
+    new_frame->ip = closure->get()->get()->get_code().data();
     // From the top of the eval stack, skip the args, and -1 so that the function is at slot 0
     new_frame->slots = stack_top - arg_count - 1;
     return true;
@@ -424,7 +436,11 @@ auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
         throw std::logic_error("function is null");
     }
     push(Value{function});
-    call(function, 0);
+    auto closure = allocator.new_closure(function);
+    pop();
+
+    push(Value{closure});
+    call(closure, 0);
     current_frame = &frames[frame_count - 1];
     return execute(os);
 }
