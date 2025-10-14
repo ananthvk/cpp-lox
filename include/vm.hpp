@@ -60,25 +60,25 @@ class VM
     int frame_count;
     std::ostream *output_stream;
 
+    Value *stack_top;
+
     auto push(Value value) -> void
     {
-        if (static_cast<int>(evalstack.size()) == opts.value_stack_max)
+        // The stack is full
+        if (stack_top == (evalstack.data() + evalstack.size()))
         {
-            // TODO: Throw a custom exception here
             throw std::runtime_error("Stack overflow");
         }
-        evalstack.push_back(value);
+        *stack_top++ = value;
     }
 
     auto pop() -> Value
     {
-        if (evalstack.size() == 0)
+        if (stack_top == evalstack.data())
         {
             throw std::runtime_error("Stack underflow");
         }
-        Value value = evalstack.back();
-        evalstack.pop_back();
-        return value;
+        return *(--stack_top);
     }
 
     auto read_byte() -> uint8_t { return *current_frame->ip++; }
@@ -105,7 +105,15 @@ class VM
 
     auto execute(std::ostream &os) -> InterpretResult;
 
-    auto peek(int offset) const -> Value { return *(evalstack.end() - offset - 1); }
+    auto peek(int offset) const -> Value
+    {
+        auto location = stack_top - offset - 1;
+        if (location < evalstack.data())
+        {
+            throw std::runtime_error("Stack underflow while peek()");
+        }
+        return *location;
+    }
 
     auto call_value(Value callee, int arg_count) -> bool;
 
@@ -123,7 +131,9 @@ class VM
 
     auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
 
-    auto clear_evaluation_stack() -> void { evalstack.clear(); }
+    auto clear_evaluation_stack() -> void { 
+        stack_top = evalstack.data();
+    }
 
     auto clear_frames() -> void { frame_count = 0; }
 

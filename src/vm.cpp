@@ -52,9 +52,8 @@ auto concatenate(Allocator &allocator, ObjectString *a, ObjectString *b) -> Obje
 
 auto VM::init() -> void
 {
-    // Reserve a few more elements to ensure that we do not trigger resize of the vector when the
-    // stack is full
-    evalstack.reserve(opts.value_stack_max + 4);
+    evalstack.resize(opts.value_stack_max + 4);
+    stack_top = evalstack.data();
     frames.resize(opts.frames_max);
     register_native_functions();
     output_stream = nullptr;
@@ -67,9 +66,9 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         if (opts.debug_trace_value_stack)
         {
             fmt::print("[ ");
-            for (auto elem : evalstack)
+            for (auto ptr = evalstack.data(); ptr < stack_top; ++ptr)
             {
-                fmt::print(fmt::fg(fmt::color::beige), "{}, ", elem.to_string());
+                fmt::print(fmt::fg(fmt::color::beige), "{}, ", ptr->to_string());
             }
             fmt::println(" ]");
         }
@@ -101,12 +100,8 @@ auto VM::execute(std::ostream &os) -> InterpretResult
 
             // Otherwise, discard all stack values that were used by the function, and continue
             // executing the previous function
-
-            // TODO: Inefficient, implement stack top pointer
-            int top = static_cast<int>(current_frame->slots - evalstack.data());
-            int n = evalstack.size() - top;
-            for (int i = 0; i < n; i++)
-                evalstack.pop_back();
+            // current_frame->slots points to the first value used by this frame
+            stack_top = current_frame->slots;
 
             push(result);
             current_frame = &frames[frame_count - 1];
@@ -133,11 +128,11 @@ auto VM::execute(std::ostream &os) -> InterpretResult
              * BM_RunExpressionNegation       1.68 us         1.68 us       408390
              * So there is a performance gain when negating in place
              */
-            auto &v = evalstack.back();
-            if (v.is_real())
-                v.data.d = -v.as_real();
-            else if (v.is_integer())
-                v.data.i = -v.as_integer();
+            auto loc = (stack_top - 1);
+            if (loc->is_real())
+                loc->data.d = -loc->as_real();
+            else if (loc->is_integer())
+                loc->data.i = -loc->as_integer();
             // push(v);
             break;
         }
@@ -312,9 +307,9 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::LOAD_LOCAL:
         {
             auto slot = read_uint16_le();
-            if (slot >= evalstack.size())
+            if ((evalstack.data() + slot) >= stack_top)
             {
-                report_error("Runtime Error: Local variable does not declared");
+                report_error("Runtime Error: Local variable not declared");
                 return InterpretResult::RUNTIME_ERROR;
             }
             if (current_frame->slots[slot].is_uninitialized())
@@ -371,17 +366,14 @@ auto VM::call_value(Value callee, int arg_count) -> bool
             return false;
         }
         NativeFunction native_func = func->get();
-        auto [result, ok] =
-            native_func(this, arg_count, &evalstack[evalstack.size() - arg_count - 1]);
+        // One is subtracted so that the pointer points to the function on the stack
+        // i.e. the arguments start from args[1] .... while args[0] contains the function object itself
+        auto [result, ok] = native_func(this, arg_count, stack_top - arg_count - 1);
         if (!ok)
         {
             return false;
         }
-
-        // TODO: Inefficient, implement stack top pointer
-        for (int i = 0; i < arg_count + 1; i++)
-            evalstack.pop_back();
-
+        stack_top -= arg_count + 1;
         push(result);
         return true;
     }
@@ -406,7 +398,7 @@ auto VM::call(ObjectFunction *function, int arg_count) -> bool
     new_frame->function = function;
     new_frame->ip = function->get()->get_code().data();
     // From the top of the eval stack, skip the args, and -1 so that the function is at slot 0
-    new_frame->slots = evalstack.data() + (evalstack.size() - arg_count - 1);
+    new_frame->slots = stack_top - arg_count - 1;
     return true;
 }
 
