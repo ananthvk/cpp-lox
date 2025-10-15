@@ -19,23 +19,25 @@ class nullostream : public std::ostream
     nullbuffer m_sb;
 };
 
-static Chunk compile(std::string_view src, ErrorReporter &reporter, Allocator &allocator,
-                     Context *context)
+static ObjectFunction *compile(std::string_view src, ErrorReporter &reporter, Allocator &allocator,
+                               Context *context)
 {
     CompilerOpts copts;
-    Compiler compiler(src, copts, allocator, reporter, context);
-    auto result = compiler.compile();
+    Lexer lexer(src);
+    Parser parser(lexer.begin(), reporter);
+    Compiler compiler(parser, copts, allocator, context, FunctionType::SCRIPT);
+
+    auto [fn, result] = compiler.compile();
     if (result != InterpretResult::OK)
         throw std::logic_error("Source code has syntax errors");
 
-    auto chunk = compiler.take_chunk();
-    return chunk;
+    return fn;
 }
 
-static void execute(Chunk &chunk, VM &vm)
+static void execute(ObjectFunction *function, VM &vm)
 {
     nullostream os;
-    auto result = vm.run(&chunk, os);
+    auto result = vm.run(function, os);
     if (result != InterpretResult::OK)
         throw std::logic_error("Runtime error");
 }
@@ -46,7 +48,7 @@ static void BM_CompileExpression(benchmark::State &state)
     Allocator allocator;
     Context context;
     const char *src =
-        "print "
+        "echo "
         "(44*63-(-61*-47--49/(51/(93*-21-(((-32*(11*-50-(((52*-39-(48/(-33/(-96*77-76/99-(((91/"
         "-75-60/-3-87*83--75/19)*79-59*43-85/-50--25*-92)/90-58/67--26*35-33*-100)/69-95/-29)-39/"
         "-17--57*65--3*-90)-42*75--11*-70-92*55)*-78+-41/85-34/-57)*62-11/-87-29/93-34/2)/-15--23/"
@@ -150,27 +152,27 @@ static void BM_GlobalVariables(benchmark::State &state)
         "abcdefghij = abcdefghij + 1;\n"
         "abcdefghij = abcdefghij + 1;\n"
         "abcdefghij = abcdefghij + 1;\n"
-        "print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;";
+        "echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;";
     auto chunk = compile(src, reporter, allocator, &context);
     for (auto _ : state)
         execute(chunk, vm);
@@ -225,27 +227,27 @@ static void BM_CompileGlobalVariables(benchmark::State &state)
         "abcdefghij = abcdefghij + 1;\n"
         "abcdefghij = abcdefghij + 1;\n"
         "abcdefghij = abcdefghij + 1;\n"
-        "print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print "
-        "abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;print abcdefghij;";
+        "echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo "
+        "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;";
     for (auto _ : state)
     {
         Allocator allocator;
