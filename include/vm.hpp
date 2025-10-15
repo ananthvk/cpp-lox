@@ -61,6 +61,7 @@ class VM
     std::ostream *output_stream;
 
     Value *stack_top;
+    ObjectUpvalue *open_upvalues;
 
     auto push(Value value) -> void
     {
@@ -105,6 +106,9 @@ class VM
 
     auto execute(std::ostream &os) -> InterpretResult;
 
+    // Closes all upvalues that points to locations >= last_value
+    auto close_upvalues(Value *last_value) -> void;
+
     auto peek(int offset) const -> Value
     {
         auto location = stack_top - offset - 1;
@@ -118,8 +122,8 @@ class VM
     auto call_value(Value callee, int arg_count) -> bool;
 
     auto call(ObjectClosure *closure, int arg_count) -> bool;
-    
-    auto capture_upvalue(Value *slot) -> ObjectUpvalue*;
+
+    auto capture_upvalue(Value *slot) -> ObjectUpvalue *;
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)

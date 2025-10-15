@@ -496,7 +496,16 @@ auto Compiler::end_scope() -> void
     // TODO: Make it more efficient, the current version is O(n)
     while (!locals.empty() && locals.back().depth > scope_depth)
     {
-        emit_opcode(OpCode::POP_TOP);
+        // If the local is captured by some other nested function, do not pop the variable
+        // Instead emit an instruction to move the value to the heap
+        if (locals.back().is_captured)
+        {
+            emit_opcode(OpCode::CLOSE_UPVALUE);
+        }
+        else
+        {
+            emit_opcode(OpCode::POP_TOP);
+        }
         locals.pop_back();
     }
 }
@@ -668,7 +677,7 @@ auto Compiler::add_local(Token name, bool is_const) -> void
         parser.report_error("Limit on the number of local variables reached");
         return;
     }
-    locals.push_back({name, scope_depth, true, is_const});
+    locals.push_back({name, scope_depth, true, is_const, false});
 }
 
 auto Compiler::variable(bool canAssign) -> void { named_variable(parser.previous(), canAssign); }
@@ -792,6 +801,10 @@ auto Compiler::resolve_upvalue(Token name) -> int
     if (local != -1)
     {
         // The local variable was found in the outer function
+
+        // Also mark the local variable as captured in the parent compiler
+        enclosing->locals[local].is_captured = true;
+
         return add_upvalue(local, true);
     }
 

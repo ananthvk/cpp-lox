@@ -60,8 +60,9 @@ class Compiler
         int depth;
         bool uninitialized;
         bool is_const;
+        bool is_captured;
     };
-    
+
     struct Upvalue
     {
         int index;

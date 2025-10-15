@@ -97,9 +97,14 @@ class ObjectNativeFunction : public Object
  */
 class ObjectUpvalue : public Object
 {
+  public:
+    ObjectUpvalue *next;
+    Value closed;
+
+  private:
     Value *location;
 
-    ObjectUpvalue(Value *slot) : location(slot) {}
+    ObjectUpvalue(Value *slot) : next(nullptr), location(slot){}
 
   public:
     auto get_type() const -> ObjectType override { return ObjectType::UPVALUE; }
