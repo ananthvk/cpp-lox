@@ -29,6 +29,7 @@
     X(LOAD_LOCAL)                                                                                  \
     X(STORE_UPVALUE)                                                                               \
     X(LOAD_UPVALUE)                                                                                \
+    X(CLOSE_UPVALUE)                                                                               \
     X(JUMP_IF_FALSE)                                                                               \
     X(JUMP_IF_TRUE)                                                                                \
     X(POP_JUMP_IF_FALSE)                                                                           \

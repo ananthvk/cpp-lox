@@ -57,6 +57,7 @@ auto VM::init() -> void
     frames.resize(opts.frames_max);
     register_native_functions();
     output_stream = nullptr;
+    open_upvalues = nullptr;
 }
 
 auto VM::execute(std::ostream &os) -> InterpretResult
@@ -90,6 +91,7 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::RETURN:
         {
             auto result = pop();
+            close_upvalues(current_frame->slots);
             --frame_count;
             if (frame_count == 0)
             {
@@ -375,6 +377,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             *loc = peek(0);
             break;
         }
+        case OpCode::CLOSE_UPVALUE:
+        {
+            auto last_value = stack_top - 1;
+            close_upvalues(last_value);
+            pop();
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }
@@ -382,10 +391,60 @@ auto VM::execute(std::ostream &os) -> InterpretResult
     return InterpretResult::OK;
 }
 
+auto VM::close_upvalues(Value *last_value) -> void
+{
+    while (open_upvalues != nullptr && open_upvalues->get() >= last_value)
+    {
+        auto current = open_upvalues;
+        // Copy from the stack slot to a value inside the upvalue
+        current->closed = *current->get();
+        // Set the location to variable within the upvalue
+        current->set(&current->closed);
+        open_upvalues = current->next;
+    }
+}
+
 auto VM::capture_upvalue(Value *slot) -> ObjectUpvalue *
 {
-    auto upvalue = allocator.new_upvalue(slot);
-    return upvalue;
+    // open_upvalues point to the upvalue which points to a location closest to the top of the stack
+
+    ObjectUpvalue *current = open_upvalues;
+    ObjectUpvalue *prev = nullptr;
+
+    // Check if we already have a captured upvalue for this particular stack slot
+    // Since the values are stored in a vector, they are stored in contiguous memory locations
+    while (current != nullptr && current->get() > slot)
+    {
+        prev = current;
+        current = current->next;
+    }
+
+    // We exit the loop due to three cases:
+    // Case 1: The current location is equal to the slot, i.e. we found an existing upvalue
+    // Case 2: current is nullptr, i.e. either the open upvalue list is empty, or all open upvalues
+    // point to locations above the slot
+    // Case 3: current points to an upvalue with location below `slot`, so we need to insert the
+    // upvalue before it
+
+    if (current != nullptr && current->get() == slot)
+    {
+        return current;
+    }
+
+    auto new_upvalue = allocator.new_upvalue(slot);
+    new_upvalue->next = current;
+
+    if (prev == nullptr)
+    {
+        // This is the first node in the linked list
+        open_upvalues = new_upvalue;
+    }
+    else
+    {
+        prev->next = new_upvalue;
+    }
+
+    return new_upvalue;
 }
 
 auto VM::call_value(Value callee, int arg_count) -> bool

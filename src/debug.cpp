@@ -184,6 +184,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::PRINT:
     case OpCode::POP_TOP:
     case OpCode::DUP_TOP:
+    case OpCode::CLOSE_UPVALUE:
         return simple_instruction(instruction, offset);
     case OpCode::CALL:
         return instruction_call(instruction, offset, chunk);
