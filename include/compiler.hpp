@@ -61,6 +61,12 @@ class Compiler
         bool uninitialized;
         bool is_const;
     };
+    
+    struct Upvalue
+    {
+        int index;
+        bool is_local;
+    };
 
     using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
 
@@ -82,6 +88,10 @@ class Compiler
     int loop_start_offset;
 
     FunctionType function_type;
+
+    Compiler *enclosing;
+    std::vector<Upvalue> upvalues;
+
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
 
@@ -160,6 +170,9 @@ class Compiler
     auto add_local(Token name, bool is_constant) -> void;
     auto resolve_local(Token name) -> int;
     auto named_variable(Token name, bool canAssign) -> void;
+
+    auto resolve_upvalue(Token name) -> int;
+    auto add_upvalue(int index, bool is_local) -> int;
 
     /**
      * This function parses any expression at `precedence` level or higher

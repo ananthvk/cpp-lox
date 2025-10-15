@@ -1,4 +1,5 @@
 #include "debug.hpp"
+#include "function.hpp"
 #include "lexer.hpp"
 #include "utils.hpp"
 
@@ -39,19 +40,27 @@ auto jump_instruction(OpCode op, int offset, const Chunk &chunk, int direction) 
 /**
  * An instruction that has an unsigned 2 byte operand
  */
-auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk) -> int
+auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk, bool should_print_value)
+    -> int
 {
     const auto &code = chunk.get_code();
     uint16_t constant_index = code[offset + 1];
     constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
     fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
-    if (auto value = chunk.get_value(constant_index))
+    if (should_print_value)
     {
-        fmt::print(fmt::fg(fmt::color::green), "'{}'\n", value.value().to_string());
+        if (auto value = chunk.get_value(constant_index))
+        {
+            fmt::print(fmt::fg(fmt::color::green), "'{}'\n", value.value().to_string());
+        }
+        else
+        {
+            fmt::print(fmt::fg(fmt::color::red), "NO_VALUE\n");
+        }
     }
     else
     {
-        fmt::print(fmt::fg(fmt::color::red), "NO_VALUE\n");
+        fmt::print("\n");
     }
     return offset + 3;
 }
@@ -91,6 +100,44 @@ auto local_instruction(OpCode op, int offset, const Chunk &chunk, Context *conte
     fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} \n", opcode_to_string(op), slot);
     // fmt::print(fmt::fg(fmt::color::green), "'{}'\n", context->get_name(constant_index)->get());
     return offset + 3;
+}
+
+auto closure_instruction(OpCode op, int offset, const Chunk &chunk, Context *context) -> int
+{
+    const auto &code = chunk.get_code();
+    uint16_t constant_index = code[offset + 1];
+    constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
+    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
+    offset = offset + 3;
+
+    if (auto value = chunk.get_value(constant_index))
+    {
+        auto val = value.value();
+        fmt::print(fmt::fg(fmt::color::green), "'{}'\n", val.to_string());
+
+        // Also print the list of upvalues & locals this function captures
+        auto function = static_cast<ObjectFunction *>(val.as_object());
+        for (int i = 0; i < function->upvalue_count(); i++)
+        {
+            fmt::print(fmt::fg(fmt::color::gray), "{:04} ", offset);
+            int is_local = code[offset];
+            uint16_t index = code[offset + 1];
+            index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
+            offset = offset + 3;
+
+            fmt::print("    | ");
+            fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", "", index);
+            if (is_local == 0)
+                fmt::print(fmt::fg(fmt::color::pink), "upvalue\n");
+            else
+                fmt::print(fmt::fg(fmt::color::pink), "local\n");
+        }
+    }
+    else
+    {
+        fmt::print(fmt::fg(fmt::color::red), "NO_VALUE\n");
+    }
+    return offset;
 }
 
 auto disassemble_chunk(const Chunk &chunk, const std::string &name, Context *context) -> void
@@ -143,8 +190,12 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
+        return instruction_uint16_le(instruction, offset, chunk, true);
+    case OpCode::LOAD_UPVALUE:
+    case OpCode::STORE_UPVALUE:
+        return instruction_uint16_le(instruction, offset, chunk, false);
     case OpCode::CLOSURE:
-        return instruction_uint16_le(instruction, offset, chunk);
+        return closure_instruction(instruction, offset, chunk, context);
     case OpCode::STORE_GLOBAL:
     case OpCode::LOAD_GLOBAL:
     case OpCode::DEFINE_GLOBAL:

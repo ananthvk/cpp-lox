@@ -17,11 +17,12 @@ class VM;
 class ObjectFunction : public Object
 {
     int arity_;
+    int upvalue_count_;
     std::unique_ptr<Chunk> chunk;
     ObjectString *name_;
 
     ObjectFunction(int arity, std::unique_ptr<Chunk> chunk, ObjectString *name)
-        : arity_(arity), chunk(std::move(chunk)), name_(name)
+        : arity_(arity), upvalue_count_(0), chunk(std::move(chunk)), name_(name)
     {
     }
 
@@ -29,6 +30,8 @@ class ObjectFunction : public Object
     auto get_type() const -> ObjectType override { return ObjectType::FUNCTION; }
 
     auto arity() const -> size_t { return arity_; }
+
+    auto upvalue_count() const -> int { return upvalue_count_; }
 
     auto name() const -> ObjectString * { return name_; }
 
