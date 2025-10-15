@@ -743,6 +743,8 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
 {
     OpCode store_op, load_op;
     bool is_local = false;
+    std::pair<int, bool> resolved;
+    bool is_const = false;
 
     int index = resolve_local(name);
     if (index != -1)
@@ -752,13 +754,12 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
         load_op = OpCode::LOAD_LOCAL;
         is_local = true;
     }
-    else if ((index = resolve_upvalue(name)) != -1)
+    else if ((resolved = resolve_upvalue(name)).first != -1)
     {
         store_op = OpCode::STORE_UPVALUE;
         load_op = OpCode::LOAD_UPVALUE;
-        // The variable was found in an enclosing function
-        // TODO: Fix const here (since locals[index] will not work anymore)
-        // is_local = true;
+        is_const = resolved.second;
+        index = resolved.first;
     }
     else
     {
@@ -778,6 +779,11 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
                                 locals[index].name.lexeme);
             return;
         }
+        if (is_const)
+        {
+            parser.report_error("Syntax Error: Assignment to const variable disallowed");
+            return;
+        }
         expression();
         emit_opcode(store_op);
         emit_uint16_le(static_cast<uint16_t>(index));
@@ -789,12 +795,12 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
     }
 }
 
-auto Compiler::resolve_upvalue(Token name) -> int
+auto Compiler::resolve_upvalue(Token name) -> std::pair<int, bool>
 {
     if (enclosing == nullptr)
     {
         // This is the top level compiler
-        return -1;
+        return {-1, false};
     }
 
     int local = enclosing->resolve_local(name);
@@ -804,8 +810,9 @@ auto Compiler::resolve_upvalue(Token name) -> int
 
         // Also mark the local variable as captured in the parent compiler
         enclosing->locals[local].is_captured = true;
+        bool is_const = enclosing->locals[local].is_const;
 
-        return add_upvalue(local, true);
+        return {add_upvalue(local, true), is_const};
     }
 
     // The local variable does not exist in the immediate outer scope, but it might
@@ -815,14 +822,14 @@ auto Compiler::resolve_upvalue(Token name) -> int
     // since x is not defined in mid, so when resolve_upvalue is called recursively, mid resolves
     // the variable in it's enclosing function (outer), and creates an upvalue for it and returns it
     // The inner function then uses the upvalue that mid captured (and marks is_local as false)
-    int upvalue = enclosing->resolve_upvalue(name);
+    auto [upvalue, is_const] = enclosing->resolve_upvalue(name);
     if (upvalue != -1)
     {
-        return add_upvalue(upvalue, false);
+        return {add_upvalue(upvalue, false), is_const};
     }
 
     // Not found, assume that it's a global variable
-    return -1;
+    return {-1, false};
 }
 
 auto Compiler::add_upvalue(int index, bool is_local) -> int
