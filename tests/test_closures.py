@@ -290,6 +290,7 @@ def test_closures_book_25_4_1(run_lox):
         == "updated"
     )
 
+
 def test_closures_book_25_2_2(run_lox):
     assert (
         run_lox(
@@ -316,3 +317,140 @@ def test_closures_book_25_2_2(run_lox):
         )
         == "return from outer\ncreate inner closure\nvalue"
     )
+
+
+def test_calculator(run_lox):
+    assert (
+        run_lox(
+            """
+            fun calculator(op) {
+                if(op == "+") {
+                    fun add(x, y) {
+                        return x + y;
+                    }
+                    return add;
+                } else if(op == "abs") {
+                    fun abs(x) {
+                        if(x < 0)
+                            return -x;
+                        else
+                            return x;
+                    }
+                    return abs;
+                } 
+            }
+            var calc1 = calculator("+");
+            var calc2 = calculator("abs");
+            echo calc1(5, 3);
+            echo calc2(-10);
+            echo calc2(10);
+            """
+        )
+        == "8\n10\n10"
+    )
+
+
+def test_const_closure_reassignment_fail(run_lox):
+    try:
+        run_lox(
+            """
+            fun outer() {
+                const x = 10;
+                fun inner() {
+                    x = 20;  // Should fail - cannot reassign const
+                }
+                inner();
+            }
+            outer();
+            """
+        )
+        assert False, "Should raise an error for reassigning const in closure"
+    except Exception:
+        assert True
+
+
+def test_const_closure_increment_fail(run_lox):
+    try:
+        run_lox(
+            """
+            fun makeCounter() {
+                const count = 0;
+                fun increment() {
+                    count = count + 1;  // Should fail - const cannot be modified
+                    return count;
+                }
+                return increment;
+            }
+            var counter = makeCounter();
+            counter();
+            """
+        )
+        assert False, "Should raise an error for incrementing const in closure"
+    except Exception:
+        assert True
+
+
+def test_const_nested_closure_reassignment_fail(run_lox):
+    try:
+        run_lox(
+            """
+            fun level1() {
+                const secret = "hidden";
+                fun level2() {
+                    fun level3() {
+                        secret = "exposed";  // Should fail - const reassignment
+                    }
+                    level3();
+                }
+                level2();
+            }
+            level1();
+            """
+        )
+        assert False, "Should raise an error for const reassignment in nested closure"
+    except Exception:
+        assert True
+
+
+def test_const_closure_factory_modification_fail(run_lox):
+    try:
+        run_lox(
+            """
+            fun createModifier(initial) {
+                const value = initial;
+                fun modify(newValue) {
+                    value = newValue;  // Should fail - const cannot be reassigned
+                    return value;
+                }
+                return modify;
+            }
+            var modifier = createModifier("original");
+            modifier("changed");
+            """
+        )
+        assert False, "Should raise an error for modifying const through closure"
+    except Exception:
+        assert True
+
+
+def test_const_multiple_closures_reassignment_fail(run_lox):
+    try:
+        run_lox(
+            """
+            fun outer() {
+                const shared = "constant";
+                fun first() {
+                    echo shared;  // This should work - reading const
+                }
+                fun second() {
+                    shared = "modified";  // Should fail - cannot modify const
+                }
+                first();
+                second();
+            }
+            outer();
+            """
+        )
+        assert False, "Should raise an error for const reassignment in second closure"
+    except Exception:
+        assert True

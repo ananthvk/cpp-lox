@@ -172,7 +172,9 @@ class Compiler
     auto resolve_local(Token name) -> int;
     auto named_variable(Token name, bool canAssign) -> void;
 
-    auto resolve_upvalue(Token name) -> int;
+    // Resolves the upvalue for the given name, returns the upvalue index if found, -1 otherwise.
+    // The second value is true if the value is a const variable, false otherwise
+    auto resolve_upvalue(Token name) -> std::pair<int, bool>;
     auto add_upvalue(int index, bool is_local) -> int;
 
     /**
