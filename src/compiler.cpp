@@ -6,7 +6,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
                    FunctionType function_type)
     : opts(opts), allocator(allocator), context(context), scope_depth(0), parser(parser),
       rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
-      loop_start_offset(-1), function_type(function_type)
+      loop_start_offset(-1), function_type(function_type), enclosing(nullptr)
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -552,6 +552,7 @@ auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::str
     // The compiler used to compile the function uses the same parser as the parent compiler
     // so that it consumes the complete function.
     Compiler compiler(parser, opts, allocator, context, FunctionType::FUNCTION);
+    compiler.enclosing = this;
     compiler.function->set_name(allocator.intern_string(name, Allocator::StorageType::DYNAMIC));
     compiler.begin_scope();
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after function name");
@@ -572,7 +573,23 @@ auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::str
     // Instead of loading the constant, emit an OP_CLOSURE instruction to tell the VM
     // to wrap the function in a closure
     emit_opcode(OpCode::CLOSURE);
-    emit_uint16_le(index);
+    emit_uint16_le(static_cast<uint16_t>(index));
+
+    // OP_CLOSURE is a variable sized instruction, after the constant index for the function,
+    // It emits pairs of one byte & two bytes for every upvalue that the function captures.
+    // If the first byte is 0, it means that the function has captured an upvalue
+    // If the first byte is 1, it means that the function has captured a local of the parent
+    // function The scond byte is an unsigned 16 bit integer that is either the local slot (of the
+    // parent function), or an upvalue index
+
+    for (auto upvalue : compiler.upvalues)
+    {
+        if (upvalue.is_local)
+            emit_byte(1);
+        else
+            emit_byte(0);
+        emit_uint16_le(static_cast<uint16_t>(upvalue.index));
+    }
 }
 
 auto Compiler::parameters(TokenType end_type) -> void
@@ -715,18 +732,33 @@ auto Compiler::resolve_local(Token name) -> int
 
 auto Compiler::named_variable(Token name, bool canAssign) -> void
 {
-    OpCode store_op = OpCode::STORE_LOCAL, load_op = OpCode::LOAD_LOCAL;
-    bool is_local = true;
+    OpCode store_op, load_op;
+    bool is_local = false;
+
     int index = resolve_local(name);
-    // If it's not a local variable, it's a global variable
-    if (index == -1)
+    if (index != -1)
     {
+        // It's a local variable
+        store_op = OpCode::STORE_LOCAL;
+        load_op = OpCode::LOAD_LOCAL;
+        is_local = true;
+    }
+    else if ((index = resolve_upvalue(name)) != -1)
+    {
+        store_op = OpCode::STORE_UPVALUE;
+        load_op = OpCode::LOAD_UPVALUE;
+        // The variable was found in an enclosing function
+        // TODO: Fix const here (since locals[index] will not work anymore)
+        // is_local = true;
+    }
+    else
+    {
+        // Assume it's a global variable
         index = identifier(name.lexeme);
         store_op = OpCode::STORE_GLOBAL;
         load_op = OpCode::LOAD_GLOBAL;
         is_local = false;
     }
-
 
     if (canAssign && parser.match(TokenType::EQUAL))
     {
@@ -746,6 +778,60 @@ auto Compiler::named_variable(Token name, bool canAssign) -> void
         emit_opcode(load_op);
         emit_uint16_le(static_cast<uint16_t>(index));
     }
+}
+
+auto Compiler::resolve_upvalue(Token name) -> int
+{
+    if (enclosing == nullptr)
+    {
+        // This is the top level compiler
+        return -1;
+    }
+
+    int local = enclosing->resolve_local(name);
+    if (local != -1)
+    {
+        // The local variable was found in the outer function
+        return add_upvalue(local, true);
+    }
+
+    // The local variable does not exist in the immediate outer scope, but it might
+    // exist if the function is deeply nested. To solve this issue, recursively resolve upvalues.
+    // For example: consider three functions : outer() -> mid() -> inner(), and assume that outer
+    // defines a variable "x", and inner accesses that variable. Now the local will not be found
+    // since x is not defined in mid, so when resolve_upvalue is called recursively, mid resolves
+    // the variable in it's enclosing function (outer), and creates an upvalue for it and returns it
+    // The inner function then uses the upvalue that mid captured (and marks is_local as false)
+    int upvalue = enclosing->resolve_upvalue(name);
+    if (upvalue != -1)
+    {
+        return add_upvalue(upvalue, false);
+    }
+
+    // Not found, assume that it's a global variable
+    return -1;
+}
+
+auto Compiler::add_upvalue(int index, bool is_local) -> int
+{
+    // The index here is the index of the variable in the outer function's locals stack
+    // The inner compiler (this one) creates an upvalue that references the variable of the outer
+    // compiler
+    if (upvalues.size() > 0xFFFF)
+        throw std::logic_error("Too many upvalues in function");
+
+    // If we find an upvalue that already references the same slot, return that instead of creating
+    // a new upvalue
+    int idx = 0;
+    for (auto upvalue : upvalues)
+    {
+        if (upvalue.index == index && upvalue.is_local == is_local)
+            return idx;
+        idx++;
+    }
+    upvalues.push_back({index, is_local});
+    function->upvalue_count_ = static_cast<int>(upvalues.size());
+    return static_cast<int>(upvalues.size()) - 1;
 }
 
 auto Compiler::if_statement() -> void
