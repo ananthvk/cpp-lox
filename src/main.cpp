@@ -1,6 +1,7 @@
 #include "cxxopts.hpp"
 #include "lexer.hpp"
 #include "lox.hpp"
+#include "testrunner.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
 
@@ -42,7 +43,9 @@ int main(int argc, char *argv[])
 
         ("h,help",           "Prints this help message")
 
-        ("v,version",        "Prints program version");
+        ("v,version",        "Prints program version")
+        
+        ("test", "Runs the Lox test runner. Given a path to a directory, the test runner fetches all lox files in the directory recursively that end with *_test.lox, and executes functions starting with Test*", cxxopts::value<std::string>());
 
         options.parse_positional({"script"});
 
@@ -80,16 +83,30 @@ int main(int argc, char *argv[])
         lopts.dump_bytecode = result["dump-bytecode"].as<bool>();
         lopts.compile_only = result["compile-only"].as<bool>();
 
-        Lox lox(copts, vopts, lopts);
+        if (result.count("test") != 0)
+        {
+            auto path = result["test"].as<std::string>();
+            TestOptions opts;
+            opts.compiler_opts = copts;
+            opts.vm_opts = vopts;
+            opts.lox_opts = lopts;
+            TestRunner runner(path, opts);
+            runner.walk_and_run_tests();
+        }
+        else
+        {
 
-        if (result.count("command") != 0)
-            return lox.run_source(result["command"].as<std::string>());
+            Lox lox(copts, vopts, lopts);
 
-        if (result.count("script") == 0)
-            return lox.run_repl();
+            if (result.count("command") != 0)
+                return lox.run_source(result["command"].as<std::string>());
 
-        // Run the given file
-        return lox.run_file(result["script"].as<std::string>());
+            if (result.count("script") == 0)
+                return lox.run_repl();
+
+            // Run the given file
+            return lox.run_file(result["script"].as<std::string>());
+        }
     }
     catch (std::exception &e)
     {

@@ -152,6 +152,15 @@ In local scope redeclaration of any form is disallowed
 7) `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
 Do not use this statement unless needed, and instead use the `print()` and `println()` functions.
 
+8) Lox test runner: Use `--test` flag and pass the target directory as argument.
+The test runner fetches all lox files ending with `*_test.lox` in all subdirectories from target path, and executes all functions beginning with
+`Test*`
+
+Example:
+```
+$ cpplox --test ./tests
+```
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements
