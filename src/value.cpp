@@ -36,6 +36,8 @@ auto Value::to_string() const -> std::string
                 return std::string("<function ") + std::string(name) + std::string(">");
             break;
         }
+        case ObjectType::UPVALUE:
+            return "<upvalue>";
         case ObjectType::NATIVE_FUNCTION:
             return std::string("<native function>");
         default:
@@ -79,6 +81,10 @@ auto Value::operator==(Value other) const -> bool
             return as_object() == other.as_object();
         case ObjectType::NATIVE_FUNCTION:
             return as_object() == other.as_object();
+        case ObjectType::UPVALUE:
+            // Two upvalues are equal if they point to the same location
+            return static_cast<ObjectUpvalue *>(as_object())->get() ==
+                   static_cast<ObjectUpvalue *>(other.as_object())->get();
         }
         return false;
     case Value::NUMBER_REAL:

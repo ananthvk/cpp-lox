@@ -118,6 +118,8 @@ class VM
     auto call_value(Value callee, int arg_count) -> bool;
 
     auto call(ObjectClosure *closure, int arg_count) -> bool;
+    
+    auto capture_upvalue(Value *slot) -> ObjectUpvalue*;
 
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)

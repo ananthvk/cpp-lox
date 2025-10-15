@@ -93,18 +93,58 @@ class ObjectNativeFunction : public Object
 };
 
 /**
+ * Represents a runtime upvalue object. Use the allocator class to create new objects.
+ */
+class ObjectUpvalue : public Object
+{
+    Value *location;
+
+    ObjectUpvalue(Value *slot) : location(slot) {}
+
+  public:
+    auto get_type() const -> ObjectType override { return ObjectType::UPVALUE; }
+
+    auto get() const -> Value * { return location; }
+
+    auto set(Value *slot) { location = slot; }
+
+    auto operator==(const ObjectUpvalue &other) const -> bool { return location == other.location; }
+
+    // Copy not allowed
+    ObjectUpvalue(const ObjectString &other) = delete;
+    ObjectUpvalue &operator=(const ObjectString &other) = delete;
+
+    // Move not allowed
+    ObjectUpvalue(ObjectUpvalue &&other) noexcept = delete;
+    ObjectString &operator=(ObjectUpvalue &&other) noexcept = delete;
+
+    friend class Allocator;
+    friend class Compiler;
+};
+
+/**
  * Represents a runtime closure. Use the allocator class to create new objects.
  */
 class ObjectClosure : public Object
 {
     ObjectFunction *function;
+    std::vector<ObjectUpvalue *> upvalues;
+    int upvalue_count_;
 
-    ObjectClosure(ObjectFunction *function) : function(function) {}
+    ObjectClosure(ObjectFunction *function) : function(function)
+    {
+        upvalues.resize(function->upvalue_count());
+        upvalue_count_ = function->upvalue_count();
+    }
 
   public:
     auto get_type() const -> ObjectType override { return ObjectType::CLOSURE; }
 
     auto get() const -> ObjectFunction * { return function; }
+
+    auto get_upvalues() -> std::vector<ObjectUpvalue *> & { return upvalues; }
+
+    auto upvalue_count() const -> int { return upvalue_count_; }
 
     auto operator==(const ObjectClosure &other) const -> bool { return this == &other; }
 
@@ -117,5 +157,4 @@ class ObjectClosure : public Object
     ObjectString &operator=(ObjectClosure &&other) noexcept = delete;
 
     friend class Allocator;
-    friend class Compiler;
 };
