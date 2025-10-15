@@ -170,6 +170,13 @@ class Allocator
         return obj;
     }
 
+    auto new_upvalue(Value *slot) -> ObjectUpvalue *
+    {
+        auto obj = new ObjectUpvalue(slot);
+        objs.push_back(obj);
+        return obj;
+    }
+
     // Note: Removed static strings, and instead opted to intern all strings so that checking for
     // equality becomes easier
 

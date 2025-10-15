@@ -346,6 +346,33 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             ObjectFunction *func = static_cast<ObjectFunction *>(read_constant_long().as_object());
             ObjectClosure *closure = allocator.new_closure(func);
             push(Value{closure});
+            for (int i = 0; i < closure->upvalue_count(); i++)
+            {
+                int is_local = read_byte();
+                uint16_t index = read_uint16_le();
+                if (is_local)
+                {
+                    closure->get_upvalues()[i] = capture_upvalue(current_frame->slots + index);
+                }
+                else
+                {
+                    // The closure references an upvalue of the current function
+                    closure->get_upvalues()[i] = current_frame->closure->get_upvalues()[index];
+                }
+            }
+            break;
+        }
+        case OpCode::LOAD_UPVALUE:
+        {
+            uint16_t slot = read_uint16_le();
+            push(*(current_frame->closure->get_upvalues()[slot]->get()));
+            break;
+        }
+        case OpCode::STORE_UPVALUE:
+        {
+            uint16_t slot = read_uint16_le();
+            auto loc = current_frame->closure->get_upvalues()[slot]->get();
+            *loc = peek(0);
             break;
         }
         default:
@@ -353,6 +380,12 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
     }
     return InterpretResult::OK;
+}
+
+auto VM::capture_upvalue(Value *slot) -> ObjectUpvalue *
+{
+    auto upvalue = allocator.new_upvalue(slot);
+    return upvalue;
 }
 
 auto VM::call_value(Value callee, int arg_count) -> bool
