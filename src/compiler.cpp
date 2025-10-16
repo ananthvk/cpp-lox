@@ -1,6 +1,7 @@
 #include "compiler.hpp"
 #include "debug.hpp"
 #include "fast_float.h"
+#include "gc.hpp"
 
 Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
                    FunctionType function_type)
@@ -61,6 +62,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
     
+    current = this;
     function = allocator.new_function(0, "");
     
     // Reserve the first slot of the locals array
@@ -1171,4 +1173,17 @@ auto Compiler::return_statement() -> void
     expression();
     parser.consume(TokenType::SEMICOLON, "Expected ';' after return statement");
     emit_opcode(OpCode::RETURN);
+}
+
+Compiler *Compiler::current = nullptr;
+
+auto Compiler::mark_compiler_roots(GarbageCollector &gc) -> void
+{
+    // Follow a similar approach to the book
+    Compiler *compiler = Compiler::current;
+    while (compiler != nullptr)
+    {
+        gc.mark_object(compiler->function);
+        compiler = compiler->enclosing;
+    }
 }

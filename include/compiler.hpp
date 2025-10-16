@@ -12,6 +12,8 @@
 #include <functional>
 #include <string_view>
 
+class GarbageCollector;
+
 struct CompilerOpts
 {
     bool debug_print_tokens = false;
@@ -92,6 +94,8 @@ class Compiler
 
     Compiler *enclosing;
     std::vector<Upvalue> upvalues;
+
+    static Compiler *current;
 
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
@@ -192,5 +196,13 @@ class Compiler
     Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
              FunctionType function_type);
 
+    ~Compiler()
+    {
+        // Once the compiler finishes, set the static curren variable to the enclosing compiler
+        current = enclosing;
+    }
+
     auto compile() -> std::pair<ObjectFunction *, InterpretResult>;
+
+    auto static mark_compiler_roots(GarbageCollector &gc) -> void;
 };

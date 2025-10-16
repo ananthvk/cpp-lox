@@ -8,7 +8,7 @@ def run_lox():
     def run(code: str) -> str:
         lox_path = os.environ.get("LOX_BINARY", "./src/cpplox")
         result = subprocess.run(
-            [lox_path, "-c", code],
+            [lox_path, "-c", code, "--stress-gc"],
             capture_output=True,
             text=True,
             check=True,
