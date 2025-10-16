@@ -62,3 +62,22 @@ class ObjectString : public Object
 
     friend class Allocator;
 };
+
+inline auto object_type_to_string(ObjectType type) -> const char *
+{
+    switch (type)
+    {
+    case ObjectType::STRING:
+        return "STRING";
+    case ObjectType::FUNCTION:
+        return "FUNCTION";
+    case ObjectType::CLOSURE:
+        return "CLOSURE";
+    case ObjectType::NATIVE_FUNCTION:
+        return "NATIVE_FUNCTION";
+    case ObjectType::UPVALUE:
+        return "UPVALUE";
+    default:
+        return "UNKNOWN";
+    }
+}

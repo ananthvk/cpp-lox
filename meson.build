@@ -12,9 +12,11 @@ include_dirs = include_directories(['include', 'thirdparty'])
 project_deps = [dependency('fmt')]
 
 sources = files(
+    'src/allocator.cpp',
     'src/chunk.cpp',
     'src/compiler.cpp',
     'src/debug.cpp',
+    'src/gc.cpp',
     'src/lexer.cpp',
     'src/lox.cpp',
     'src/native/math.cpp',
