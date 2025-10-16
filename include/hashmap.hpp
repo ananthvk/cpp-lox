@@ -163,6 +163,21 @@ class HashMap
         return std::nullopt;
     }
 
+    auto keys() const -> std::vector<Key>
+    {
+        // TODO: Not very efficient since it constructs a vector of keys each time
+        // but its sufficient for now
+        std::vector<Key> result;
+        for (const auto &slot : slots)
+        {
+            if (slot.state == Slot::State::FILLED)
+            {
+                result.push_back(slot.key);
+            }
+        }
+        return result;
+    }
+
     auto get_ref(const Key &key) -> Value &
     {
         if (size_ == 0)

@@ -26,7 +26,7 @@ class TestRunner
     {
         // TODO: It cannot test exit() since the whole program exits in that cases, fix that if it's
         // possible
-        fmt::print(fmt::fg(fmt::color::white), "TEST {:<50}", path.string());
+        fmt::print(fmt::fg(fmt::color::white), "TEST {:<50}\n", path.string());
         std::fflush(stdout);
 
 
@@ -83,8 +83,38 @@ class TestRunner
                     }
                     return false;
                 }
+
+                // Get all global names
+                auto keys = context.global_names.keys();
+                for (const auto &k : keys)
+                {
+                    if (k->get().substr(0, 4) == "Test")
+                    {
+                        fmt::print(fmt::fg(fmt::color::white), "TEST {}::{:<50}\n", path.string(),
+                                   k->get());
+                        // Check if the value is a function
+                        auto value = context.values[context.global_names.get_ref(k)].value;
+                        if (value.is_closure())
+                        {
+                            auto closure = static_cast<ObjectClosure *>(value.as_object());
+                            result = vm.run(closure->get(), output);
+
+                            if (result != InterpretResult::OK || reporter.has_error())
+                            {
+                                fmt::print(fmt::fg(fmt::color::red), " - RUNTIME ERROR\n");
+                                std::fflush(stdout);
+                                if (reporter.has_messages())
+                                {
+                                    reporter.display(stderr);
+                                }
+                                return false;
+                            }
+                        }
+                    }
+                }
             }
 
+            fmt::print(fmt::fg(fmt::color::white), "TEST {:<50}", path.string());
             fmt::print(fmt::fg(fmt::color::green), " - PASSED");
             std::fflush(stdout);
         }

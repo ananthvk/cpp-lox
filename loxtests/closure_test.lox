@@ -1,1 +1,17 @@
-println(a);
+fun TestFoo() {
+    println("This is a test function");
+    assert(false, "ha");
+}
+
+fun TestBar() {
+    println("This is a test function");
+    assert(false, "no");
+}
+
+fun Donottest() {
+    println("this");
+}
+
+fun TestDonottest() {
+    println("this");
+}
