@@ -2,6 +2,7 @@
 #include "allocator.hpp"
 #include "compiler.hpp"
 #include "debug.hpp"
+#include "gc.hpp"
 #include "lexer.hpp"
 #include "vm.hpp"
 #include <fmt/color.h>
@@ -67,7 +68,9 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     auto source = ss.str();
 
     ErrorReporter reporter;
-    Allocator allocator;
+    Allocator allocator(vm_opts);
+    GarbageCollector gc(&allocator, vm_opts);
+    allocator.set_gc(&gc);
     Context context;
 
     VM vm(vm_opts, reporter, allocator, &context);
@@ -85,7 +88,9 @@ auto Lox::run_repl() -> int
 {
     std::string line;
     ErrorReporter reporter;
-    Allocator allocator;
+    Allocator allocator(vm_opts);
+    GarbageCollector gc(&allocator, vm_opts);
+    allocator.set_gc(&gc);
     Context context;
 
     VM vm(vm_opts, reporter, allocator, &context);
@@ -120,7 +125,9 @@ auto Lox::run_repl() -> int
  */
 auto Lox::run_source(std::string_view src) -> int
 {
-    Allocator allocator;
+    Allocator allocator(vm_opts);
+    GarbageCollector gc(&allocator, vm_opts);
+    allocator.set_gc(&gc);
     ErrorReporter reporter;
     Context context;
 

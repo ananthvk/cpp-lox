@@ -33,6 +33,12 @@ int main(int argc, char *argv[])
 
         ("eval-stack-size",  "Maximum evaluation stack size allowed",
                              cxxopts::value<int>()->default_value("1024"))
+
+        ("log-gc",           "Logs events that occur during a GC collection",
+                             cxxopts::value<bool>()->default_value("false"))
+
+        ("stress-gc",        "Stresses the GC by triggering a collection everytime a new object is created",
+                             cxxopts::value<bool>()->default_value("false"))
         
         ("c,command",        "Execute the given command and exit",
                              cxxopts::value<std::string>())
@@ -73,6 +79,8 @@ int main(int argc, char *argv[])
         VMOpts vopts;
         vopts.debug_step_mode_enabled = result["enable-step-mode"].as<bool>();
         vopts.debug_trace_execution = result["trace-execution"].as<bool>();
+        vopts.debug_stress_gc = result["stress-gc"].as<bool>();
+        vopts.debug_log_gc = result["log-gc"].as<bool>();
         vopts.debug_trace_value_stack = result["trace-eval-stack"].as<bool>();
         vopts.value_stack_max = result["eval-stack-size"].as<int>();
 
