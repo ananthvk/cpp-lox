@@ -19,6 +19,8 @@ enum class ObjectType : uint8_t
 class Object
 {
   public:
+    bool is_marked;
+
     virtual auto get_type() const -> ObjectType = 0;
 
     virtual ~Object() {}

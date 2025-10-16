@@ -71,4 +71,6 @@ class Context
      * index
      */
     auto get_name(int index) const -> ObjectString * { return names[index]; }
+
+    friend class GarbageCollector;
 };

@@ -60,6 +60,7 @@ auto Allocator::intern_string(const char *str, size_t length, StorageType storag
         memcpy(buffer, str, length);
         buffer[length] = '\0';
         auto obj = new ObjectString(buffer, length, hash);
+        obj->is_marked = false;
         objs.push_back(obj);
         if (vopts.debug_log_gc)
             gc->log_allocation(obj);
@@ -73,6 +74,7 @@ auto Allocator::intern_string(const char *str, size_t length, StorageType storag
     else if (storage_type == StorageType::TAKE_OWNERSHIP)
     {
         auto obj = new ObjectString(str, length, hash);
+        obj->is_marked = false;
         objs.push_back(obj);
         if (vopts.debug_log_gc)
             gc->log_allocation(obj);
@@ -98,6 +100,7 @@ auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction
     auto chunk = std::make_unique<Chunk>();
     auto interned_name = intern_string(name);
     auto obj = new ObjectFunction(arity, std::move(chunk), interned_name);
+    obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
         gc->log_allocation(obj);
@@ -109,6 +112,7 @@ auto Allocator::new_native_function(int arity, NativeFunction function) -> Objec
     if (vopts.debug_stress_gc)
         collect_garbage();
     auto obj = new ObjectNativeFunction(arity, function);
+    obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
         gc->log_allocation(obj);
@@ -120,6 +124,7 @@ auto Allocator::new_closure(ObjectFunction *function) -> ObjectClosure *
     if (vopts.debug_stress_gc)
         collect_garbage();
     auto obj = new ObjectClosure(function);
+    obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
         gc->log_allocation(obj);
@@ -131,6 +136,7 @@ auto Allocator::new_upvalue(Value *slot) -> ObjectUpvalue *
     if (vopts.debug_stress_gc)
         collect_garbage();
     auto obj = new ObjectUpvalue(slot);
+    obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
         gc->log_allocation(obj);
@@ -148,7 +154,7 @@ auto Allocator::collect_garbage() -> void { gc->collect_garbage(); }
 
 Allocator::~Allocator()
 {
-    for (auto obj : objs)
+    for (Object *obj : objs)
     {
         free_object(obj);
     }

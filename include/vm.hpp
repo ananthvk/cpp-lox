@@ -157,4 +157,6 @@ class VM
     }
 
     auto get_output_stream() -> std::ostream & { return *output_stream; }
+
+    friend class GarbageCollector;
 };
