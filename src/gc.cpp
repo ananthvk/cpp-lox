@@ -1,4 +1,5 @@
 #include "gc.hpp"
+#include "compiler.hpp"
 
 GarbageCollector::GarbageCollector(VMOpts vm_opts) : vopts(vm_opts) {}
 
@@ -24,6 +25,8 @@ auto GarbageCollector::log_free(Object *obj) -> void
 
 auto GarbageCollector::mark_roots() -> void
 {
+    Compiler::mark_compiler_roots(*this);
+
     if (vm != nullptr)
     {
         // Roots are the objects that are directly accesible by the VM, they include objects on the

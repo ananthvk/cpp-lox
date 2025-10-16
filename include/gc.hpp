@@ -19,10 +19,6 @@ class GarbageCollector
 
     auto mark_roots() -> void;
 
-    auto mark_value(Value value) -> void;
-
-    auto mark_object(Object *object) -> void;
-
     auto mark_global_variables(Context *context) -> void;
 
   public:
@@ -37,4 +33,8 @@ class GarbageCollector
     auto log_free(Object *obj) -> void;
 
     auto set_vm(VM *vm_ptr) -> void { vm = vm_ptr; }
+
+    auto mark_object(Object *object) -> void;
+
+    auto mark_value(Value value) -> void;
 };
