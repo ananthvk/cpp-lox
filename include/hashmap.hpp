@@ -28,7 +28,7 @@ template <typename Key, typename Value, typename Hash = std::hash<Key>,
           typename KeyEqual = std::equal_to<Key>>
 class HashMap
 {
-  private:
+  public:
     struct Slot
     {
         enum class State : uint8_t
@@ -44,6 +44,7 @@ class HashMap
         Slot() : key(), value(), state(State::EMPTY) {}
     };
 
+  private:
     KeyEqual key_equal_;
     Hash hasher_;
     size_t size_, tombstones_;
@@ -286,6 +287,8 @@ class HashMap
             throw std::logic_error("Growth factor is greater than 1");
         growth_factor_ = new_growth_factor;
     }
+
+    auto get_slots() -> std::vector<Slot> & { return slots; }
 };
 
 #endif // A_HASHMAP_H

@@ -68,12 +68,16 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     auto source = ss.str();
 
     ErrorReporter reporter;
+
+    GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
-    GarbageCollector gc(&allocator, vm_opts);
     allocator.set_gc(&gc);
+    gc.set_allocator(&allocator);
+
     Context context;
 
     VM vm(vm_opts, reporter, allocator, &context);
+    gc.set_vm(&vm);
 
     compile_and_execute(source, reporter, vm, allocator, &context);
 
@@ -88,12 +92,14 @@ auto Lox::run_repl() -> int
 {
     std::string line;
     ErrorReporter reporter;
+    GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
-    GarbageCollector gc(&allocator, vm_opts);
     allocator.set_gc(&gc);
+    gc.set_allocator(&allocator);
     Context context;
 
     VM vm(vm_opts, reporter, allocator, &context);
+    gc.set_vm(&vm);
 
     while (true)
     {
@@ -125,9 +131,12 @@ auto Lox::run_repl() -> int
  */
 auto Lox::run_source(std::string_view src) -> int
 {
+    GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
-    GarbageCollector gc(&allocator, vm_opts);
+
     allocator.set_gc(&gc);
+    gc.set_allocator(&allocator);
+
     ErrorReporter reporter;
     Context context;
 
@@ -148,6 +157,7 @@ auto Lox::run_source(std::string_view src) -> int
 
 
     VM vm(vm_opts, reporter, allocator, &context);
+    gc.set_vm(&vm);
     result = vm.run(obj, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)
