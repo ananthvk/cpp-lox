@@ -36,6 +36,9 @@ class Chunk
 
     auto add_constant(Value value) -> int
     {
+        // Pushing & popping the temporary value is not necessary here
+        // because the vector is not managed by the gc. If in the future push_back
+        // causes a gc reallocation, it might be required here
         if (value_array.size() > 0xFFFF)
             throw std::logic_error("Too many constants in chunk");
         value_array.push_back(value);

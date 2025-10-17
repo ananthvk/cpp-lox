@@ -194,7 +194,7 @@ class Compiler
 
   public:
     Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
-             FunctionType function_type);
+             FunctionType function_type, Compiler *enclosing = nullptr, std::string_view name = "");
 
     ~Compiler()
     {

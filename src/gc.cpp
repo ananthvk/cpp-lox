@@ -15,7 +15,7 @@ auto GarbageCollector::collect_garbage() -> void
     int count = allocator->remove_unused_strings();
     if (count > 0)
         log(fmt::color::green, "removed {} strings from string pool", count);
-    // sweep();
+    sweep();
     log_indent_level--;
     log(fmt::color::green, "{}", "end");
 }
@@ -86,7 +86,7 @@ auto GarbageCollector::mark_object(Object *object) -> void
         return;
     if (object->is_marked)
         return;
-    log(fmt::color::white, "mark {:<20p} {:16} [value: {}]", static_cast<void *>(object),
+    log(fmt::color::white, "mark    {:<20p} {:16} [value: {}]", static_cast<void *>(object),
         object_type_to_string(object->get_type()), Value{object}.to_string());
     object->is_marked = true;
     grey_objects.push_back(object);
@@ -167,6 +167,7 @@ auto GarbageCollector::blacken_object(Object *object) -> void
 
 auto GarbageCollector::sweep() -> void
 {
+    int destroyed_object_count = 0;
     log(fmt::color::orange, "{}", "start sweep");
     log_indent_level++;
     std::vector<Object *> &objects = allocator->get_objects();
@@ -190,6 +191,7 @@ auto GarbageCollector::sweep() -> void
 
             // Free the object
             allocator->free_object(obj);
+            destroyed_object_count++;
 
             // Do not increment i since the current element also needs processing
         }
@@ -201,5 +203,5 @@ auto GarbageCollector::sweep() -> void
         }
     }
     log_indent_level--;
-    log(fmt::color::orange, "{}", "end sweep");
+    log(fmt::color::orange, "{} [destroyed {} objects]", "end sweep", destroyed_object_count);
 }

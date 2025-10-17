@@ -131,9 +131,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         case OpCode::ADD:
             if (peek(0).is_string() && peek(1).is_string())
             {
-                auto b = pop().as_string();
-                auto a = pop().as_string();
-                push(concatenate(allocator, a, b));
+                auto b = peek(0).as_string();
+                auto a = peek(1).as_string();
+
+                auto new_string = concatenate(allocator, a, b);
+                pop();
+                pop();
+                push(new_string);
             }
             else
                 BINARY_OP(+);

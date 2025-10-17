@@ -23,6 +23,7 @@ class GarbageCollector
             fmt::print("[GC] {}", fmt::format("{:\t>{}}", "", log_indent_level));
             fmt::print(fmt::fg(color), fmt::runtime(message), args...);
             fmt::println("");
+            std::fflush(stdout);
         }
     }
 

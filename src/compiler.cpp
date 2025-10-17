@@ -4,10 +4,10 @@
 #include "gc.hpp"
 
 Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
-                   FunctionType function_type)
+                   FunctionType function_type, Compiler *compiler, std::string_view name)
     : opts(opts), allocator(allocator), context(context), scope_depth(0), parser(parser),
       rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
-      loop_start_offset(-1), function_type(function_type), enclosing(nullptr)
+      loop_start_offset(-1), function_type(function_type), enclosing(compiler)
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -63,13 +63,22 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
     
     current = this;
-    function = allocator.new_function(0, "");
-    
+    // clang-format on
+
+    if (name != "")
+    {
+        function = allocator.new_function(0, name);
+    }
+    else
+    {
+        // The user will not be able to access this name anyways
+        function = allocator.new_function(0, "!top-level-script");
+    }
+
     // Reserve the first slot of the locals array
     auto token = Token{};
     add_local(token, false);
 
-    // clang-format on
 #undef F
 }
 
@@ -562,9 +571,7 @@ auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::str
 {
     // The compiler used to compile the function uses the same parser as the parent compiler
     // so that it consumes the complete function.
-    Compiler compiler(parser, opts, allocator, context, FunctionType::FUNCTION);
-    compiler.enclosing = this;
-    compiler.function->set_name(allocator.intern_string(name, Allocator::StorageType::DYNAMIC));
+    Compiler compiler(parser, opts, allocator, context, FunctionType::FUNCTION, this, name);
     compiler.begin_scope();
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after function name");
     compiler.parameters(TokenType::RIGHT_PAREN);
