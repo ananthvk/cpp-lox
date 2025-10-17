@@ -34,6 +34,8 @@ class GarbageCollector
 
     auto blacken_object(Object *object) -> void;
 
+    auto sweep() -> void;
+
   public:
     GarbageCollector(VMOpts vm_opts);
 

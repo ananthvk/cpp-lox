@@ -87,5 +87,12 @@ class Allocator
 
     auto free_object(Object *object) -> void;
 
+    // Get a vector of all objects allocated by the allocator
+    auto get_objects() -> std::vector<Object *> & { return objs; }
+    
+    // Removes all ObjectString* from the table that has is_marked set to false, i.e. they are marked for getting sweeped
+    // It returns the number of strings removed
+    auto remove_unused_strings() -> int;
+
     ~Allocator();
 };
