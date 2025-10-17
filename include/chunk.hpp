@@ -46,6 +46,8 @@ class Chunk
 
     auto get_code() const -> const std::vector<uint8_t> &;
 
+    auto get_constants() -> std::vector<Value> & { return value_array; }
+
     auto get_code() -> std::vector<uint8_t> &;
 
     auto get_value(int index) const -> std::optional<Value>;
