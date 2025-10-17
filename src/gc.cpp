@@ -11,6 +11,11 @@ auto GarbageCollector::collect_garbage() -> void
         Compiler::does_compiler_exist() ? "live" : "none");
     log_indent_level++;
     mark_roots();
+    trace_references();
+    int count = allocator->remove_unused_strings();
+    if (count > 0)
+        log(fmt::color::green, "removed {} strings from string pool", count);
+    // sweep();
     log_indent_level--;
     log(fmt::color::green, "{}", "end");
 }
@@ -105,12 +110,16 @@ auto GarbageCollector::mark_global_variables(Context *context) -> void
 
 auto GarbageCollector::trace_references() -> void
 {
+    log(fmt::color::purple, "{}", "start trace refs");
+    log_indent_level++;
     while (!grey_objects.empty())
     {
         Object *last = grey_objects.back();
         grey_objects.pop_back();
         blacken_object(last);
     }
+    log_indent_level--;
+    log(fmt::color::purple, "{}", "end trace refs");
 }
 
 auto GarbageCollector::blacken_object(Object *object) -> void
@@ -154,4 +163,43 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         throw std::logic_error("invalid object type");
         break;
     }
+}
+
+auto GarbageCollector::sweep() -> void
+{
+    log(fmt::color::orange, "{}", "start sweep");
+    log_indent_level++;
+    std::vector<Object *> &objects = allocator->get_objects();
+    // All unmarked objects are considered garbage and are collected
+    for (size_t i = 0; i < objects.size();)
+    {
+        Object *obj = objects[i];
+        if (!obj)
+        {
+            // Remove null objects from the array
+            std::swap(objects[i], objects.back());
+            objects.pop_back();
+            // Do not increment i since the current element also needs processing
+        }
+        else if (!obj->is_marked)
+        {
+            // Use swap-erase to remove element efficiently (since order does not matter in object
+            // array)
+            std::swap(objects[i], objects.back());
+            objects.pop_back();
+
+            // Free the object
+            allocator->free_object(obj);
+
+            // Do not increment i since the current element also needs processing
+        }
+        else
+        {
+            // This object is used, mark the object as white for next cycle
+            obj->is_marked = false;
+            i++;
+        }
+    }
+    log_indent_level--;
+    log(fmt::color::orange, "{}", "end sweep");
 }

@@ -145,6 +145,8 @@ auto Allocator::new_upvalue(Value *slot) -> ObjectUpvalue *
 
 auto Allocator::free_object(Object *obj) -> void
 {
+    if (obj == nullptr)
+        return;
     if (vopts.debug_log_gc)
         gc->log_free(obj);
     delete obj;
@@ -158,4 +160,20 @@ Allocator::~Allocator()
     {
         free_object(obj);
     }
+}
+
+auto Allocator::remove_unused_strings() -> int
+{
+    auto &slots = interned_strings.get_slots();
+    int count = 0;
+    for (int i = 0; i < slots.size(); i++)
+    {
+        if (slots[i].state == decltype(interned_strings)::Slot::State::FILLED &&
+            !(slots[i].value->is_marked))
+        {
+            interned_strings.erase(slots[i].key);
+            count++;
+        }
+    }
+    return count;
 }
