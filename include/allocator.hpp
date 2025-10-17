@@ -21,6 +21,12 @@ class Allocator
     GarbageCollector *gc;
     VMOpts vopts;
 
+    size_t bytes_allocated;
+    size_t bytes_freed;
+    size_t next_gc;
+    size_t objects_created;
+    size_t objects_freed;
+
     // This is basically an ObjectString, but with a different name. Idk why I have this here
     struct InternedString
     {
@@ -49,6 +55,25 @@ class Allocator
     HashMap<InternedString, ObjectString *, InternedStringHasher, InternedStringCmp>
         interned_strings;
 
+    // These two functions exist to capture statistics about garbage collection, and to trigger
+    // garbage collection when it exceeds threshold
+    template <typename T> auto create_object(T *ptr)
+    {
+        auto object_size = sizeof(std::remove_pointer_t<T>);
+        bytes_allocated += object_size;
+        objects_created++;
+
+        if (bytes_allocated > next_gc)
+            collect_garbage();
+    }
+
+    template <typename T> auto delete_object(T *ptr)
+    {
+        auto object_size = sizeof(std::remove_pointer_t<T>);
+        bytes_freed += object_size;
+        objects_freed++;
+    }
+
 
   public:
     /**
@@ -61,7 +86,11 @@ class Allocator
         TAKE_OWNERSHIP
     };
 
-    Allocator(VMOpts vm_opts) : gc(nullptr), vopts(vm_opts) {}
+    Allocator(VMOpts vm_opts)
+        : gc(nullptr), vopts(vm_opts), bytes_allocated(0), bytes_freed(0),
+          next_gc(DEFAULT_GC_NEXT_COLLECTION), objects_created(0), objects_freed(0)
+    {
+    }
 
     auto set_gc(GarbageCollector *garbage_collector) -> void;
 
@@ -89,10 +118,26 @@ class Allocator
 
     // Get a vector of all objects allocated by the allocator
     auto get_objects() -> std::vector<Object *> & { return objs; }
-    
-    // Removes all ObjectString* from the table that has is_marked set to false, i.e. they are marked for getting sweeped
-    // It returns the number of strings removed
+
+    // Removes all ObjectString* from the table that has is_marked set to false, i.e. they are
+    // marked for getting sweeped It returns the number of strings removed
     auto remove_unused_strings() -> int;
+
+    auto set_next_gc(size_t next) { next_gc = next; }
+
+    auto get_bytes_allocated() const -> size_t { return bytes_allocated; }
+
+    auto get_bytes_freed() const -> size_t { return bytes_freed; }
+
+    auto get_next_gc() const -> size_t { return next_gc; }
+
+    auto get_objects_created() const -> size_t { return objects_created; }
+
+    auto get_objects_freed() const -> size_t { return objects_freed; }
+
+    auto get_live_objects() const -> size_t { return objects_created - objects_freed; }
+
+    auto get_net_bytes() const -> size_t { return bytes_allocated - bytes_freed; }
 
     ~Allocator();
 };

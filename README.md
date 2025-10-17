@@ -148,9 +148,20 @@ In local scope redeclaration of any form is disallowed
 - `rand() double` - Returns a random double between [0, 1) (inclusive of 0, exclusive of 1)
 - `randint(m int, n int) int` - Returns a random integer between m & n (inclusive at both ends)
 - `assert(value bool, message string)` - Raises a runtime error & prints the message if value is false. Does nothing if value is true
+- `sys__mem_get_bytes_allocated() int` - Returns the total number of bytes allocated by the garbage collector
+- `sys__mem_get_bytes_freed() int` - Returns the total number of bytes freed by the garbage collector
+- `sys__mem_get_next_gc() int` - Returns the threshold in bytes at which the next garbage collection will trigger
+- `sys__mem_get_objects_created() int` - Returns the total number of objects created by the garbage collector
+- `sys__mem_get_objects_freed() int` - Returns the total number of objects freed by the garbage collector
+- `sys__mem_get_live_objects() int` - Returns the current number of live objects managed by the garbage collector
+- `sys__mem_get_net_bytes() int` - Returns the net bytes currently allocated (allocated - freed)
+- `sys__mem_display_gc_stats()` - Prints detailed garbage collection statistics to the console
 
 7) `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
 Do not use this statement unless needed, and instead use the `print()` and `println()` functions.
+
+Note: The GC implementation in my project does *not* track all memory and it will use a bit of extra memory. This is because some parts of the application uses `std::vector` and `std::string` that are not managed by the garbage collector. In the book, all memory is allocated through `reallocate()` hence the GC has complete control over the memory. But in my implementation, all vectors & strings are wrapped in VM objects, so once they are freed, the associated vectors & strings get freed too.
+
 
 ## TODO
 - [ ] Fix division by zero error

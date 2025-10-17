@@ -37,6 +37,9 @@ int main(int argc, char *argv[])
         ("log-gc",           "Logs events that occur during a GC collection",
                              cxxopts::value<bool>()->default_value("false"))
 
+        ("display-mem-stats","Display memory stats, such as number of objects allocated, bytes allocated, etc on program exit",
+                             cxxopts::value<bool>()->default_value("false"))
+
         ("stress-gc",        "Stresses the GC by triggering a collection everytime a new object is created",
                              cxxopts::value<bool>()->default_value("false"))
         
@@ -83,6 +86,7 @@ int main(int argc, char *argv[])
         vopts.debug_log_gc = result["log-gc"].as<bool>();
         vopts.debug_trace_value_stack = result["trace-eval-stack"].as<bool>();
         vopts.value_stack_max = result["eval-stack-size"].as<int>();
+        vopts.display_mem_stats = result["display-mem-stats"].as<bool>();
 
         LoxOpts lopts;
         lopts.dump_bytecode = result["dump-bytecode"].as<bool>();
