@@ -246,6 +246,8 @@ class HashMap
             return false;
 
         // Make the slot a tombstone
+        slot.key = Key{};
+        slot.value = Value{};
         slot.state = Slot::State::TOMBSTONE;
         ++tombstones_;
         --size_;

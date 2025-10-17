@@ -101,6 +101,7 @@ auto Lox::run_repl() -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
+
     vm.register_native_functions();
 
     while (true)
@@ -133,19 +134,25 @@ auto Lox::run_repl() -> int
  */
 auto Lox::run_source(std::string_view src) -> int
 {
+    ErrorReporter reporter;
     GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
-
     allocator.set_gc(&gc);
     gc.set_allocator(&allocator);
-
-    ErrorReporter reporter;
     Context context;
 
     Lexer lexer(src);
     Parser parser(lexer.begin(), reporter);
 
     Compiler compiler(parser, compiler_opts, allocator, &context, FunctionType::SCRIPT);
+
+    // The VM should be created before the compiler performs compilation
+    // because otherwise, the compiled function gets discarded when
+    // the vm gets created since the compiled function is not present in the compiler
+    // nor in the stack
+    VM vm(vm_opts, reporter, allocator, &context);
+    gc.set_vm(&vm);
+    vm.register_native_functions();
 
     auto [obj, result] = compiler.compile();
     if (result != InterpretResult::OK)
@@ -158,9 +165,6 @@ auto Lox::run_source(std::string_view src) -> int
         return 0;
 
 
-    VM vm(vm_opts, reporter, allocator, &context);
-    gc.set_vm(&vm);
-    vm.register_native_functions();
     result = vm.run(obj, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)
