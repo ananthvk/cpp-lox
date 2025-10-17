@@ -20,6 +20,7 @@ sources = files(
     'src/lexer.cpp',
     'src/lox.cpp',
     'src/native/math.cpp',
+    'src/native/memory.cpp',
     'src/native/stdio.cpp',
     'src/native/stdlib.cpp',
     'src/native/string.cpp',

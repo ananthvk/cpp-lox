@@ -160,5 +160,21 @@ class VM
 
     auto get_output_stream() -> std::ostream & { return *output_stream; }
 
+    ~VM()
+    {
+        if (opts.display_mem_stats)
+        {
+            auto &os = *output_stream;
+            os << "GC Statistics:" << std::endl;
+            os << "  Bytes allocated: " << allocator.get_bytes_allocated() << std::endl;
+            os << "  Bytes freed: " << allocator.get_bytes_freed() << std::endl;
+            os << "  Net bytes: " << allocator.get_net_bytes() << std::endl;
+            os << "  Next GC threshold: " << allocator.get_next_gc() << std::endl;
+            os << "  Objects created: " << allocator.get_objects_created() << std::endl;
+            os << "  Objects freed: " << allocator.get_objects_freed() << std::endl;
+            os << "  Live objects: " << allocator.get_live_objects() << std::endl;
+        }
+    }
+
     friend class GarbageCollector;
 };

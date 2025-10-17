@@ -9,6 +9,7 @@ auto GarbageCollector::collect_garbage() -> void
 {
     log(fmt::color::green, "{} [VM: {}, Compiler: {}]", "begin", (vm != nullptr) ? "live" : "none",
         Compiler::does_compiler_exist() ? "live" : "none");
+    auto bytes_freed_initial = allocator->get_bytes_freed();
     log_indent_level++;
     mark_roots();
     trace_references();
@@ -16,8 +17,14 @@ auto GarbageCollector::collect_garbage() -> void
     if (count > 0)
         log(fmt::color::green, "removed {} strings from string pool", count);
     sweep();
+    auto bytes_freed = allocator->get_bytes_freed() - bytes_freed_initial;
+
+    // Set the threshold for next garbage collection
+    auto gc_current_mem = allocator->get_bytes_allocated() - allocator->get_bytes_freed();
+    auto next_gc = vopts.gc_heap_grow_factor * gc_current_mem;
+    allocator->set_next_gc(next_gc);
     log_indent_level--;
-    log(fmt::color::green, "{}", "end");
+    log(fmt::color::green, "{} [freed: {} bytes, next_gc: {}]", "end", bytes_freed, next_gc);
 }
 
 auto GarbageCollector::log_allocation(Object *obj) -> void
