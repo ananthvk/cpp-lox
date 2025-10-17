@@ -78,6 +78,7 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
+    vm.register_native_functions();
 
     compile_and_execute(source, reporter, vm, allocator, &context);
 
@@ -100,6 +101,7 @@ auto Lox::run_repl() -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
+    vm.register_native_functions();
 
     while (true)
     {
@@ -158,6 +160,7 @@ auto Lox::run_source(std::string_view src) -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
+    vm.register_native_functions();
     result = vm.run(obj, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)

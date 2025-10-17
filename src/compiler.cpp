@@ -1187,3 +1187,5 @@ auto Compiler::mark_compiler_roots(GarbageCollector &gc) -> void
         compiler = compiler->enclosing;
     }
 }
+
+auto Compiler::does_compiler_exist() -> bool { return Compiler::current != nullptr; }

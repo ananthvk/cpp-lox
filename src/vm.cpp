@@ -50,16 +50,6 @@ auto concatenate(Allocator &allocator, ObjectString *a, ObjectString *b) -> Obje
     return allocator.intern_string(buffer, len, Allocator::StorageType::TAKE_OWNERSHIP);
 }
 
-auto VM::init() -> void
-{
-    evalstack.resize(opts.value_stack_max + 4);
-    stack_top = evalstack.data();
-    frames.resize(opts.frames_max);
-    register_native_functions();
-    output_stream = nullptr;
-    open_upvalues = nullptr;
-}
-
 auto VM::execute(std::ostream &os) -> InterpretResult
 {
     while (1)
