@@ -41,6 +41,10 @@ auto GarbageCollector::log_free(Object *obj) -> void
 
 auto GarbageCollector::mark_roots() -> void
 {
+    for (auto value : allocator->get_temp_stash())
+    {
+        mark_value(value);
+    }
     if (Compiler::does_compiler_exist())
     {
         log(fmt::color::yellow, "{}", "mark compiler roots");

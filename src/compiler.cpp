@@ -404,17 +404,8 @@ auto Compiler::string([[maybe_unused]] bool canAssign) -> void
 
     ObjectString *obj = allocator.intern_string(token.lexeme.substr(1, token.lexeme.size() - 2),
                                                 Allocator::StorageType::DYNAMIC);
-    auto val = constant_strings.get(obj);
-    if (val)
-    {
-        chunk()->write_load_constant(val.value(), token.line);
-    }
-    else
-    {
-        int index = chunk()->add_constant(obj);
-        chunk()->write_load_constant(index, token.line);
-        constant_strings.insert(obj, index);
-    }
+    int index = chunk()->add_constant(obj);
+    chunk()->write_load_constant(index, token.line);
 }
 
 auto Compiler::declaration() -> void

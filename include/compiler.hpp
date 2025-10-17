@@ -50,12 +50,6 @@ struct ParseRule
 
 class Compiler
 {
-
-    struct StringIndexTableHasher
-    {
-        auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
-    };
-
     struct Local
     {
         Token name;
@@ -71,13 +65,10 @@ class Compiler
         bool is_local;
     };
 
-    using StringIndexTable = HashMap<ObjectString *, int, StringIndexTableHasher>;
-
     CompilerOpts opts;
     Allocator &allocator;
     Context *context;
     int scope_depth;
-    StringIndexTable constant_strings;
     std::vector<Local> locals;
     HashMap<int64_t, int> constant_numbers;
 

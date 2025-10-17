@@ -27,6 +27,9 @@ class Allocator
     size_t objects_created;
     size_t objects_freed;
 
+    // Tempory stack to stash values so that they don't get garbage collected
+    std::vector<Value> temp_stash;
+
     // This is basically an ObjectString, but with a different name. Idk why I have this here
     struct InternedString
     {
@@ -63,13 +66,39 @@ class Allocator
         bytes_allocated += object_size;
         objects_created++;
 
-        if (bytes_allocated > next_gc)
+        // TODO: Use this previous if statement
+        // and spam the folowing statement in repl to trigger a crash
+        // check why it crashes
+        // sys__mem_display_gc_stats();
+        // if (bytes_allocated > next_gc)
+        if (get_net_bytes() > next_gc)
             collect_garbage();
     }
 
-    template <typename T> auto delete_object(T *ptr)
+    auto delete_object(Object *obj)
     {
-        auto object_size = sizeof(std::remove_pointer_t<T>);
+        size_t object_size = 0;
+        switch (obj->get_type())
+        {
+        case ObjectType::STRING:
+            object_size = sizeof(ObjectString);
+            break;
+        case ObjectType::FUNCTION:
+            object_size = sizeof(ObjectFunction);
+            break;
+        case ObjectType::CLOSURE:
+            object_size = sizeof(ObjectClosure);
+            break;
+        case ObjectType::UPVALUE:
+            object_size = sizeof(ObjectUpvalue);
+            break;
+        case ObjectType::NATIVE_FUNCTION:
+            object_size = sizeof(ObjectNativeFunction);
+            break;
+        default:
+            throw std::logic_error("invalid object type");
+            break;
+        }
         bytes_freed += object_size;
         objects_freed++;
     }
@@ -138,6 +167,8 @@ class Allocator
     auto get_live_objects() const -> size_t { return objects_created - objects_freed; }
 
     auto get_net_bytes() const -> size_t { return bytes_allocated - bytes_freed; }
+
+    auto get_temp_stash() -> std::vector<Value> & { return temp_stash; }
 
     ~Allocator();
 };
