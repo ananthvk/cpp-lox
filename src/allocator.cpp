@@ -101,12 +101,14 @@ auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction
         collect_garbage();
     auto chunk = std::make_unique<Chunk>();
     auto interned_name = intern_string(name);
+    temp_stash.push_back(Value{interned_name});
     auto obj = new ObjectFunction(arity, std::move(chunk), interned_name);
     create_object(obj);
     obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
         gc->log_allocation(obj);
+    temp_stash.pop_back();
     return obj;
 }
 
