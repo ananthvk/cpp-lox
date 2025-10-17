@@ -3,6 +3,7 @@
 #include "vm.hpp"
 #include "vmopts.hpp"
 #include <fmt/format.h>
+#include <queue>
 
 class GarbageCollector
 {
@@ -11,6 +12,7 @@ class GarbageCollector
     VM *vm;
     VMOpts vopts;
     int log_indent_level;
+    std::vector<Object *> grey_objects;
 
     template <typename... Args>
     inline auto log(decltype(fmt::color::red) color, const std::string &message, Args... args)
@@ -27,6 +29,10 @@ class GarbageCollector
     auto mark_roots() -> void;
 
     auto mark_global_variables(Context *context) -> void;
+
+    auto trace_references() -> void;
+
+    auto blacken_object(Object *object) -> void;
 
   public:
     GarbageCollector(VMOpts vm_opts);

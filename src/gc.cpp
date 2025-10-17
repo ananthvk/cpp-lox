@@ -79,9 +79,12 @@ auto GarbageCollector::mark_object(Object *object) -> void
 {
     if (object == nullptr)
         return;
+    if (object->is_marked)
+        return;
     log(fmt::color::white, "mark {:<20p} {:16} [value: {}]", static_cast<void *>(object),
         object_type_to_string(object->get_type()), Value{object}.to_string());
     object->is_marked = true;
+    grey_objects.push_back(object);
 }
 
 auto GarbageCollector::mark_global_variables(Context *context) -> void
@@ -97,5 +100,58 @@ auto GarbageCollector::mark_global_variables(Context *context) -> void
     for (auto &value : context->values)
     {
         mark_value(value.value);
+    }
+}
+
+auto GarbageCollector::trace_references() -> void
+{
+    while (!grey_objects.empty())
+    {
+        Object *last = grey_objects.back();
+        grey_objects.pop_back();
+        blacken_object(last);
+    }
+}
+
+auto GarbageCollector::blacken_object(Object *object) -> void
+{
+    log(fmt::color::beige, "blacken {:<20p} {:16} [value: {}]", static_cast<void *>(object),
+        object_type_to_string(object->get_type()), Value{object}.to_string());
+    switch (object->get_type())
+    {
+    // strings & native functions do not reference any other object
+    case ObjectType::STRING:
+    case ObjectType::NATIVE_FUNCTION:
+        break;
+    // An upvalue can be in closed state (i.e. it holds a value)
+    case ObjectType::UPVALUE:
+        mark_value(static_cast<ObjectUpvalue *>(object)->closed);
+        break;
+    // A function holds reference to the name of the function, and an array of constants
+    case ObjectType::FUNCTION:
+    {
+        auto func = static_cast<ObjectFunction *>(object);
+        mark_object(func->name());
+        for (auto value : func->get()->get_constants())
+        {
+            mark_value(value);
+        }
+        break;
+    }
+    // A closure holds reference to a bare function, and an array of pointers to upvalues
+    case ObjectType::CLOSURE:
+    {
+        auto closure = static_cast<ObjectClosure *>(object);
+        // Mark the function held by the closure
+        mark_object(closure->get());
+        for (auto upvalue : closure->get_upvalues())
+        {
+            mark_object(upvalue);
+        }
+        break;
+    }
+    default:
+        throw std::logic_error("invalid object type");
+        break;
     }
 }
