@@ -10,11 +10,18 @@ class GarbageCollector
     Allocator *allocator;
     VM *vm;
     VMOpts vopts;
+    int log_indent_level;
 
-    template <typename... Args> inline auto log(const std::string &message, Args... args) -> void
+    template <typename... Args>
+    inline auto log(decltype(fmt::color::red) color, const std::string &message, Args... args)
+        -> void
     {
         if (vopts.debug_log_gc)
-            fmt::println(fmt::runtime(std::string("[GC] ") + message), args...);
+        {
+            fmt::print("[GC] {}", fmt::format("{:\t>{}}", "", log_indent_level));
+            fmt::print(fmt::fg(color), fmt::runtime(message), args...);
+            fmt::println("");
+        }
     }
 
     auto mark_roots() -> void;

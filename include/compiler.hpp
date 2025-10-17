@@ -205,4 +205,6 @@ class Compiler
     auto compile() -> std::pair<ObjectFunction *, InterpretResult>;
 
     auto static mark_compiler_roots(GarbageCollector &gc) -> void;
+
+    auto static does_compiler_exist() -> bool;
 };

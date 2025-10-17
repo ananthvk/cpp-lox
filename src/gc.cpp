@@ -1,34 +1,46 @@
 #include "gc.hpp"
 #include "compiler.hpp"
 
-GarbageCollector::GarbageCollector(VMOpts vm_opts) : vopts(vm_opts) {}
+GarbageCollector::GarbageCollector(VMOpts vm_opts) : vopts(vm_opts), log_indent_level(0) {}
 
 auto GarbageCollector::set_allocator(Allocator *alloc) -> void { allocator = alloc; }
 
 auto GarbageCollector::collect_garbage() -> void
 {
-    log("{:<20} {}", "", "begin");
+    log(fmt::color::green, "{} [VM: {}, Compiler: {}]", "begin", (vm != nullptr) ? "live" : "none",
+        Compiler::does_compiler_exist() ? "live" : "none");
+    log_indent_level++;
     mark_roots();
-    log("{:<20} {}", "", "end");
+    log_indent_level--;
+    log(fmt::color::green, "{}", "end");
 }
 
 auto GarbageCollector::log_allocation(Object *obj) -> void
 {
-    log("{:<20p} allocate {:16} [value: {}]", static_cast<void *>(obj),
+    log(fmt::color::cyan, "allocate {:<20p} {:16} [value: {}]", static_cast<void *>(obj),
         object_type_to_string(obj->get_type()), Value{obj}.to_string());
 }
 
 auto GarbageCollector::log_free(Object *obj) -> void
 {
-    log("{:<20p} free {:16}", static_cast<void *>(obj), object_type_to_string(obj->get_type()));
+    log(fmt::color::red, "free {:<20p} {:16}", static_cast<void *>(obj),
+        object_type_to_string(obj->get_type()));
 }
 
 auto GarbageCollector::mark_roots() -> void
 {
-    Compiler::mark_compiler_roots(*this);
-
+    if (Compiler::does_compiler_exist())
+    {
+        log(fmt::color::yellow, "{}", "mark compiler roots");
+        log_indent_level++;
+        Compiler::mark_compiler_roots(*this);
+        log_indent_level--;
+        log(fmt::color::yellow, "{}", "end mark compiler roots");
+    }
     if (vm != nullptr)
     {
+        log(fmt::color::blue, "{}", "mark vm roots");
+        log_indent_level++;
         // Roots are the objects that are directly accesible by the VM, they include objects on the
         // stack, and the global table
         for (auto slot = vm->evalstack.data(); slot < vm->stack_top; ++slot)
@@ -51,6 +63,8 @@ auto GarbageCollector::mark_roots() -> void
         }
 
         mark_global_variables(vm->context);
+        log_indent_level--;
+        log(fmt::color::blue, "{}", "end mark vm roots");
     }
 }
 
@@ -65,7 +79,7 @@ auto GarbageCollector::mark_object(Object *object) -> void
 {
     if (object == nullptr)
         return;
-    log("{:<20p} mark {:16} [value: {}]", static_cast<void *>(object),
+    log(fmt::color::white, "mark {:<20p} {:16} [value: {}]", static_cast<void *>(object),
         object_type_to_string(object->get_type()), Value{object}.to_string());
     object->is_marked = true;
 }

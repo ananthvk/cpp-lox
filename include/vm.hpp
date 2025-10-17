@@ -110,10 +110,12 @@ class VM
         : opts(opts), reporter(reporter), allocator(allocator), context(context),
           current_frame(nullptr), frame_count(0)
     {
-        init();
+        evalstack.resize(opts.value_stack_max + 4);
+        stack_top = evalstack.data();
+        frames.resize(opts.frames_max);
+        output_stream = nullptr;
+        open_upvalues = nullptr;
     }
-
-    auto init() -> void;
 
     auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;
 
