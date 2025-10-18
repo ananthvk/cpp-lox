@@ -1,5 +1,6 @@
 #include "gc.hpp"
 #include "compiler.hpp"
+#include "math.h"
 
 GarbageCollector::GarbageCollector(VMOpts vm_opts) : vopts(vm_opts), log_indent_level(0) {}
 
@@ -21,8 +22,16 @@ auto GarbageCollector::collect_garbage() -> void
 
     // Set the threshold for next garbage collection
     auto gc_current_mem = allocator->get_net_bytes();
-    auto next_gc = vopts.gc_heap_grow_factor * gc_current_mem;
+
+    // Grow linearly, but have a minimum heap size before collection
+    auto next_gc = std::max(vopts.gc_heap_grow_factor * gc_current_mem,
+                            static_cast<unsigned long>(DEFAULT_GC_NEXT_COLLECTION));
+
+    // Grow exponentially
+    // auto next_gc = allocator->get_next_gc() * vopts.gc_heap_grow_factor;
+
     allocator->set_next_gc(next_gc);
+
     log_indent_level--;
     log(fmt::color::green, "{} [freed: {} bytes, next_gc: {}]", "end", bytes_freed, next_gc);
 }

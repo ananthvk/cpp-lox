@@ -162,7 +162,7 @@ class VM
 
     ~VM()
     {
-        if (opts.display_mem_stats)
+        if (opts.display_mem_stats && output_stream)
         {
             auto &os = *output_stream;
             os << "GC Statistics:" << std::endl;
