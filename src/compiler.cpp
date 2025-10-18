@@ -62,6 +62,9 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
     
+    // Need to set function to nullptr because otherwise, when a GC collection is triggered
+    // during allocation of a new function down below, it'll read uninitialized memory, causing memory errors
+    function = nullptr;
     current = this;
     // clang-format on
 

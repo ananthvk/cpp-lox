@@ -124,6 +124,7 @@ auto Lox::run_repl() -> int
         // local variables remain on the stack
         vm.clear_evaluation_stack();
         vm.clear_frames();
+        Compiler::current = nullptr;
     }
     return 0;
 }
