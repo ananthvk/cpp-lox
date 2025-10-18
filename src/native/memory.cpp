@@ -62,6 +62,7 @@ auto native_display_gc_stats(VM *vm, int arg_count, Value *values) -> std::pair<
     os << "  Objects created: " << allocator->get_objects_created() << std::endl;
     os << "  Objects freed: " << allocator->get_objects_freed() << std::endl;
     os << "  Live objects: " << allocator->get_live_objects() << std::endl;
+    os << "  Cycles: " << allocator->get_gc_cycles() << std::endl;
 
     return {Value{}, true};
 }

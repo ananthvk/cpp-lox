@@ -26,6 +26,8 @@ class Allocator
     size_t next_gc;
     size_t objects_created;
     size_t objects_freed;
+    // How many times the gc has collected garbage
+    size_t gc_cycles;
 
     // Tempory stack to stash values so that they don't get garbage collected
     std::vector<Value> temp_stash;
@@ -60,17 +62,12 @@ class Allocator
 
     // These two functions exist to capture statistics about garbage collection, and to trigger
     // garbage collection when it exceeds threshold
-    template <typename T> auto create_object(T *ptr)
+    template <typename T> auto create_object()
     {
-        auto object_size = sizeof(std::remove_pointer_t<T>);
+        auto object_size = sizeof(T);
         bytes_allocated += object_size;
         objects_created++;
 
-        // TODO: Use this previous if statement
-        // and spam the folowing statement in repl to trigger a crash
-        // check why it crashes
-        // sys__mem_display_gc_stats();
-        // if (bytes_allocated > next_gc)
         if (get_net_bytes() > next_gc)
             collect_garbage();
     }
@@ -117,7 +114,7 @@ class Allocator
 
     Allocator(VMOpts vm_opts)
         : gc(nullptr), vopts(vm_opts), bytes_allocated(0), bytes_freed(0),
-          next_gc(DEFAULT_GC_NEXT_COLLECTION), objects_created(0), objects_freed(0)
+          next_gc(DEFAULT_GC_NEXT_COLLECTION), objects_created(0), objects_freed(0), gc_cycles(0)
     {
     }
 
@@ -167,6 +164,8 @@ class Allocator
     auto get_live_objects() const -> size_t { return objects_created - objects_freed; }
 
     auto get_net_bytes() const -> size_t { return bytes_allocated - bytes_freed; }
+
+    auto get_gc_cycles() const -> size_t { return gc_cycles; }
 
     auto get_temp_stash() -> std::vector<Value> & { return temp_stash; }
 

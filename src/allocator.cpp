@@ -51,6 +51,7 @@ auto Allocator::intern_string(const char *str, size_t length, StorageType storag
             return interned_string;
         }
     }
+    create_object<ObjectString>();
 
     if (storage_type == StorageType::DYNAMIC)
     {
@@ -60,7 +61,6 @@ auto Allocator::intern_string(const char *str, size_t length, StorageType storag
         memcpy(buffer, str, length);
         buffer[length] = '\0';
         auto obj = new ObjectString(buffer, length, hash);
-        create_object(obj);
         obj->is_marked = false;
         objs.push_back(obj);
         if (vopts.debug_log_gc)
@@ -75,7 +75,6 @@ auto Allocator::intern_string(const char *str, size_t length, StorageType storag
     else if (storage_type == StorageType::TAKE_OWNERSHIP)
     {
         auto obj = new ObjectString(str, length, hash);
-        create_object(obj);
         obj->is_marked = false;
         objs.push_back(obj);
         if (vopts.debug_log_gc)
@@ -102,8 +101,9 @@ auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction
     auto chunk = std::make_unique<Chunk>();
     auto interned_name = intern_string(name);
     temp_stash.push_back(Value{interned_name});
+
+    create_object<ObjectFunction>();
     auto obj = new ObjectFunction(arity, std::move(chunk), interned_name);
-    create_object(obj);
     obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
@@ -116,8 +116,8 @@ auto Allocator::new_native_function(int arity, NativeFunction function) -> Objec
 {
     if (vopts.debug_stress_gc)
         collect_garbage();
+    create_object<ObjectNativeFunction>();
     auto obj = new ObjectNativeFunction(arity, function);
-    create_object(obj);
     obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
@@ -129,8 +129,10 @@ auto Allocator::new_closure(ObjectFunction *function) -> ObjectClosure *
 {
     if (vopts.debug_stress_gc)
         collect_garbage();
+
+    create_object<ObjectClosure>();
     auto obj = new ObjectClosure(function);
-    create_object(obj);
+
     obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
@@ -142,8 +144,9 @@ auto Allocator::new_upvalue(Value *slot) -> ObjectUpvalue *
 {
     if (vopts.debug_stress_gc)
         collect_garbage();
+
+    create_object<ObjectUpvalue>();
     auto obj = new ObjectUpvalue(slot);
-    create_object(obj);
     obj->is_marked = false;
     objs.push_back(obj);
     if (vopts.debug_log_gc)
@@ -161,7 +164,11 @@ auto Allocator::free_object(Object *obj) -> void
     delete obj;
 }
 
-auto Allocator::collect_garbage() -> void { gc->collect_garbage(); }
+auto Allocator::collect_garbage() -> void
+{
+    gc->collect_garbage();
+    gc_cycles++;
+}
 
 Allocator::~Allocator()
 {

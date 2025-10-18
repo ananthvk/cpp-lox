@@ -20,7 +20,7 @@ auto GarbageCollector::collect_garbage() -> void
     auto bytes_freed = allocator->get_bytes_freed() - bytes_freed_initial;
 
     // Set the threshold for next garbage collection
-    auto gc_current_mem = allocator->get_bytes_allocated() - allocator->get_bytes_freed();
+    auto gc_current_mem = allocator->get_net_bytes();
     auto next_gc = vopts.gc_heap_grow_factor * gc_current_mem;
     allocator->set_next_gc(next_gc);
     log_indent_level--;

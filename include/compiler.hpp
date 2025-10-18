@@ -86,7 +86,6 @@ class Compiler
     Compiler *enclosing;
     std::vector<Upvalue> upvalues;
 
-    static Compiler *current;
 
     // These functions generate bytecode, and add it to the chunk
     // held by the compiler.
@@ -184,6 +183,8 @@ class Compiler
     auto chunk() -> Chunk * { return function->get(); }
 
   public:
+    static Compiler *current;
+
     Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
              FunctionType function_type, Compiler *enclosing = nullptr, std::string_view name = "");
 
