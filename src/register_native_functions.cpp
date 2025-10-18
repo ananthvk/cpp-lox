@@ -1,5 +1,5 @@
-#include "vm.hpp"
 #include "function.hpp"
+#include "vm.hpp"
 
 auto register_time(VM *vm) -> void;
 auto register_stdio(VM *vm) -> void;
