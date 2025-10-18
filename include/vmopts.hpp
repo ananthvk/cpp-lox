@@ -27,7 +27,9 @@ struct VMOpts
     bool debug_log_gc = false;
 
     int gc_heap_grow_factor = DEFAULT_GC_HEAP_GROW_FACTOR;
-    
+
+    int gc_next_collection = DEFAULT_GC_NEXT_COLLECTION;
+
     // Display GC stats when the program exits
     bool display_mem_stats = false;
 };

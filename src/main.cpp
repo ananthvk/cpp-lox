@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
         ("eval-stack-size",  "Maximum evaluation stack size allowed",
                              cxxopts::value<int>()->default_value("1024"))
 
+        ("gc-initial-collection-threshold",  "Number of bytes after which GC will collect garbage for the first time",
+                             cxxopts::value<int>()->default_value("1048576"))
+
         ("log-gc",           "Logs events that occur during a GC collection",
                              cxxopts::value<bool>()->default_value("false"))
 
@@ -87,6 +90,7 @@ int main(int argc, char *argv[])
         vopts.debug_trace_value_stack = result["trace-eval-stack"].as<bool>();
         vopts.value_stack_max = result["eval-stack-size"].as<int>();
         vopts.display_mem_stats = result["display-mem-stats"].as<bool>();
+        vopts.gc_next_collection = result["gc-initial-collection-threshold"].as<int>();
 
         LoxOpts lopts;
         lopts.dump_bytecode = result["dump-bytecode"].as<bool>();

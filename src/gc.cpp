@@ -25,7 +25,7 @@ auto GarbageCollector::collect_garbage() -> void
 
     // Grow linearly, but have a minimum heap size before collection
     auto next_gc = std::max(vopts.gc_heap_grow_factor * gc_current_mem,
-                            static_cast<unsigned long>(DEFAULT_GC_NEXT_COLLECTION));
+                            static_cast<unsigned long>(vopts.gc_next_collection));
 
     // Grow exponentially
     // auto next_gc = allocator->get_next_gc() * vopts.gc_heap_grow_factor;
