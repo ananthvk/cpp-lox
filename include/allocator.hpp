@@ -114,7 +114,7 @@ class Allocator
 
     Allocator(VMOpts vm_opts)
         : gc(nullptr), vopts(vm_opts), bytes_allocated(0), bytes_freed(0),
-          next_gc(DEFAULT_GC_NEXT_COLLECTION), objects_created(0), objects_freed(0), gc_cycles(0)
+          next_gc(vm_opts.gc_next_collection), objects_created(0), objects_freed(0), gc_cycles(0)
     {
     }
 
