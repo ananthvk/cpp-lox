@@ -1101,7 +1101,8 @@ auto Compiler::switch_statement() -> void
         // Emit a POP instruction so that the switch expression value is removed from the stack
         // Do this only if there is no default case, since otherwise
         // the default case will emit a POP_TOP
-        // Note: This only happens either when there are no cases or when a switch exits without executing any case
+        // Note: This only happens either when there are no cases or when a switch exits without
+        // executing any case
         emit_opcode(OpCode::POP_TOP);
     }
     parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after switch statement");

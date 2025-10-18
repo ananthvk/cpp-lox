@@ -104,7 +104,7 @@ class ObjectUpvalue : public Object
   private:
     Value *location;
 
-    ObjectUpvalue(Value *slot) : next(nullptr), location(slot){}
+    ObjectUpvalue(Value *slot) : next(nullptr), location(slot) {}
 
   public:
     auto get_type() const -> ObjectType override { return ObjectType::UPVALUE; }

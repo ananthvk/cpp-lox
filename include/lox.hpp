@@ -14,8 +14,8 @@ struct LoxOpts
 
 class Lox
 {
-    auto compile_and_execute(std::string_view src, ErrorReporter &reporter, VM &vm, Allocator &allocator,
-                 Context *context) -> InterpretResult;
+    auto compile_and_execute(std::string_view src, ErrorReporter &reporter, VM &vm,
+                             Allocator &allocator, Context *context) -> InterpretResult;
 
     CompilerOpts compiler_opts;
     VMOpts vm_opts;
