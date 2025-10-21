@@ -456,7 +456,6 @@ auto VM::capture_upvalue(Value *slot) -> ObjectUpvalue *
 
 auto VM::call_value(Value callee, int arg_count) -> bool
 {
-    ;
     if (callee.is_function())
     {
         throw std::logic_error("naked functions should not exist");
@@ -464,6 +463,17 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     if (callee.is_closure())
     {
         return call(static_cast<ObjectClosure *>(callee.as_object()), arg_count);
+    }
+    if (callee.is_class())
+    {
+        // The language does not have a new keyword, so when a class is "called", an instance of
+        // that class is created
+        ObjectClass *class_ = static_cast<ObjectClass *>(callee.as_object());
+        // At stack_top - arg_count - 1 location, the class object is present. We replace that
+        // object with an instance of the class.
+        // For now, we are going to ignore additional arguments passed (initializers)
+        *(stack_top - arg_count - 1) = Value{allocator.new_instance(class_)};
+        return true;
     }
     else if (callee.is_native_function())
     {

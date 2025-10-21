@@ -14,7 +14,8 @@ enum class ObjectType : uint8_t
     CLOSURE,
     NATIVE_FUNCTION,
     UPVALUE,
-    CLASS
+    CLASS,
+    INSTANCE
 };
 
 class Object
@@ -82,6 +83,8 @@ inline auto object_type_to_string(ObjectType type) -> const char *
         return "UPVALUE";
     case ObjectType::CLASS:
         return "CLASS";
+    case ObjectType::INSTANCE:
+        return "INSTANCE";
     default:
         return "UNKNOWN";
     }

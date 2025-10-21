@@ -175,6 +175,25 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         break;
     }
 
+    // An instance contains a reference to it's class and it's field table
+    case ObjectType::INSTANCE:
+    {
+        auto instance = static_cast<ObjectInstance *>(object);
+        auto &fields = instance->get_fields();
+        mark_object(instance->get_class());
+
+        // Mark the values & field names stored in the fields table
+        for (auto &slot : fields.get_slots())
+        {
+            if (slot.state == ObjectInstance::StringValueTable::Slot::State::FILLED)
+            {
+                mark_object(slot.key);
+                mark_value(slot.value);
+            }
+        }
+        break;
+    }
+
     // A closure holds reference to a bare function, and an array of pointers to upvalues
     case ObjectType::CLOSURE:
     {

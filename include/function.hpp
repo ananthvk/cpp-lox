@@ -45,7 +45,7 @@ class ObjectFunction : public Object
 
     // Move not allowed
     ObjectFunction(ObjectFunction &&other) noexcept = delete;
-    ObjectString &operator=(ObjectFunction &&other) noexcept = delete;
+    ObjectFunction &operator=(ObjectFunction &&other) noexcept = delete;
 
     friend class Allocator;
     friend class Compiler;
@@ -84,7 +84,7 @@ class ObjectNativeFunction : public Object
 
     // Move not allowed
     ObjectNativeFunction(ObjectNativeFunction &&other) noexcept = delete;
-    ObjectString &operator=(ObjectNativeFunction &&other) noexcept = delete;
+    ObjectNativeFunction &operator=(ObjectNativeFunction &&other) noexcept = delete;
 
     friend class Allocator;
     friend class Compiler;
@@ -119,7 +119,7 @@ class ObjectUpvalue : public Object
 
     // Move not allowed
     ObjectUpvalue(ObjectUpvalue &&other) noexcept = delete;
-    ObjectString &operator=(ObjectUpvalue &&other) noexcept = delete;
+    ObjectUpvalue &operator=(ObjectUpvalue &&other) noexcept = delete;
 
     friend class Allocator;
     friend class Compiler;
@@ -157,7 +157,7 @@ class ObjectClosure : public Object
 
     // Move not allowed
     ObjectClosure(ObjectClosure &&other) noexcept = delete;
-    ObjectString &operator=(ObjectClosure &&other) noexcept = delete;
+    ObjectClosure &operator=(ObjectClosure &&other) noexcept = delete;
 
     friend class Allocator;
 };
