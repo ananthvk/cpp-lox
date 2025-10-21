@@ -378,6 +378,19 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             pop();
             break;
         }
+        case OpCode::CLASS:
+        {
+            Value value = read_constant_long();
+            if (!value.is_string())
+            {
+                throw std::logic_error("invalid operand to opcode CLASS, expected a string");
+            }
+            push(value);
+            auto class_ = allocator.new_class(value.as_string());
+            pop();
+            push(class_);
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

@@ -94,6 +94,21 @@ auto Allocator::intern_string(std::string_view sv, StorageType storage_type) -> 
     return intern_string(sv.data(), sv.size(), storage_type);
 }
 
+auto Allocator::new_class(ObjectString *name) -> ObjectClass *
+{
+    if (vopts.debug_stress_gc)
+        collect_garbage();
+    create_object<ObjectClass>();
+
+    auto obj = new ObjectClass(name);
+    obj->is_marked = false;
+    objs.push_back(obj);
+
+    if (vopts.debug_log_gc)
+        gc->log_allocation(obj);
+    return obj;
+}
+
 auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction *
 {
     if (vopts.debug_stress_gc)

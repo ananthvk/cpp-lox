@@ -29,8 +29,6 @@ class GarbageCollector
 
     auto mark_roots() -> void;
 
-    auto mark_global_variables(Context *context) -> void;
-
     auto trace_references() -> void;
 
     auto blacken_object(Object *object) -> void;
@@ -53,4 +51,6 @@ class GarbageCollector
     auto mark_object(Object *object) -> void;
 
     auto mark_value(Value value) -> void;
+
+    auto mark_global_variables(Context *context) -> void;
 };

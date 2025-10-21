@@ -115,6 +115,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::CLOSURE;
     }
 
+    auto is_class() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::CLASS;
+    }
+
     auto is_native_function() const -> bool
     {
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::NATIVE_FUNCTION;

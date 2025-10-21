@@ -58,7 +58,7 @@ auto GarbageCollector::mark_roots() -> void
     {
         log(fmt::color::yellow, "{}", "mark compiler roots");
         log_indent_level++;
-        Compiler::mark_compiler_roots(*this);
+        Compiler::mark_compiler_roots(*this, (vm != nullptr));
         log_indent_level--;
         log(fmt::color::yellow, "{}", "end mark compiler roots");
     }
@@ -167,6 +167,14 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         }
         break;
     }
+    // A class contains a reference to it's name
+    case ObjectType::CLASS:
+    {
+        auto class_ = static_cast<ObjectClass *>(object);
+        mark_object(class_->name());
+        break;
+    }
+
     // A closure holds reference to a bare function, and an array of pointers to upvalues
     case ObjectType::CLOSURE:
     {
