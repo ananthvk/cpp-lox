@@ -146,6 +146,7 @@ class Compiler
     auto expression_statement() -> void;
     auto var_declaration() -> void;
     auto fun_declaration() -> void;
+    auto class_declaration() -> void;
     auto mark_initialized() -> void;
     auto const_declaration() -> void;
     auto if_statement() -> void;
@@ -196,7 +197,7 @@ class Compiler
 
     auto compile() -> std::pair<ObjectFunction *, InterpretResult>;
 
-    auto static mark_compiler_roots(GarbageCollector &gc) -> void;
+    auto static mark_compiler_roots(GarbageCollector &gc, bool is_vm_live) -> void;
 
     auto static does_compiler_exist() -> bool;
 };

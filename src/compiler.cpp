@@ -425,6 +425,10 @@ auto Compiler::declaration() -> void
     {
         fun_declaration();
     }
+    else if (parser.match(TokenType::CLASS))
+    {
+        class_declaration();
+    }
     else
     {
         statement();
@@ -557,6 +561,26 @@ auto Compiler::fun_declaration() -> void
     std::string_view function_name = parser.previous().lexeme;
     compile_function(FunctionType::FUNCTION, function_name);
     define_variable(function_name_constant_index, false);
+}
+
+auto Compiler::class_declaration() -> void
+{
+    int class_name_index = parse_variable("Expected class name after 'class'", false);
+    auto class_name = allocator.intern_string(parser.previous().lexeme);
+    // Add the class name to the the surrounding function's constant table so that it
+    // can be used for printing.
+    int constant_index = chunk()->add_constant(class_name);
+    mark_initialized();
+
+    // Emit the opcode to create the class at runtime
+    emit_opcode(OpCode::CLASS);
+    emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check too many constants
+
+    // After that, bind the class object to a variable
+    define_variable(class_name_index, false);
+
+    parser.consume(TokenType::LEFT_BRACE, "Expected '{' after class name");
+    parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after class body");
 }
 
 auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)
@@ -1186,10 +1210,17 @@ auto Compiler::return_statement() -> void
 
 Compiler *Compiler::current = nullptr;
 
-auto Compiler::mark_compiler_roots(GarbageCollector &gc) -> void
+auto Compiler::mark_compiler_roots(GarbageCollector &gc, bool is_vm_live) -> void
 {
     // Follow a similar approach to the book
     Compiler *compiler = Compiler::current;
+
+    // Assumed that all compiler instances share the same context
+    // This is needed so that global variables that are stored in the table get marked
+    // if the vm is not yet created
+    // If the vm is created, no need to do anything here since the vm will mark the globals table
+    if (compiler && !is_vm_live)
+        gc.mark_global_variables(compiler->context);
     while (compiler != nullptr)
     {
         gc.mark_object(compiler->function);

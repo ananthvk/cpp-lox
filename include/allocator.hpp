@@ -1,4 +1,5 @@
 #pragma once
+#include "classes.hpp"
 #include "function.hpp"
 #include "hashmap.hpp"
 #include "object.hpp"
@@ -89,6 +90,9 @@ class Allocator
         case ObjectType::UPVALUE:
             object_size = sizeof(ObjectUpvalue);
             break;
+        case ObjectType::CLASS:
+            object_size = sizeof(ObjectClass);
+            break;
         case ObjectType::NATIVE_FUNCTION:
             object_size = sizeof(ObjectNativeFunction);
             break;
@@ -131,6 +135,8 @@ class Allocator
         -> ObjectString *;
 
     auto new_function(int arity, std::string_view name) -> ObjectFunction *;
+
+    auto new_class(ObjectString *name) -> ObjectClass *;
 
     auto new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *;
 

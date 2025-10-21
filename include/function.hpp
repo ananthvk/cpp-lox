@@ -35,15 +35,13 @@ class ObjectFunction : public Object
 
     auto name() const -> ObjectString * { return name_; }
 
-    auto set_name(ObjectString *new_name) -> void { name_ = new_name; }
-
     auto get() const -> Chunk * { return chunk.get(); }
 
     auto operator==(const ObjectFunction &other) const -> bool { return this == &other; }
 
     // Copy not allowed
-    ObjectFunction(const ObjectString &other) = delete;
-    ObjectFunction &operator=(const ObjectString &other) = delete;
+    ObjectFunction(const ObjectFunction &other) = delete;
+    ObjectFunction &operator=(const ObjectFunction &other) = delete;
 
     // Move not allowed
     ObjectFunction(ObjectFunction &&other) noexcept = delete;
@@ -81,8 +79,8 @@ class ObjectNativeFunction : public Object
     }
 
     // Copy not allowed
-    ObjectNativeFunction(const ObjectString &other) = delete;
-    ObjectNativeFunction &operator=(const ObjectString &other) = delete;
+    ObjectNativeFunction(const ObjectNativeFunction &other) = delete;
+    ObjectNativeFunction &operator=(const ObjectNativeFunction &other) = delete;
 
     // Move not allowed
     ObjectNativeFunction(ObjectNativeFunction &&other) noexcept = delete;
@@ -116,8 +114,8 @@ class ObjectUpvalue : public Object
     auto operator==(const ObjectUpvalue &other) const -> bool { return location == other.location; }
 
     // Copy not allowed
-    ObjectUpvalue(const ObjectString &other) = delete;
-    ObjectUpvalue &operator=(const ObjectString &other) = delete;
+    ObjectUpvalue(const ObjectUpvalue &other) = delete;
+    ObjectUpvalue &operator=(const ObjectUpvalue &other) = delete;
 
     // Move not allowed
     ObjectUpvalue(ObjectUpvalue &&other) noexcept = delete;
@@ -154,8 +152,8 @@ class ObjectClosure : public Object
     auto operator==(const ObjectClosure &other) const -> bool { return this == &other; }
 
     // Copy not allowed
-    ObjectClosure(const ObjectString &other) = delete;
-    ObjectClosure &operator=(const ObjectString &other) = delete;
+    ObjectClosure(const ObjectClosure &other) = delete;
+    ObjectClosure &operator=(const ObjectClosure &other) = delete;
 
     // Move not allowed
     ObjectClosure(ObjectClosure &&other) noexcept = delete;

@@ -1,4 +1,5 @@
 #include "value.hpp"
+#include "classes.hpp"
 #include "function.hpp"
 #include "object.hpp"
 
@@ -36,6 +37,10 @@ auto Value::to_string() const -> std::string
                 return std::string("<function ") + std::string(name) + std::string(">");
             break;
         }
+        case ObjectType::CLASS:
+            return std::string("<class ") +
+                   std::string(static_cast<ObjectClass *>(data.o)->name()->get()) +
+                   std::string(">");
         case ObjectType::UPVALUE:
             return "<upvalue>";
         case ObjectType::NATIVE_FUNCTION:
@@ -76,10 +81,9 @@ auto Value::operator==(Value other) const -> bool
             return *as_string() == *other.as_string();
         // Checks if both functions point to the same in memory object
         case ObjectType::FUNCTION:
-            return as_object() == other.as_object();
-        case ObjectType::CLOSURE:
-            return as_object() == other.as_object();
         case ObjectType::NATIVE_FUNCTION:
+        case ObjectType::CLASS:
+        case ObjectType::CLOSURE:
             return as_object() == other.as_object();
         case ObjectType::UPVALUE:
             // Two upvalues are equal if they point to the same location
