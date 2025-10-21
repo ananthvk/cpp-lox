@@ -391,6 +391,70 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             push(class_);
             break;
         }
+        case OpCode::LOAD_PROPERTY:
+        {
+            if (!peek(0).is_object())
+            {
+                report_error("Runtime Error: Can only access properties on objects");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!peek(0).is_instance())
+            {
+                report_error("Runtime Error: Can only access properties on instances");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            auto instance = static_cast<ObjectInstance *>(peek(0).as_object());
+            auto value = read_constant_long();
+            auto property = static_cast<ObjectString *>(value.as_object());
+
+            auto val = instance->get_fields().get(property);
+            if (val)
+            {
+                // Pop the instance from the stack
+                pop();
+                push(val.value());
+                break;
+            }
+            else
+            {
+                // The property does not exist
+                report_error("Runtime Error: Instance of class '{}' has no property '{}'",
+                             instance->get_class()->name()->get(), property->get());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            break;
+        }
+        case OpCode::STORE_PROPERTY:
+        {
+            // The top of the stack contains the value to be set
+            // while the second element from the top contains the instance
+            if (!peek(1).is_object())
+            {
+                report_error("Runtime Error: Can only set properties on objects");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!peek(1).is_instance())
+            {
+                report_error("Runtime Error: Can only set properties on instances");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+
+            auto instance = static_cast<ObjectInstance *>(peek(1).as_object());
+            auto value = read_constant_long();
+            auto property = static_cast<ObjectString *>(value.as_object());
+
+            // Set the value in the hash table, creating the key if it does not exist
+            instance->get_fields().get_ref(property) = peek(0);
+
+            // We need to do this because STORE_PROPERTY is an expression, so we remove the second
+            // element from the top of the stack, then push back the top element of the stack so
+            // that it can be used in other expresssions
+
+            auto top_stack_val = pop(); // Pop the value of the expression
+            pop();                      // Pop the instance
+            push(top_stack_val);
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

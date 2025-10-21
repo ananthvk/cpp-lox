@@ -16,7 +16,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::LEFT_BRACE]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RIGHT_BRACE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::COMMA]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::DOT]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::DOT]              = {nullptr,        F(dot),           ParsePrecedence::CALL};
     rules[+TokenType::MINUS]            = {F(unary),       F(binary),        ParsePrecedence::TERM};
     rules[+TokenType::PLUS]             = {nullptr,        F(binary),        ParsePrecedence::TERM};
     rules[+TokenType::SEMICOLON]        = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -278,6 +278,30 @@ auto Compiler::or_(bool canAssign) -> void
 }
 
 auto Compiler::get_rule(TokenType type) -> ParseRule & { return rules[static_cast<int>(type)]; }
+
+auto Compiler::dot([[maybe_unused]] bool canAssign) -> void
+{
+    // Note: Here it's called property instead of field because property is a general term
+    // which is used to refer to any access on an instance
+    parser.consume(TokenType::IDENTIFIER, "Expected property name after .");
+
+    auto property_name = allocator.intern_string(parser.previous().lexeme);
+    int constant_index = chunk()->add_constant(property_name);
+
+    // If the next token after the property name is a `=`, the expression is a
+    // set expression. And we also check for canAssign before emitting a set opcode
+    if (canAssign && parser.match(TokenType::EQUAL))
+    {
+        expression();
+        emit_opcode(OpCode::STORE_PROPERTY);
+        emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check if it overflows
+    }
+    else
+    {
+        emit_opcode(OpCode::LOAD_PROPERTY);
+        emit_uint16_le(static_cast<uint16_t>(constant_index));
+    }
+}
 
 auto Compiler::binary([[maybe_unused]] bool canAssign) -> void
 {
