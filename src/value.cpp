@@ -45,6 +45,10 @@ auto Value::to_string() const -> std::string
             return "<upvalue>";
         case ObjectType::NATIVE_FUNCTION:
             return std::string("<native function>");
+        case ObjectType::INSTANCE:
+            return fmt::format("<instance of {} at {:p}>",
+                               static_cast<ObjectInstance *>(data.o)->get_class()->name()->get(),
+                               static_cast<void *>(data.o));
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -83,6 +87,7 @@ auto Value::operator==(Value other) const -> bool
         case ObjectType::FUNCTION:
         case ObjectType::NATIVE_FUNCTION:
         case ObjectType::CLASS:
+        case ObjectType::INSTANCE:
         case ObjectType::CLOSURE:
             return as_object() == other.as_object();
         case ObjectType::UPVALUE:

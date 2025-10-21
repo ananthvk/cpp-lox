@@ -93,6 +93,9 @@ class Allocator
         case ObjectType::CLASS:
             object_size = sizeof(ObjectClass);
             break;
+        case ObjectType::INSTANCE:
+            object_size = sizeof(ObjectInstance);
+            break;
         case ObjectType::NATIVE_FUNCTION:
             object_size = sizeof(ObjectNativeFunction);
             break;
@@ -137,6 +140,8 @@ class Allocator
     auto new_function(int arity, std::string_view name) -> ObjectFunction *;
 
     auto new_class(ObjectString *name) -> ObjectClass *;
+
+    auto new_instance(ObjectClass *class_) -> ObjectInstance *;
 
     auto new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *;
 
