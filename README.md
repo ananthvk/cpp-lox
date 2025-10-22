@@ -180,6 +180,26 @@ Note: The GC implementation in my project does *not* track all memory and it wil
 - `set_property(instance, string, value)` - Sets the property on the instance to the given value (similar to `setattr` of python)
 - `del_property(instance, string) bool` - Deletes a property on an instance, returns true if the property was deleted, false if the property did not not exist
 
+9) Optional chaining operator `?.`
+
+This operator is similar to the one in JS and can be used to access properties of nested objects easily (when some intermediate object is nil / not an instance)
+
+Example:
+
+```
+var result = x?.y?.z?.w;
+```
+If any of x, y, or z is `nil`, or the property does not exist, or the property is not an instance, the result is `nil`
+
+If the base (`x`) is not defined, the expression results in an error 
+
+```
+class Foo {}
+var f = Foo();
+f.x = print;
+println(f.x?.prop); // nil (becasue x is a native function)
+```
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements

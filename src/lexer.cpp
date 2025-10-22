@@ -281,7 +281,7 @@ auto Lexer::const_token_iterator::scan_token() -> TokenType
     case ':':
         return TokenType::COLON;
     case '?':
-        return TokenType::QUESTION_MARK;
+        return match('.') ? TokenType::QUESTION_DOT : TokenType::QUESTION_MARK;
     case '(':
         return TokenType::LEFT_PAREN;
     case ')':

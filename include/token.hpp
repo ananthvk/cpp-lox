@@ -48,6 +48,7 @@
     X(END_OF_FILE)                                                                                 \
     X(COLON)                                                                                       \
     X(QUESTION_MARK)                                                                               \
+    X(QUESTION_DOT)                                                                                \
     X(SWITCH)                                                                                      \
     X(CASE)                                                                                        \
     X(DEFAULT)                                                                                     \
