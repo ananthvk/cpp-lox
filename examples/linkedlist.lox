@@ -1,0 +1,74 @@
+class Node {
+}
+
+class LinkedList {
+}
+
+fun createList() {
+    var list = LinkedList();
+    list.head = nil;
+    list.size = 0;
+    return list;
+}
+
+fun createNode(value) {
+    var node = Node();
+    node.value = value;
+    node.next = nil;
+    return node;
+}
+
+fun addToList(list, value) {
+    var newNode = createNode(value);
+    
+    if (list.head == nil) {
+        list.head = newNode;
+    } else {
+        // O(n^2), stresses the VM
+        var current = list.head;
+        while (current.next != nil) {
+            current = current.next;
+        }
+        current.next = newNode;
+    }
+    list.size = list.size + 1;
+}
+
+fun traverse(list) {
+    var current = list.head;
+    while (current != nil) {
+        // Do something with value
+        current = current.next;
+    }
+}
+
+var myList = createList();
+
+for(var i = 0; i < 10000; i = i + 1) {
+    addToList(myList, i);
+}
+
+println("Traversing list:");
+traverse(myList);
+println("List size: " + to_string(myList.size));
+
+
+println("=================", "STATS", "================");
+sys__mem_display_gc_stats();
+
+// $ g++ -O3 ../src/*.cpp ../src/native/*.cpp -I../include -I../thirdparty -lfmt
+// Output:
+// =======
+// Traversing list:
+// List size: 10000
+// ================= STATS ================
+// GC Statistics:
+//   Bytes allocated: 883040
+//   Bytes freed: 0
+//   Net bytes: 883040
+//   Next GC threshold: 1048576
+//   Objects created: 10084
+//   Objects freed: 0
+//   Live objects: 10084
+//   Cycles: 0
+// ./a.out ../examples/linkedlist.lox  4.94s user 0.02s system 99% cpu 4.972 total
