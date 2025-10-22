@@ -162,6 +162,12 @@ Do not use this statement unless needed, and instead use the `print()` and `prin
 
 Note: The GC implementation in my project does *not* track all memory and it will use a bit of extra memory. This is because some parts of the application uses `std::vector` and `std::string` that are not managed by the garbage collector. In the book, all memory is allocated through `reallocate()` hence the GC has complete control over the memory. But in my implementation, all vectors & strings are wrapped in VM objects, so once they are freed, the associated vectors & strings get freed too.
 
+8) Native functions for manipulating and accessing properties (fields)
+
+- `has_property(instance, string) bool` - Returns true if the property exists on the instance (similar to `hasattr` of python)
+- `get_property(instance, string) value` - Returns the value of the property on the instance (similar to `getattr` of python)
+- `set_property(instance, string, value)` - Sets the property on the instance to the given value (similar to `setattr` of python)
+- `del_property(instance, string) bool` - Deletes a property on an instance, returns true if the property was deleted, false if the property did not not exist
 
 ## TODO
 - [ ] Fix division by zero error
