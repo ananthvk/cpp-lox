@@ -16,6 +16,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::LEFT_BRACE]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RIGHT_BRACE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::COMMA]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::QUESTION_DOT]     = {nullptr,        F(safe_dot),      ParsePrecedence::CALL};
     rules[+TokenType::DOT]              = {nullptr,        F(dot),           ParsePrecedence::CALL};
     rules[+TokenType::MINUS]            = {F(unary),       F(binary),        ParsePrecedence::TERM};
     rules[+TokenType::PLUS]             = {nullptr,        F(binary),        ParsePrecedence::TERM};
@@ -299,6 +300,25 @@ auto Compiler::dot([[maybe_unused]] bool canAssign) -> void
     else
     {
         emit_opcode(OpCode::LOAD_PROPERTY);
+        emit_uint16_le(static_cast<uint16_t>(constant_index));
+    }
+}
+
+// Implement a safe dot operator (similar to optional chaining in JS)
+auto Compiler::safe_dot([[maybe_unused]] bool canAssign) -> void
+{
+    parser.consume(TokenType::IDENTIFIER, "Expected property name after '?.'");
+
+    auto property_name = allocator.intern_string(parser.previous().lexeme);
+    int constant_index = chunk()->add_constant(property_name);
+
+    if (canAssign && parser.match(TokenType::EQUAL))
+    {
+        parser.report_error("Cannot assign to property with optional chaining");
+    }
+    else
+    {
+        emit_opcode(OpCode::LOAD_PROPERTY_SAFE);
         emit_uint16_le(static_cast<uint16_t>(constant_index));
     }
 }

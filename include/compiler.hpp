@@ -114,6 +114,7 @@ class Compiler
     auto unary(bool canAssign) -> void;
     auto binary(bool canAssign) -> void;
     auto dot(bool canAssign) -> void;
+    auto safe_dot(bool canAssign) -> void;
     auto ternary(bool canAssign) -> void;
     auto literal(bool canAssign) -> void;
     auto string(bool canAssign) -> void;

@@ -44,6 +44,14 @@ auto native_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
     {
         return {vm->get_allocator()->intern_string("native_function"), true};
     }
+    else if (val.is_class())
+    {
+        return {vm->get_allocator()->intern_string("class"), true};
+    }
+    else if (val.is_instance())
+    {
+        return {vm->get_allocator()->intern_string("instance"), true};
+    }
     else
     {
         vm->report_error("internal error: invalid type");

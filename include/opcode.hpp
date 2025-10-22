@@ -31,6 +31,7 @@
     X(LOAD_UPVALUE)                                                                                \
     X(STORE_PROPERTY)                                                                              \
     X(LOAD_PROPERTY)                                                                               \
+    X(LOAD_PROPERTY_SAFE)                                                                          \
     X(CLOSE_UPVALUE)                                                                               \
     X(JUMP_IF_FALSE)                                                                               \
     X(JUMP_IF_TRUE)                                                                                \

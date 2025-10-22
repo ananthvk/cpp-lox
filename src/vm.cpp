@@ -424,6 +424,31 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             }
             break;
         }
+        case OpCode::LOAD_PROPERTY_SAFE:
+        {
+            // TODO: Implement short circuiting, i.e. if the base is nil, there is no point evaluating
+            // further LOAD_PROPERTY_SAFE instructions, implement it in the compiler
+            
+            // If the target of the load opcode is not an instance, push nil
+            if (!peek(0).is_instance())
+            {
+                // Read and discard the operand of the opcode
+                read_constant_long();
+
+                pop(); // Pop the instance from the stack
+                push(Value{});
+                break;
+            }
+
+            auto instance = static_cast<ObjectInstance *>(peek(0).as_object());
+            auto property = static_cast<ObjectString *>(read_constant_long().as_object());
+            auto val = instance->get_fields().get(property);
+            auto value = val.value_or(Value{});
+            // Pop the instance from the stack
+            pop();
+            push(value);
+            break;
+        }
         case OpCode::STORE_PROPERTY:
         {
             // The top of the stack contains the value to be set
