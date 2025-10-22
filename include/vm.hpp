@@ -18,14 +18,6 @@ struct CallFrame
     Value *slots;
 };
 
-struct VMStringValueTableHasher
-
-{
-    auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
-};
-
-using VMStringValueTable = HashMap<ObjectString *, Value, VMStringValueTableHasher>;
-
 class VM
 {
   private:

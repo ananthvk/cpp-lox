@@ -2,6 +2,7 @@
 #include "chunk.hpp"
 #include "hashmap.hpp"
 #include "object.hpp"
+#include "table.hpp"
 
 /**
  * Represents a runtime class. Use the allocator class to create new objects.
@@ -39,13 +40,6 @@ class ObjectClass : public Object
 class ObjectInstance : public Object
 {
   public:
-    struct StringValueTableHasher
-    {
-        auto operator()(const ObjectString *str) const -> size_t { return str->hash(); }
-    };
-
-    using StringValueTable = HashMap<ObjectString *, Value, StringValueTableHasher>;
-
   private:
     ObjectClass *class_;
     StringValueTable fields;

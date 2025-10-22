@@ -128,6 +128,18 @@ auto GarbageCollector::mark_global_variables(Context *context) -> void
     }
 }
 
+auto GarbageCollector::mark_table(StringValueTable &table) -> void
+{
+    for (auto &slot : table.get_slots())
+    {
+        if (slot.state == StringValueTable::Slot::State::FILLED)
+        {
+            mark_object(slot.key);
+            mark_value(slot.value);
+        }
+    }
+}
+
 auto GarbageCollector::trace_references() -> void
 {
     log(fmt::color::purple, "{}", "start trace refs");
@@ -179,18 +191,8 @@ auto GarbageCollector::blacken_object(Object *object) -> void
     case ObjectType::INSTANCE:
     {
         auto instance = static_cast<ObjectInstance *>(object);
-        auto &fields = instance->get_fields();
         mark_object(instance->get_class());
-
-        // Mark the values & field names stored in the fields table
-        for (auto &slot : fields.get_slots())
-        {
-            if (slot.state == ObjectInstance::StringValueTable::Slot::State::FILLED)
-            {
-                mark_object(slot.key);
-                mark_value(slot.value);
-            }
-        }
+        mark_table(instance->get_fields());
         break;
     }
 

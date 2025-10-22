@@ -51,6 +51,8 @@ class GarbageCollector
     auto mark_object(Object *object) -> void;
 
     auto mark_value(Value value) -> void;
+    
+    auto mark_table(StringValueTable &table) -> void;
 
     auto mark_global_variables(Context *context) -> void;
 };
