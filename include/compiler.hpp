@@ -158,6 +158,7 @@ class Compiler
     auto break_statement() -> void;
     auto return_statement() -> void;
     auto continue_statement() -> void;
+    auto method() -> void;
 
     /**
      * Helper functions to declare and define variables

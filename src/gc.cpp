@@ -179,11 +179,12 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         }
         break;
     }
-    // A class contains a reference to it's name
+    // A class contains a reference to it's name, and a table of methods
     case ObjectType::CLASS:
     {
         auto class_ = static_cast<ObjectClass *>(object);
         mark_object(class_->name());
+        mark_table(class_->methods());
         break;
     }
 

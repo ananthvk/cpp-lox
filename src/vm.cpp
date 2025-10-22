@@ -426,9 +426,9 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         case OpCode::LOAD_PROPERTY_SAFE:
         {
-            // TODO: Implement short circuiting, i.e. if the base is nil, there is no point evaluating
-            // further LOAD_PROPERTY_SAFE instructions, implement it in the compiler
-            
+            // TODO: Implement short circuiting, i.e. if the base is nil, there is no point
+            // evaluating further LOAD_PROPERTY_SAFE instructions, implement it in the compiler
+
             // If the target of the load opcode is not an instance, push nil
             if (!peek(0).is_instance())
             {
@@ -478,6 +478,22 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             auto top_stack_val = pop(); // Pop the value of the expression
             pop();                      // Pop the instance
             push(top_stack_val);
+            break;
+        }
+        case OpCode::METHOD:
+        {
+            Value value_string = read_constant_long();
+            if (!value_string.is_string())
+            {
+                throw std::logic_error("invalid operand to opcode METHOD, expected a string");
+            }
+            auto name = static_cast<ObjectString *>(value_string.as_object());
+            // The top of the stack will contain the closure for the method, and the slot below it
+            // will be the class
+            auto method = peek(0);
+            ObjectClass *class_ = static_cast<ObjectClass *>(peek(1).as_object());
+            class_->methods().insert(name, method);
+            pop(); // Pop the closure
             break;
         }
         default:

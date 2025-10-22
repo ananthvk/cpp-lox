@@ -10,6 +10,7 @@
 class ObjectClass : public Object
 {
     ObjectString *name_;
+    StringValueTable methods_;
 
     ObjectClass(ObjectString *name) : name_(name) {}
 
@@ -17,6 +18,8 @@ class ObjectClass : public Object
     auto get_type() const -> ObjectType override { return ObjectType::CLASS; }
 
     auto name() const -> ObjectString * { return name_; }
+
+    auto methods() -> StringValueTable & { return methods_; }
 
     auto operator==(const ObjectClass &other) const -> bool { return this == &other; }
 

@@ -622,9 +622,40 @@ auto Compiler::class_declaration() -> void
 
     // After that, bind the class object to a variable
     define_variable(class_name_index, false);
+    
+    // Loads the class object onto the stack so that methods can bind to it
+    named_variable(parser.previous(), false);
 
     parser.consume(TokenType::LEFT_BRACE, "Expected '{' after class name");
+    // In lox, classes do not have field declarations, so it can only contain methods
+    while (!parser.check(TokenType::RIGHT_BRACE) && !parser.check(TokenType::END_OF_FILE))
+    {
+        method();
+    }
     parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after class body");
+
+    // Pop the class object from the stack
+    emit_opcode(OpCode::POP_TOP);
+}
+
+auto Compiler::method() -> void
+{
+    // To define a method, the VM requires a) Name of the method b) Closure for method body c) Class
+    // to which the method has to be bound to
+
+    // Modification: fun keyword is optional when declarating methods, i.e. they may or may not be
+    // specified Match an optional fun keyword
+    parser.match(TokenType::FUN);
+    parser.consume(TokenType::IDENTIFIER, "Expected method name");
+
+    auto method_name = allocator.intern_string(parser.previous().lexeme);
+    int constant_index = chunk()->add_constant(method_name);
+
+    compile_function(FunctionType::FUNCTION, parser.previous().lexeme);
+
+    // Similar to OpCode::CLASS, we emit an OpCode::METHOD with it's name as the operand
+    emit_opcode(OpCode::METHOD);
+    emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check too many constants
 }
 
 auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)

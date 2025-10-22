@@ -41,7 +41,8 @@
     X(DUP_TOP)                                                                                     \
     X(CALL)                                                                                        \
     X(CLASS)                                                                                       \
-    X(CLOSURE)
+    X(CLOSURE)                                                                                     \
+    X(METHOD)
 
 enum class OpCode : uint8_t
 {

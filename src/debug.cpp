@@ -192,6 +192,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
         return constant_instruction(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT_LONG:
     case OpCode::CLASS:
+    case OpCode::METHOD:
     case OpCode::STORE_PROPERTY:
     case OpCode::LOAD_PROPERTY:
     case OpCode::LOAD_PROPERTY_SAFE:
