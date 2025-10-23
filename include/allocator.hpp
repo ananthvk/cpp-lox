@@ -96,6 +96,9 @@ class Allocator
         case ObjectType::INSTANCE:
             object_size = sizeof(ObjectInstance);
             break;
+        case ObjectType::BOUND_METHOD:
+            object_size = sizeof(ObjectBoundMethod);
+            break;
         case ObjectType::NATIVE_FUNCTION:
             object_size = sizeof(ObjectNativeFunction);
             break;
@@ -142,6 +145,8 @@ class Allocator
     auto new_class(ObjectString *name) -> ObjectClass *;
 
     auto new_instance(ObjectClass *class_) -> ObjectInstance *;
+
+    auto new_bound_method(Value receiver, ObjectClosure* method) -> ObjectBoundMethod *;
 
     auto new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *;
 

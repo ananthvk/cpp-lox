@@ -417,10 +417,27 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             }
             else
             {
-                // The property does not exist
-                report_error("Runtime Error: Instance of class '{}' has no property '{}'",
-                             instance->get_class()->name()->get(), property->get());
-                return InterpretResult::RUNTIME_ERROR;
+                // The field does not exist
+                // Check if a method with the same name exists
+
+                // In lox, fields shadow methods, so if a method and a field have the same name,
+                // fields take the priority
+
+                auto method = instance->get_class()->methods().get(property);
+                if (!method)
+                {
+                    report_error("Runtime Error: Instance of class '{}' has no property '{}'",
+                                 instance->get_class()->name()->get(), property->get());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+
+                // A method with the requested name was found, bind the method (closure) to this
+                // instance and push it onto the stack
+                auto bound_method = allocator.new_bound_method(
+                    peek(0), static_cast<ObjectClosure *>(method.value().as_object()));
+
+                pop(); // instance
+                push(bound_method);
             }
             break;
         }
@@ -568,6 +585,11 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     if (callee.is_closure())
     {
         return call(static_cast<ObjectClosure *>(callee.as_object()), arg_count);
+    }
+    if (callee.is_bound_method())
+    {
+        ObjectBoundMethod *bound_method = static_cast<ObjectBoundMethod *>(callee.as_object());
+        return call(bound_method->method(), arg_count);
     }
     if (callee.is_class())
     {

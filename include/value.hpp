@@ -125,6 +125,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::INSTANCE;
     }
 
+    auto is_bound_method() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::BOUND_METHOD;
+    }
+
     auto is_native_function() const -> bool
     {
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::NATIVE_FUNCTION;

@@ -124,6 +124,21 @@ auto Allocator::new_instance(ObjectClass *class_) -> ObjectInstance *
     return obj;
 }
 
+auto Allocator::new_bound_method(Value receiver, ObjectClosure *method) -> ObjectBoundMethod *
+{
+    if (vopts.debug_stress_gc)
+        collect_garbage();
+    create_object<ObjectBoundMethod>();
+
+    auto obj = new ObjectBoundMethod(receiver, method);
+    obj->is_marked = false;
+    objs.push_back(obj);
+
+    if (vopts.debug_log_gc)
+        gc->log_allocation(obj);
+    return obj;
+}
+
 auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction *
 {
     if (vopts.debug_stress_gc)

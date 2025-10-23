@@ -49,6 +49,9 @@ auto Value::to_string() const -> std::string
             return fmt::format("<instance of {} at {:p}>",
                                static_cast<ObjectInstance *>(data.o)->get_class()->name()->get(),
                                static_cast<void *>(data.o));
+        case ObjectType::BOUND_METHOD:
+            return fmt::format("<bound method of {}>",
+                               static_cast<ObjectBoundMethod *>(data.o)->receiver().to_string());
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -83,6 +86,12 @@ auto Value::operator==(Value other) const -> bool
         {
         case ObjectType::STRING:
             return *as_string() == *other.as_string();
+        case ObjectType::BOUND_METHOD:
+        {
+            auto bound1 = static_cast<ObjectBoundMethod *>(as_object());
+            auto bound2 = static_cast<ObjectBoundMethod *>(other.as_object());
+            return bound1->method() == bound2->method() && bound1->receiver() == bound2->receiver();
+        }
         // Checks if both functions point to the same in memory object
         case ObjectType::FUNCTION:
         case ObjectType::NATIVE_FUNCTION:

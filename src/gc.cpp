@@ -197,6 +197,15 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         break;
     }
 
+    // A bound method references a value (receiver), and a closure (method)
+    case ObjectType::BOUND_METHOD:
+    {
+        auto bound_method = static_cast<ObjectBoundMethod *>(object);
+        mark_value(bound_method->receiver());
+        mark_object(bound_method->method());
+        break;
+    }
+
     // A closure holds reference to a bare function, and an array of pointers to upvalues
     case ObjectType::CLOSURE:
     {

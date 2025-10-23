@@ -15,7 +15,8 @@ enum class ObjectType : uint8_t
     NATIVE_FUNCTION,
     UPVALUE,
     CLASS,
-    INSTANCE
+    INSTANCE,
+    BOUND_METHOD
 };
 
 class Object
@@ -85,6 +86,8 @@ inline auto object_type_to_string(ObjectType type) -> const char *
         return "CLASS";
     case ObjectType::INSTANCE:
         return "INSTANCE";
+    case ObjectType::BOUND_METHOD:
+        return "BOUND_METHOD";
     default:
         return "UNKNOWN";
     }
