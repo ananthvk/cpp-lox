@@ -857,7 +857,13 @@ auto Compiler::define_variable(int constant_index, bool is_const) -> void
         return;
     }
     auto &val = context->get_internal_value(constant_index);
-    if (val.defined && val.is_const != is_const)
+    if (val.is_const)
+    {
+        parser.report_error("Syntax Error: Variable '{}' has been declared const, cannot be redeclared",
+                            context->get_name(constant_index)->get());
+        return;
+    }
+    if (val.defined)
     {
         parser.report_error("Syntax Error: Variable '{}' has been declared, cannot be redeclared",
                             context->get_name(constant_index)->get());

@@ -1,3 +1,6 @@
+from subprocess import CalledProcessError
+
+
 def test_closure_with_parameter(run_lox):
     assert (
         run_lox(
@@ -364,8 +367,8 @@ def test_const_closure_reassignment_fail(run_lox):
             outer();
             """
         )
-        assert False, "Should raise an error for reassigning const in closure"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -385,8 +388,8 @@ def test_const_closure_increment_fail(run_lox):
             counter();
             """
         )
-        assert False, "Should raise an error for incrementing const in closure"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -407,8 +410,8 @@ def test_const_nested_closure_reassignment_fail(run_lox):
             level1();
             """
         )
-        assert False, "Should raise an error for const reassignment in nested closure"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -428,8 +431,8 @@ def test_const_closure_factory_modification_fail(run_lox):
             modifier("changed");
             """
         )
-        assert False, "Should raise an error for modifying const through closure"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -451,6 +454,6 @@ def test_const_multiple_closures_reassignment_fail(run_lox):
             outer();
             """
         )
-        assert False, "Should raise an error for const reassignment in second closure"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True

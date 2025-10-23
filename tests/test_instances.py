@@ -1,3 +1,6 @@
+from subprocess import CalledProcessError
+
+
 def test_class_instance_creation(run_lox):
     """Test that we can create an instance of a class"""
     result = run_lox("class Foo {} var f = Foo(); println(f);")
@@ -36,8 +39,8 @@ def test_get_property_undefined(run_lox):
     """Test get_property raises error for undefined property"""
     try:
         run_lox('class Foo {} var f = Foo(); println(get_property(f, "undefined"));')
-        assert False, "Should raise an error for undefined property"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 

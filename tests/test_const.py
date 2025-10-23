@@ -1,8 +1,11 @@
+from subprocess import CalledProcessError
+
+
 def test_const_declare_twice_global(run_lox):
     try:
         run_lox("const a = 32; const a = 64;")
-        assert False, "Should raise an error for const redeclaration"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -26,8 +29,8 @@ def test_const_assignment_error(run_lox):
             x = 64;
         """
         )
-        assert False, "Should raise an error for const assignment"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -57,8 +60,8 @@ def test_const_outside_block_scope(run_lox):
             echo x;
         """
         )
-        assert False, "Should raise an error for accessing const outside scope"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -72,16 +75,16 @@ def test_const_redeclare_in_same_scope(run_lox):
             }
         """
         )
-        assert False, "Should raise an error for const redeclaration in same scope"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
 def test_const_uninitialized(run_lox):
     try:
         run_lox("const x;")
-        assert False, "Should raise an error for uninitialized const"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -119,8 +122,8 @@ def test_var_then_const_same_name_global(run_lox):
             const x = 20;
             """
         )
-        assert False, "Should raise an error for redeclaring var as const"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -132,8 +135,8 @@ def test_const_then_var_same_name_global(run_lox):
             var x = 20;
             """
         )
-        assert False, "Should raise an error for redeclaring const as var"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -147,8 +150,8 @@ def test_const_and_var_assignment_behavior_global(run_lox):
             x = 40;
             """
         )
-        assert False, "Should raise an error for assigning to const"
-    except Exception:
+        assert False
+    except CalledProcessError:
         assert True
 
 
@@ -163,4 +166,3 @@ def test_var_redeclare_global(run_lox):
         )
         == "64"
     )
-

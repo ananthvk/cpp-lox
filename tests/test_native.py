@@ -1,3 +1,6 @@
+from subprocess import CalledProcessError
+
+
 def test_sqrt_function(run_lox):
     assert run_lox("echo sqrt(16);") == "4"
     assert run_lox("echo sqrt(25);") == "5"
@@ -5,11 +8,7 @@ def test_sqrt_function(run_lox):
 
 
 def test_exit_function(run_lox):
-    try:
-        run_lox("exit(0);")
-        assert False, "Should exit before reaching this"
-    except Exception as e:
-        pass
+    assert run_lox("exit(0); echo 3;") == ""
 
 
 def test_print_function(run_lox):
@@ -62,6 +61,6 @@ def test_assert_function_true(run_lox):
 def test_assert_function_false(run_lox):
     try:
         run_lox('assert(false, "test failure message");')
-        assert False, "Should raise an error for false assertion"
-    except Exception as e:
+        assert False
+    except CalledProcessError as e:
         assert "test failure message" in str(e)
