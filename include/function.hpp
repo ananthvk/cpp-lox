@@ -6,7 +6,9 @@
 enum class FunctionType
 {
     FUNCTION,
-    SCRIPT
+    SCRIPT,
+    METHOD,
+    INITIALIZER
 };
 
 class VM;

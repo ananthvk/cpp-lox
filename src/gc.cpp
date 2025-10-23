@@ -88,6 +88,7 @@ auto GarbageCollector::mark_roots() -> void
         }
 
         mark_global_variables(vm->context);
+        mark_object(vm->constant_string_init);
         log_indent_level--;
         log(fmt::color::blue, "{}", "end mark vm roots");
     }

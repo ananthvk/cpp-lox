@@ -4,10 +4,12 @@
 #include "gc.hpp"
 
 Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
-                   FunctionType function_type, Compiler *compiler, std::string_view name)
+                   FunctionType function_type, Compiler *compiler, std::string_view name,
+                   ClassCompiler *current_class)
     : opts(opts), allocator(allocator), context(context), scope_depth(0), parser(parser),
       rules(static_cast<int>(TokenType::TOKEN_COUNT)), loop_depth(0), loop_scope_depth(-1),
-      loop_start_offset(-1), function_type(function_type), enclosing(compiler)
+      loop_start_offset(-1), function_type(function_type), enclosing(compiler),
+      enclosing_class(current_class)
 {
 #define F(function) [this](bool canAssign) { function(canAssign); }
     // clang-format off
@@ -49,7 +51,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::PRINT]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RETURN]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::SUPER]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::THIS]             = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::THIS]             = {F(this_),       nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::TRUE]             = {F(literal),     nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::VAR]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::WHILE]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -78,9 +80,22 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
         function = allocator.new_function(0, "");
     }
 
-    // Reserve the first slot of the locals array
-    auto token = Token{};
-    add_local(token, false);
+    if (function_type == FunctionType::METHOD || function_type == FunctionType::INITIALIZER)
+    {
+        // If we are declaring a method, reuse the first slot of locals array
+        // for "this", that refers to the instance on which the method is invoked
+        auto token = Token{};
+        token.lexeme = "this";
+        token.token_type = TokenType::IDENTIFIER;
+        add_local(token, true); // mark "this" as const
+        locals.back().uninitialized = false;
+    }
+    else
+    {
+        // Reserve the first slot of the locals array
+        auto token = Token{};
+        add_local(token, false);
+    }
 
 #undef F
 }
@@ -125,7 +140,16 @@ auto Compiler::emit_byte(uint8_t byte) -> void
 
 auto Compiler::emit_return() -> void
 {
-    emit_opcode(OpCode::NIL);
+    // If we are inside an init() method, return local slot 0, (the instance of the class)
+    if (function_type == FunctionType::INITIALIZER)
+    {
+        emit_opcode(OpCode::LOAD_LOCAL);
+        emit_uint16_le(0);
+    }
+    else
+    {
+        emit_opcode(OpCode::NIL);
+    }
     emit_opcode(OpCode::RETURN);
 }
 
@@ -622,7 +646,11 @@ auto Compiler::class_declaration() -> void
 
     // After that, bind the class object to a variable
     define_variable(class_name_index, false);
-    
+
+    ClassCompiler class_compiler;
+    class_compiler.enclosing = enclosing_class;
+    enclosing_class = &class_compiler;
+
     // Loads the class object onto the stack so that methods can bind to it
     named_variable(parser.previous(), false);
 
@@ -636,6 +664,9 @@ auto Compiler::class_declaration() -> void
 
     // Pop the class object from the stack
     emit_opcode(OpCode::POP_TOP);
+
+    // Set enclosing_class back to what it was before we started to compile the class body
+    enclosing_class = enclosing_class->enclosing;
 }
 
 auto Compiler::method() -> void
@@ -651,11 +682,31 @@ auto Compiler::method() -> void
     auto method_name = allocator.intern_string(parser.previous().lexeme);
     int constant_index = chunk()->add_constant(method_name);
 
-    compile_function(FunctionType::FUNCTION, parser.previous().lexeme);
+    if (parser.previous().lexeme == "init")
+    {
+        compile_function(FunctionType::INITIALIZER, parser.previous().lexeme);
+    }
+    else
+    {
+        compile_function(FunctionType::METHOD, parser.previous().lexeme);
+    }
 
     // Similar to OpCode::CLASS, we emit an OpCode::METHOD with it's name as the operand
     emit_opcode(OpCode::METHOD);
     emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check too many constants
+}
+
+auto Compiler::this_(bool canAssign) -> void
+{
+    if (enclosing_class == nullptr)
+    {
+        parser.report_error("Cannot use 'this' outside a class");
+        return;
+    }
+    // Whenever we get a "this" keyword, compile it as a normal variable access
+    // we pass false to variable since it is not possible to assign to this
+    // The compiler treats "this" just like any other identifer.
+    variable(false);
 }
 
 auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)
@@ -663,7 +714,7 @@ auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::str
 {
     // The compiler used to compile the function uses the same parser as the parent compiler
     // so that it consumes the complete function.
-    Compiler compiler(parser, opts, allocator, context, FunctionType::FUNCTION, this, name);
+    Compiler compiler(parser, opts, allocator, context, fun_type, this, name, enclosing_class);
     compiler.begin_scope();
     parser.consume(TokenType::LEFT_PAREN, "Expected '(' after function name");
     compiler.parameters(TokenType::RIGHT_PAREN);
@@ -1277,6 +1328,10 @@ auto Compiler::return_statement() -> void
         // No value to return
         emit_return();
         return;
+    }
+    if (function_type == FunctionType::INITIALIZER)
+    {
+        parser.report_error("cannot return a value from init() method");
     }
     expression();
     parser.consume(TokenType::SEMICOLON, "Expected ';' after return statement");

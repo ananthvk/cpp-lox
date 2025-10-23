@@ -34,6 +34,7 @@ class VM
 
     Value *stack_top;
     ObjectUpvalue *open_upvalues;
+    ObjectString *constant_string_init;
 
     auto push(Value value) -> void
     {
@@ -107,6 +108,7 @@ class VM
         frames.resize(opts.frames_max);
         output_stream = nullptr;
         open_upvalues = nullptr;
+        constant_string_init = allocator.intern_string("init");
     }
 
     auto run(ObjectFunction *function, std::ostream &os) -> InterpretResult;

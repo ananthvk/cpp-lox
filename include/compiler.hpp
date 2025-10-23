@@ -65,6 +65,11 @@ class Compiler
         bool is_local;
     };
 
+    struct ClassCompiler
+    {
+        ClassCompiler *enclosing;
+    };
+
     CompilerOpts opts;
     Allocator &allocator;
     Context *context;
@@ -85,6 +90,8 @@ class Compiler
 
     Compiler *enclosing;
     std::vector<Upvalue> upvalues;
+
+    ClassCompiler *enclosing_class;
 
 
     // These functions generate bytecode, and add it to the chunk
@@ -158,7 +165,9 @@ class Compiler
     auto break_statement() -> void;
     auto return_statement() -> void;
     auto continue_statement() -> void;
+
     auto method() -> void;
+    auto this_(bool canAssign) -> void;
 
     /**
      * Helper functions to declare and define variables
@@ -190,7 +199,8 @@ class Compiler
     static Compiler *current;
 
     Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocator, Context *context,
-             FunctionType function_type, Compiler *enclosing = nullptr, std::string_view name = "");
+             FunctionType function_type, Compiler *enclosing = nullptr, std::string_view name = "",
+             ClassCompiler *current_class = nullptr);
 
     ~Compiler()
     {

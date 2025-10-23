@@ -589,6 +589,9 @@ auto VM::call_value(Value callee, int arg_count) -> bool
     if (callee.is_bound_method())
     {
         ObjectBoundMethod *bound_method = static_cast<ObjectBoundMethod *>(callee.as_object());
+        // If we are calling a bound method, modify the stack so that slot 0 of the new call frame
+        // holds the receiver instead of the function being called
+        *(stack_top - arg_count - 1) = bound_method->receiver();
         return call(bound_method->method(), arg_count);
     }
     if (callee.is_class())
@@ -600,6 +603,22 @@ auto VM::call_value(Value callee, int arg_count) -> bool
         // object with an instance of the class.
         // For now, we are going to ignore additional arguments passed (initializers)
         *(stack_top - arg_count - 1) = Value{allocator.new_instance(class_)};
+
+        // Call the initializer (if an init() method is defined)
+        auto initializer = class_->methods().get(constant_string_init);
+        if (initializer)
+        {
+            return call(static_cast<ObjectClosure *>(initializer.value().as_object()), arg_count);
+        }
+
+        // If there is no initializer, but args were passed, it's an error
+        if (arg_count != 0)
+        {
+            report_error("Expected 0 arguments to call {}(), got {}", class_->name()->get(),
+                         arg_count);
+            return false;
+        }
+
         return true;
     }
     else if (callee.is_native_function())
