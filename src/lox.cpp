@@ -158,7 +158,7 @@ auto Lox::run_source(std::string_view src) -> int
     auto [obj, result] = compiler.compile();
     if (result != InterpretResult::OK)
     {
-        std::cout << "ERROR" << std::endl;
+        reporter.display(stderr);
         return 1;
     }
 
@@ -170,7 +170,7 @@ auto Lox::run_source(std::string_view src) -> int
 
     if (reporter.has_error() || result != InterpretResult::OK)
     {
-        std::cout << "ERROR" << std::endl;
+        reporter.display(stderr);
         return 2;
     }
     return 0;
