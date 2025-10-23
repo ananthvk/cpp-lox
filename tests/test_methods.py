@@ -363,3 +363,40 @@ def this_outside_class(run_lox):
         assert False
     except CalledProcessError:
         assert True
+
+
+def test_nested_classes(run_lox):
+    assert (
+        run_lox(
+            """
+        class Outer {
+            getcls() {
+                var inst = this;
+                inst.x = 32;
+                class Inner {
+                    init() {
+                        this.x = inst.x;
+                    }
+                    display () {
+                        echo this.x;
+                    }
+                    increment() {
+                        this.x = this.x + 1;
+                        inst.x = inst.x + 10;
+                    }
+                }
+                return Inner;
+            }
+        }
+
+        var out = Outer();
+        var inner_class = out.getcls();
+        var instance = inner_class();
+
+        instance.increment();
+        instance.display();
+        echo out.x;
+        """
+        )
+        == "33\n42"
+    )

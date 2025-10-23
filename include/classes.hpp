@@ -11,6 +11,7 @@
 class ObjectClass : public Object
 {
     ObjectString *name_;
+    Value init_method;
     StringValueTable methods_;
 
     ObjectClass(ObjectString *name) : name_(name) {}
@@ -21,6 +22,8 @@ class ObjectClass : public Object
     auto name() const -> ObjectString * { return name_; }
 
     auto methods() -> StringValueTable & { return methods_; }
+
+    auto get_init_method() -> Value & { return init_method; }
 
     auto operator==(const ObjectClass &other) const -> bool { return this == &other; }
 

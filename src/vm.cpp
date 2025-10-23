@@ -518,6 +518,8 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             auto method = peek(0);
             ObjectClass *class_ = static_cast<ObjectClass *>(peek(1).as_object());
             class_->methods().insert(name, method);
+            if (name == constant_string_init)
+                class_->get_init_method() = method;
             pop(); // Pop the closure
             break;
         }
@@ -648,11 +650,11 @@ auto VM::call_value(Value callee, int arg_count) -> bool
         // For now, we are going to ignore additional arguments passed (initializers)
         *(stack_top - arg_count - 1) = Value{allocator.new_instance(class_)};
 
+        auto initializer = class_->get_init_method();
         // Call the initializer (if an init() method is defined)
-        auto initializer = class_->methods().get(constant_string_init);
-        if (initializer)
+        if (!initializer.is_nil())
         {
-            return call(static_cast<ObjectClosure *>(initializer.value().as_object()), arg_count);
+            return call(static_cast<ObjectClosure *>(initializer.as_object()), arg_count);
         }
 
         // If there is no initializer, but args were passed, it's an error
