@@ -21,6 +21,7 @@ benchmark_dep = dependency(
 # List of benchmark sources
 benchmark_sources = files(
     'bench_expressions.cpp',
+    'bench_invocations.cpp',
 )
 
 # Generate executables for each benchmark source
@@ -41,7 +42,7 @@ foreach src : benchmark_sources
     benchmark(
         exe_name,
         exe,
-        args: ['--benchmark_time_unit=us'],
+        args: ['--benchmark_time_unit=ms'],
         env: [],
         timeout: 0,
     )

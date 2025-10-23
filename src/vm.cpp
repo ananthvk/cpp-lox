@@ -393,11 +393,6 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         case OpCode::LOAD_PROPERTY:
         {
-            if (!peek(0).is_object())
-            {
-                report_error("Runtime Error: Can only access properties on objects");
-                return InterpretResult::RUNTIME_ERROR;
-            }
             if (!peek(0).is_instance())
             {
                 report_error("Runtime Error: Can only access properties on instances");
@@ -439,6 +434,19 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 pop(); // instance
                 push(bound_method);
             }
+            break;
+        }
+        case OpCode::INVOKE:
+        {
+            auto value = read_constant_long();
+            auto method_name = static_cast<ObjectString *>(value.as_object());
+            auto arg_count = read_byte();
+            if (!invoke(method_name, arg_count))
+            {
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            // After the call, a new frame is created for the function
+            current_frame = &frames[frame_count - 1];
             break;
         }
         case OpCode::LOAD_PROPERTY_SAFE:
@@ -574,6 +582,42 @@ auto VM::capture_upvalue(Value *slot) -> ObjectUpvalue *
     }
 
     return new_upvalue;
+}
+
+auto VM::invoke(ObjectString *method_name, int arg_count) -> bool
+{
+    Value receiver = peek(arg_count);
+    if (!receiver.is_instance())
+    {
+        report_error("Runtime Error: Can only invoke methods on instances");
+        return false;
+    }
+    // Check whether a field of the same name exists on the instance
+    auto instance = static_cast<ObjectInstance *>(receiver.as_object());
+    auto val = instance->get_fields().get(method_name);
+    if (val)
+    {
+        // If a field of the same name exists, instead of invoking a method,
+        // Replace the receiver with the value of the property
+        // Then call the value normally
+        Value value = val.value();
+        *(stack_top - arg_count - 1) = value;
+        return call_value(value, arg_count);
+    }
+
+    return invoke_from_class(instance->get_class(), method_name, arg_count);
+}
+
+auto VM::invoke_from_class(ObjectClass *class_, ObjectString *property_name, int arg_count) -> bool
+{
+    auto method = class_->methods().get(property_name);
+    if (!method)
+    {
+        report_error("Runtime Error: Instance of class '{}' has no method '{}'",
+                     class_->name()->get(), property_name->get());
+        return false;
+    }
+    return call(static_cast<ObjectClosure *>(method.value().as_object()), arg_count);
 }
 
 auto VM::call_value(Value callee, int arg_count) -> bool

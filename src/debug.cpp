@@ -65,6 +65,25 @@ auto instruction_uint16_le(OpCode op, int offset, const Chunk &chunk, bool shoul
     return offset + 3;
 }
 
+auto instruction_invoke(OpCode op, int offset, const Chunk &chunk) -> int
+{
+    const auto &code = chunk.get_code();
+    uint16_t constant_index = code[offset + 1];
+    constant_index |= static_cast<uint16_t>(static_cast<uint16_t>(code[offset + 2]) << 8);
+    fmt::print(fmt::fg(fmt::color::purple), "{:<16} {:8d} ", opcode_to_string(op), constant_index);
+    if (auto value = chunk.get_value(constant_index))
+    {
+        fmt::print(fmt::fg(fmt::color::green), "'{}'", value.value().to_string());
+    }
+    else
+    {
+        fmt::print(fmt::fg(fmt::color::red), "NO_VALUE");
+    }
+    uint8_t arguments = code[offset + 3];
+    fmt::print(fmt::fg(fmt::color::green), " [{} arguments]\n", arguments);
+    return offset + 4;
+}
+
 auto instruction_call(OpCode op, int offset, const Chunk &chunk) -> int
 {
     const auto &code = chunk.get_code();
@@ -216,6 +235,8 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
         return jump_instruction(instruction, offset, chunk, 1);
     case OpCode::JUMP_BACKWARD:
         return jump_instruction(instruction, offset, chunk, -1);
+    case OpCode::INVOKE:
+        return instruction_invoke(instruction, offset, chunk);
 
     default:
         fmt::print(fmt::fg(fmt::color::red), "{}", "UNKNOWN\n");

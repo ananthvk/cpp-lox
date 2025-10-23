@@ -321,6 +321,15 @@ auto Compiler::dot([[maybe_unused]] bool canAssign) -> void
         emit_opcode(OpCode::STORE_PROPERTY);
         emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check if it overflows
     }
+    else if (parser.match(TokenType::LEFT_PAREN))
+    {
+        // It's a function call, Instead of creating a LOAD instruction, then a CALL,
+        // emit a superinstruction INVOKE
+        auto arg_count = argument_list();
+        emit_opcode(OpCode::INVOKE);
+        emit_uint16_le(static_cast<uint16_t>(constant_index)); // TODO: Check if it overflows
+        emit_byte(arg_count);
+    }
     else
     {
         emit_opcode(OpCode::LOAD_PROPERTY);
@@ -859,8 +868,9 @@ auto Compiler::define_variable(int constant_index, bool is_const) -> void
     auto &val = context->get_internal_value(constant_index);
     if (val.is_const)
     {
-        parser.report_error("Syntax Error: Variable '{}' has been declared const, cannot be redeclared",
-                            context->get_name(constant_index)->get());
+        parser.report_error(
+            "Syntax Error: Variable '{}' has been declared const, cannot be redeclared",
+            context->get_name(constant_index)->get());
         return;
     }
     if (val.defined)

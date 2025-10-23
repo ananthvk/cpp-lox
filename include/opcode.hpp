@@ -41,6 +41,7 @@
     X(DUP_TOP)                                                                                     \
     X(CALL)                                                                                        \
     X(CLASS)                                                                                       \
+    X(INVOKE)                                                                                      \
     X(CLOSURE)                                                                                     \
     X(METHOD)
 

@@ -12,6 +12,7 @@ class GarbageCollector
     VM *vm;
     VMOpts vopts;
     int log_indent_level;
+    std::vector<Object *> never_delete_objects;
     std::vector<Object *> grey_objects;
 
     template <typename... Args>
@@ -51,8 +52,13 @@ class GarbageCollector
     auto mark_object(Object *object) -> void;
 
     auto mark_value(Value value) -> void;
-    
+
     auto mark_table(StringValueTable &table) -> void;
 
     auto mark_global_variables(Context *context) -> void;
+
+    // Marks an address (of an object) as never to be freed
+    // This should be used in benchmarks, and other places where a function does not exist on the
+    // stack or any other roots but must not be removed
+    auto mark_never_delete(Object *obj) -> void { never_delete_objects.push_back(obj); }
 };

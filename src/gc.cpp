@@ -92,6 +92,10 @@ auto GarbageCollector::mark_roots() -> void
         log_indent_level--;
         log(fmt::color::blue, "{}", "end mark vm roots");
     }
+    for (auto obj : never_delete_objects)
+    {
+        mark_object(obj);
+    }
 }
 
 auto GarbageCollector::mark_value(Value value) -> void

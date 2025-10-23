@@ -98,6 +98,10 @@ class VM
 
     auto capture_upvalue(Value *slot) -> ObjectUpvalue *;
 
+    auto invoke(ObjectString *method_name, int arg_count) -> bool;
+
+    auto invoke_from_class(ObjectClass *class_, ObjectString *property_name, int arg_count) -> bool;
+
   public:
     VM(const VMOpts &opts, ErrorReporter &reporter, Allocator &allocator, Context *context)
         : opts(opts), reporter(reporter), allocator(allocator), context(context),

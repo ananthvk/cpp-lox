@@ -31,6 +31,7 @@ static void BM_RunExpression(benchmark::State &state)
         "-100-63*50+-28/71-58/-29)/-5--39*37--24*-23)-85*-17-96/-72--3*49)--87*76-33/59)*39-77/"
         "-90--44*27)/-91-58*-5-0*-62--50*78;";
     auto fn = runtime.compile(src);
+    runtime.mark_never_delete(fn);
     for (auto _ : state)
         runtime.execute(fn);
 }
@@ -124,6 +125,7 @@ static void BM_GlobalVariables(benchmark::State &state)
         "abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;echo abcdefghij;";
 
     auto fn = runtime.compile(src);
+    runtime.mark_never_delete(fn);
     for (auto _ : state)
         runtime.execute(fn);
 }

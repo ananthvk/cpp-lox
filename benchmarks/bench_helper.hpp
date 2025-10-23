@@ -34,6 +34,8 @@ class LoxRuntime
         gc.set_vm(&vm);
     }
 
+    auto mark_never_delete(Object *object) -> void { gc.mark_never_delete(object); }
+
     auto compile(std::string_view src) -> ObjectFunction *
     {
         CompilerOpts opts;

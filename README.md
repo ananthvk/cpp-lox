@@ -46,6 +46,13 @@ $ ninja -j8
 $ meson test -v
 ```
 
+## To run benchmarks
+
+```
+$ cd builddir
+$ meson test --benchmark --interactive
+```
+
 ## Development build
 
 Have `Clang` installed along with `asan`. You also need to follow the steps in the above section, `pytest` must be installed and available on the `PATH`
