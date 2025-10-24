@@ -238,6 +238,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::JUMP_BACKWARD:
         return jump_instruction(instruction, offset, chunk, -1);
     case OpCode::INVOKE:
+    case OpCode::SUPER_INVOKE:
         return instruction_invoke(instruction, offset, chunk);
 
     default:

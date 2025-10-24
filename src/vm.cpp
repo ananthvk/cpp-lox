@@ -586,6 +586,20 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             push(bound_method);
             break;
         }
+        case OpCode::SUPER_INVOKE:
+        {
+            auto value = read_constant_long();
+            auto method_name = static_cast<ObjectString *>(value.as_object());
+            auto arg_count = read_byte();
+            auto super_class = static_cast<ObjectClass *>(pop().as_object());
+            if (!invoke_from_class(super_class, method_name, arg_count))
+            {
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            // After the call, a new frame is created for the function
+            current_frame = &frames[frame_count - 1];
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

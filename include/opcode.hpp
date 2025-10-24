@@ -43,6 +43,7 @@
     X(CALL)                                                                                        \
     X(CLASS)                                                                                       \
     X(INVOKE)                                                                                      \
+    X(SUPER_INVOKE)                                                                                \
     X(INHERIT)                                                                                     \
     X(CLOSURE)                                                                                     \
     X(METHOD)

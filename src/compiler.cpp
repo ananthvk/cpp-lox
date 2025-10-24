@@ -781,13 +781,27 @@ auto Compiler::super_(bool canAssign) -> void
     tmp.token_type = TokenType::IDENTIFIER;
     named_variable(tmp, false);
     tmp.lexeme = "super";
-    named_variable(tmp, false);
 
-    // The instruction has a single operand, the method name index on the constant table
-    // It pops two values from the stack, the current instance, and the superclass. Then it executes
-    // the superclass method on the current instance
-    emit_opcode(OpCode::LOAD_SUPER);
-    emit_uint16_le(static_cast<uint16_t>(method_index));
+    if (parser.match(TokenType::LEFT_PAREN))
+    {
+        // Optimization: Similar to INVOKE, if the compiler detects a call immediately after a super
+        // access, instead of emitting a super access, emit a SUPER_INVOKE instruction
+        auto arg_count = argument_list();
+        named_variable(tmp, false);
+        emit_opcode(OpCode::SUPER_INVOKE);
+        emit_uint16_le(static_cast<uint16_t>(method_index));
+        emit_byte(arg_count);
+    }
+    else
+    {
+        // This will create a bound method, that can be called later
+        named_variable(tmp, false);
+        // The instruction has a single operand, the method name index on the constant table
+        // It pops two values from the stack, the current instance, and the superclass. Then it
+        // executes the superclass method on the current instance
+        emit_opcode(OpCode::LOAD_SUPER);
+        emit_uint16_le(static_cast<uint16_t>(method_index));
+    }
 }
 
 auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)
