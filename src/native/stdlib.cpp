@@ -1,3 +1,4 @@
+#include "list.hpp"
 #include "value.hpp"
 #include "vm.hpp"
 
@@ -64,8 +65,26 @@ auto native_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
     }
 }
 
+auto native_len(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+{
+    Value val = values[1];
+    if (val.is_string())
+    {
+        auto size = val.as_string()->get().size();
+        return {Value{size}, true};
+    }
+    if (val.is_list())
+    {
+        auto size = static_cast<ObjectList *>(val.as_object())->size();
+        return {Value{size}, true};
+    }
+    vm->report_error("invalid argument type to call len(), must be a string or list");
+    return {Value{0}, false};
+}
+
 auto register_stdlib(VM *vm) -> void
 {
+    vm->define_native_function("len", 1, native_len);
     vm->define_native_function("exit", 1, native_exit);
     vm->define_native_function("type", 1, native_type);
 }

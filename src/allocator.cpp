@@ -109,13 +109,13 @@ auto Allocator::new_class(ObjectString *name) -> ObjectClass *
     return obj;
 }
 
-auto Allocator::new_list(int64_t length, int64_t capacity) -> ObjectList *
+auto Allocator::new_list(int64_t length, int64_t capacity, Value default_) -> ObjectList *
 {
     if (vopts.debug_stress_gc)
         collect_garbage();
     create_object<ObjectList>();
 
-    auto obj = new ObjectList(length, capacity);
+    auto obj = new ObjectList(length, capacity, default_);
     obj->is_marked = false;
     objs.push_back(obj);
 

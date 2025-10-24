@@ -9,6 +9,7 @@ auto register_string(VM *vm) -> void;
 auto register_test(VM *vm) -> void;
 auto register_memory(VM *vm) -> void;
 auto register_classes(VM *vm) -> void;
+auto register_list(VM *vm) -> void;
 
 auto VM::register_native_functions() -> void
 {
@@ -20,4 +21,5 @@ auto VM::register_native_functions() -> void
     register_test(this);
     register_memory(this);
     register_classes(this);
+    register_list(this);
 }

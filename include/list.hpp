@@ -1,5 +1,7 @@
 #pragma once
 #include "object.hpp"
+#include "value.hpp"
+#include <optional>
 
 // Implementation of list similar to CPython's list
 // ObjectList is implemented as a dynamic array of Values
@@ -11,10 +13,10 @@ class ObjectList : public Object
     // The constructor creates a list with the specified capacity and length (by default, unset
     // values are nil) len is the number of objects in the list, cap is the capacity of the list.
     // cap has to be >= len
-    ObjectList(int64_t len, int64_t cap)
+    ObjectList(int64_t len, int64_t cap, Value default_ = Value{})
     {
         values.reserve(cap);
-        values.resize(len);
+        values.resize(len, default_);
     }
 
   public:
@@ -33,6 +35,16 @@ class ObjectList : public Object
         if (index >= values.size())
             return std::nullopt;
         return values[index];
+    }
+
+    auto erase(int64_t index) -> bool
+    {
+        if (index >= values.size())
+        {
+            return false;
+        }
+        values.erase(values.begin() + index);
+        return true;
     }
 
     auto set(int64_t index, Value value) -> bool
@@ -54,7 +66,7 @@ class ObjectList : public Object
         return value;
     }
 
-    // TODO: Implement sort, reverse, contains, slice, erase, copy
+    // TODO: Implement sort, reverse, contains, slice, copy
 
     auto operator==(const ObjectList &other) const -> bool { return this == &other; }
 

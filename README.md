@@ -166,7 +166,7 @@ In local scope redeclaration of any form is disallowed
 - `input() string` - Takes a line of input from `stdin`, does not include terminating `\n`
 - `print(args...)` - Prints all the arguments, separated by a space
 - `println(args...)` - Prints all the arguments, separated by a space, and adds a newline at the end
-- `len(str string) int` - Returns the length of the string
+- `len(str string) int` - Returns the length of the string / list
 - `to_string(value) string` - Converts the given value into a string
 - `to_int(value) int` - Converts the given value into an int
 - `to_double(value) double` - Converts the given value into a double
@@ -239,10 +239,20 @@ println(x[0] = 8); // Prints 8, sets index 0 to 8
 
 Implementation: Two new opcodes `LIST` and `LIST_APPEND` have been added. `LIST` takes a single byte operand, the intial size of the list (`n`), and it reads & pops the top `n` values on stack and creates a new list object. If `n` >= 10, the compiler will emit a `LIST` list instruction to build the list with 10 values, and for the remaining values, it adds a `LIST_APPEND` after emitting the bytecode for the expression. This is done so that the stack does not overflow when a list is declared with a lot of elements.
 
+Note: Allocating huge lists eg (`list(10000000, 0)`) may cause the program to pause because the GC has to trace through all those values even if there are no object references. In the future, try to optimize this
+
 Another two instructions: `LOAD_INDEX` and `STORE_INDEX` to access and modify list members
 
 For `STORE_INDEX`: `[container, index, value] -> [ ] after execution`
 For `LOAD_INDEX`: `[container, index] -> [value]`
+
+Native functions to work with lists
+- `len(list) int`: Returns the length of the list, works the same with strings
+- `cap(list) int`: Returns the capacity of the backing array of the list
+- `list(len, default, cap) list`: Creates a new list with the specified length, capacity, and default value. All three arguments are optional. len is the initial length of the list, cap is the capacity of the list (after which a new reallocation will be triggered), and default is the default value when creating the list (default is nil).
+- `append(list, element)`: Adds an element to the end of a list
+- `delete(list, index)`: Removes an element at specified index from list
+- `pop(list) value`: Removes and returns the last element from a list
 
 13) Indexing works with strings too
 
