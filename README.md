@@ -232,11 +232,29 @@ class Bar : Foo {
 Example:
 ```
 var x = [1, 2, 3]; // Create a list
-println(x[0]); // Get element at index
+println(x[0]); // Get element at index, prints 1
 println(x); // Print the list
+println(x[0] = 8); // Prints 8, sets index 0 to 8
 ```
 
 Implementation: Two new opcodes `LIST` and `LIST_APPEND` have been added. `LIST` takes a single byte operand, the intial size of the list (`n`), and it reads & pops the top `n` values on stack and creates a new list object. If `n` >= 10, the compiler will emit a `LIST` list instruction to build the list with 10 values, and for the remaining values, it adds a `LIST_APPEND` after emitting the bytecode for the expression. This is done so that the stack does not overflow when a list is declared with a lot of elements.
+
+Another two instructions: `LOAD_INDEX` and `STORE_INDEX` to access and modify list members
+
+For `STORE_INDEX`: `[container, index, value] -> [ ] after execution`
+For `LOAD_INDEX`: `[container, index] -> [value]`
+
+13) Indexing works with strings too
+
+The result of indexing a string results in another string (there is no character datatype)
+
+Example:
+```
+var x = "hello";
+println(x[1]); // prints e
+
+x[2] = "x"; // Not allowed, throws error since strings are immutable
+```
 
 
 ## TODO

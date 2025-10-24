@@ -33,6 +33,8 @@
     X(LOAD_PROPERTY)                                                                               \
     X(LOAD_PROPERTY_SAFE)                                                                          \
     X(LOAD_SUPER)                                                                                  \
+    X(LOAD_INDEX)                                                                                  \
+    X(STORE_INDEX)                                                                                 \
     X(CLOSE_UPVALUE)                                                                               \
     X(JUMP_IF_FALSE)                                                                               \
     X(JUMP_IF_TRUE)                                                                                \

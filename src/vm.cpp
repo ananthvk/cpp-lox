@@ -641,6 +641,93 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             pop();
             break;
         }
+        case OpCode::STORE_INDEX:
+        {
+            if (peek(2).is_string())
+            {
+                report_error(
+                    "Runtime error: Strings are immutable, and do not support index assignment");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!peek(2).is_list())
+            {
+                report_error("Runtime error: Cannot set index of value, can only index lists");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!peek(1).is_integer())
+            {
+                report_error("Runtime error: Index of a list must be an integer");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            auto index = peek(1).as_integer();
+            auto list_obj = static_cast<ObjectList *>(peek(2).as_object());
+            if (index >= list_obj->size())
+            {
+                report_error("Runtime error: List index out of range, attempt to subscript list at "
+                             "[{}] (list contains {} elements)",
+                             index, list_obj->size());
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            Value val = peek(0);
+            list_obj->set(index, val);
+            pop(); // value
+            pop(); // index
+            pop(); // list
+            // Push back the value on the top of the stack so that it can be used in expressions
+            push(val);
+            break;
+        }
+        case OpCode::LOAD_INDEX:
+        {
+            if (!(peek(1).is_list() || peek(1).is_string()))
+            {
+                report_error(
+                    "Runtime error: Cannot get index of value, can only index lists and strings");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            if (!peek(0).is_integer())
+            {
+                report_error("Runtime error: Index of a list or string must be an integer");
+                return InterpretResult::RUNTIME_ERROR;
+            }
+            auto index = peek(0).as_integer();
+            if (peek(1).is_list())
+            {
+                auto list_obj = static_cast<ObjectList *>(peek(1).as_object());
+                if (index >= list_obj->size())
+                {
+                    report_error(
+                        "Runtime error: List index out of range, attempt to subscript list at "
+                        "[{}] (list contains {} elements)",
+                        index, list_obj->size());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+                Value value = list_obj->get(index).value();
+                pop(); // index
+                pop(); // list
+                push(value);
+            }
+            else
+            {
+                // Is a string
+                auto string_obj = static_cast<ObjectString *>(peek(1).as_object());
+                if (index >= string_obj->get().size())
+                {
+                    report_error(
+                        "Runtime error: String index out of range, attempt to subscript string at "
+                        "[{}] (string contains {} characters)",
+                        index, string_obj->get().size());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+                char ch = string_obj->get()[index];
+                pop(); // index
+                pop(); // list
+                
+                // TODO: Optimize this: Wasteful since a new string has to be interned, along with std::string for a single character
+                push(allocator.intern_string(std::string(1, ch)));
+            }
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }
