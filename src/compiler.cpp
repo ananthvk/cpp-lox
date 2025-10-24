@@ -64,7 +64,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::DEFAULT]          = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::LEFT_BRACKET]     = {F(list),        nullptr,          ParsePrecedence::CALL};
+    rules[+TokenType::LEFT_BRACKET]     = {F(list),        F(index),         ParsePrecedence::CALL};
     rules[+TokenType::RIGHT_BRACKET]    = {nullptr,        nullptr,          ParsePrecedence::NONE};
     
     // Need to set function to nullptr because otherwise, when a GC collection is triggered
@@ -1467,7 +1467,7 @@ auto Compiler::list(bool canAssign) -> void
     // constants, store them as a tuple in the constants table. But this does not work well with
     // single pass compilation since there is no way to know if some future element of the list is a
     // result of a call
-    
+
     // It can either be, [] (empty)
     // or have expressions, [expression1, expression2, ....] (similar to argument list)
     int64_t list_length = 0;
@@ -1509,6 +1509,25 @@ auto Compiler::list(bool canAssign) -> void
     {
         emit_opcode(OpCode::LIST);
         emit_byte(static_cast<uint8_t>(list_length));
+    }
+}
+
+auto Compiler::index(bool canAssign) -> void
+{
+    // Compile a list index load or store
+
+    // Compile the contents within the square bracket
+    expression();
+    parser.consume(TokenType::RIGHT_BRACKET, "Expected ']' after index access");
+
+    if (canAssign && parser.match(TokenType::EQUAL))
+    {
+        expression();
+        emit_opcode(OpCode::STORE_INDEX);
+    }
+    else
+    {
+        emit_opcode(OpCode::LOAD_INDEX);
     }
 }
 
