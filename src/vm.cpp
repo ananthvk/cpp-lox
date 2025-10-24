@@ -600,6 +600,21 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             current_frame = &frames[frame_count - 1];
             break;
         }
+        case OpCode::ZERO:
+        {
+            push(Value{0});
+            break;
+        }
+        case OpCode::MINUS_ONE:
+        {
+            push(Value{-1});
+            break;
+        }
+        case OpCode::ONE:
+        {
+            push(Value{1});
+            break;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

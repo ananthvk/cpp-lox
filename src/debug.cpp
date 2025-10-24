@@ -205,6 +205,9 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::DUP_TOP:
     case OpCode::CLOSE_UPVALUE:
     case OpCode::INHERIT:
+    case OpCode::ZERO:
+    case OpCode::MINUS_ONE:
+    case OpCode::ONE:
         return simple_instruction(instruction, offset);
     case OpCode::CALL:
         return instruction_call(instruction, offset, chunk);

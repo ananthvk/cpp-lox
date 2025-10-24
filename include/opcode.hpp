@@ -46,6 +46,9 @@
     X(SUPER_INVOKE)                                                                                \
     X(INHERIT)                                                                                     \
     X(CLOSURE)                                                                                     \
+    X(ZERO)                                                                                        \
+    X(MINUS_ONE)                                                                                   \
+    X(ONE)                                                                                         \
     X(METHOD)
 
 enum class OpCode : uint8_t

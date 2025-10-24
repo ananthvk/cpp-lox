@@ -214,7 +214,16 @@ auto Compiler::number([[maybe_unused]] bool canAssign) -> void
             parser.report_error("Error while parsing number as integer '{}'", token.lexeme);
             return;
         }
-
+        if (value == 0)
+        {
+            emit_opcode(OpCode::ZERO);
+            return;
+        }
+        if (value == 1)
+        {
+            emit_opcode(OpCode::ONE);
+            return;
+        }
         auto index_opt = constant_numbers.get(value);
         if (index_opt)
             chunk()->write_load_constant(index_opt.value(), token.line);
@@ -259,8 +268,17 @@ auto Compiler::unary([[maybe_unused]] bool canAssign) -> void
     switch (operator_type)
     {
     case TokenType::MINUS:
+    {
+        // If the previous opcode was 1, change that to -1 instead of emitting ONE and NEGATE
+        if (chunk()->get_code().size() > 0 &&
+            chunk()->get_code().back() == static_cast<uint8_t>(OpCode::ONE))
+        {
+            chunk()->get_code().back() = static_cast<uint8_t>(OpCode::MINUS_ONE);
+            break;
+        }
         emit_opcode(OpCode::NEGATE);
         break;
+    }
     case TokenType::BANG:
     case TokenType::NOT:
         emit_opcode(OpCode::NOT);
