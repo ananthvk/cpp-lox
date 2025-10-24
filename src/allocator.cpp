@@ -109,6 +109,21 @@ auto Allocator::new_class(ObjectString *name) -> ObjectClass *
     return obj;
 }
 
+auto Allocator::new_list(int64_t length, int64_t capacity) -> ObjectList *
+{
+    if (vopts.debug_stress_gc)
+        collect_garbage();
+    create_object<ObjectList>();
+
+    auto obj = new ObjectList(length, capacity);
+    obj->is_marked = false;
+    objs.push_back(obj);
+
+    if (vopts.debug_log_gc)
+        gc->log_allocation(obj);
+    return obj;
+}
+
 auto Allocator::new_instance(ObjectClass *class_) -> ObjectInstance *
 {
     if (vopts.debug_stress_gc)

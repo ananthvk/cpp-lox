@@ -64,6 +64,8 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::DEFAULT]          = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::BREAK]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::CONTINUE]         = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::LEFT_BRACKET]     = {F(list),        nullptr,          ParsePrecedence::CALL};
+    rules[+TokenType::RIGHT_BRACKET]    = {nullptr,        nullptr,          ParsePrecedence::NONE};
     
     // Need to set function to nullptr because otherwise, when a GC collection is triggered
     // during allocation of a new function down below, it'll read uninitialized memory, causing memory errors
@@ -1456,6 +1458,58 @@ auto Compiler::return_statement() -> void
     expression();
     parser.consume(TokenType::SEMICOLON, "Expected ';' after return statement");
     emit_opcode(OpCode::RETURN);
+}
+
+// Compiles a list declaration
+auto Compiler::list(bool canAssign) -> void
+{
+    // TODO: Optimize this further if implementing tuples (like CPython), i.e. if they are all
+    // constants, store them as a tuple in the constants table. But this does not work well with
+    // single pass compilation since there is no way to know if some future element of the list is a
+    // result of a call
+    
+    // It can either be, [] (empty)
+    // or have expressions, [expression1, expression2, ....] (similar to argument list)
+    int64_t list_length = 0;
+    if (parser.check(TokenType::RIGHT_BRACKET))
+    {
+        parser.consume(TokenType::RIGHT_BRACKET, "Expected ']' after list expression");
+        // Create empty list
+        emit_opcode(OpCode::LIST);
+        emit_byte(0);
+        return;
+    }
+    bool should_emit_build_op = true;
+
+    while (1)
+    {
+        expression();
+        list_length++;
+        if (!should_emit_build_op)
+        {
+            // OpCode::LIST has already been emitted, so emit an LIST_APPEND instruction
+            emit_opcode(OpCode::LIST_APPEND);
+        }
+
+        if (list_length == LIST_BUILD_APPEND_THRESHOLD)
+        {
+            emit_opcode(OpCode::LIST);
+            emit_byte(static_cast<uint8_t>(list_length));
+            should_emit_build_op = false;
+        }
+
+        if (!parser.match(TokenType::COMMA))
+            break;
+        // Support trailing commas
+        if (parser.check(TokenType::RIGHT_BRACKET))
+            break;
+    }
+    parser.consume(TokenType::RIGHT_BRACKET, "Expected ']' after list expression");
+    if (should_emit_build_op)
+    {
+        emit_opcode(OpCode::LIST);
+        emit_byte(static_cast<uint8_t>(list_length));
+    }
 }
 
 Compiler *Compiler::current = nullptr;

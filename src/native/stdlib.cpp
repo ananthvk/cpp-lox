@@ -52,6 +52,10 @@ auto native_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
     {
         return {vm->get_allocator()->intern_string("instance"), true};
     }
+    else if (val.is_list())
+    {
+        return {vm->get_allocator()->intern_string("list"), true};
+    }
     else
     {
         vm->report_error("internal error: invalid type");

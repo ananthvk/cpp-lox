@@ -1,6 +1,7 @@
 #include "value.hpp"
 #include "classes.hpp"
 #include "function.hpp"
+#include "list.hpp"
 #include "object.hpp"
 
 auto Value::to_string() const -> std::string
@@ -52,6 +53,21 @@ auto Value::to_string() const -> std::string
         case ObjectType::BOUND_METHOD:
             return fmt::format("<bound method of {}>",
                                static_cast<ObjectBoundMethod *>(data.o)->receiver().to_string());
+        case ObjectType::LIST:
+        {
+            std::string result = "";
+            auto &values = static_cast<ObjectList *>(data.o)->get_values();
+            bool first_one = true;
+            for (auto value : values)
+            {
+                if (first_one)
+                    result += value.to_string();
+                else
+                    result += ", " + value.to_string();
+                first_one = false;
+            }
+            return fmt::format("[{}]", result);
+        }
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -98,6 +114,7 @@ auto Value::operator==(Value other) const -> bool
         case ObjectType::CLASS:
         case ObjectType::INSTANCE:
         case ObjectType::CLOSURE:
+        case ObjectType::LIST:
             return as_object() == other.as_object();
         case ObjectType::UPVALUE:
             // Two upvalues are equal if they point to the same location

@@ -170,6 +170,7 @@ class Compiler
     auto method() -> void;
     auto this_(bool canAssign) -> void;
     auto super_(bool canAssign) -> void;
+    auto list(bool canAssign) -> void;
 
     /**
      * Helper functions to declare and define variables

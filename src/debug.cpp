@@ -208,8 +208,10 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::ZERO:
     case OpCode::MINUS_ONE:
     case OpCode::ONE:
+    case OpCode::LIST_APPEND:
         return simple_instruction(instruction, offset);
     case OpCode::CALL:
+    case OpCode::LIST:
         return instruction_call(instruction, offset, chunk);
     case OpCode::LOAD_CONSTANT:
         return constant_instruction(instruction, offset, chunk);
