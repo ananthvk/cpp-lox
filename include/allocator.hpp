@@ -150,7 +150,7 @@ class Allocator
 
     auto new_instance(ObjectClass *class_) -> ObjectInstance *;
 
-    auto new_list(int64_t length, int64_t capacity) -> ObjectList*;
+    auto new_list(int64_t length, int64_t capacity, Value default_ = Value{}) -> ObjectList *;
 
     auto new_bound_method(Value receiver, ObjectClosure *method) -> ObjectBoundMethod *;
 
