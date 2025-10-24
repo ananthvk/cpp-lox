@@ -225,6 +225,20 @@ class Bar : Foo {
 }
 ```
 
+11) Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1` respectively on to the stack. This was added as an optimization, so that the value need not be loaded from the constant table whenever these values are present.
+
+12) Implement list data structure (Note: It's implemented as a dynamic array (vector) rather than a linked list (like CPython))
+
+Example:
+```
+var x = [1, 2, 3]; // Create a list
+println(x[0]); // Get element at index
+println(x); // Print the list
+```
+
+Implementation: Two new opcodes `LIST` and `LIST_APPEND` have been added. `LIST` takes a single byte operand, the intial size of the list (`n`), and it reads & pops the top `n` values on stack and creates a new list object. If `n` >= 10, the compiler will emit a `LIST` list instruction to build the list with 10 values, and for the remaining values, it adds a `LIST_APPEND` after emitting the bytecode for the expression. This is done so that the stack does not overflow when a list is declared with a lot of elements.
+
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements

@@ -7,6 +7,8 @@
     X(RIGHT_PAREN)                                                                                 \
     X(LEFT_BRACE)                                                                                  \
     X(RIGHT_BRACE)                                                                                 \
+    X(LEFT_BRACKET)                                                                                \
+    X(RIGHT_BRACKET)                                                                               \
     X(COMMA)                                                                                       \
     X(DOT)                                                                                         \
     X(MINUS)                                                                                       \

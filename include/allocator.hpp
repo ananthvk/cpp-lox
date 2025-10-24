@@ -2,6 +2,7 @@
 #include "classes.hpp"
 #include "function.hpp"
 #include "hashmap.hpp"
+#include "list.hpp"
 #include "object.hpp"
 #include "utils.hpp"
 #include "vmopts.hpp"
@@ -102,6 +103,9 @@ class Allocator
         case ObjectType::NATIVE_FUNCTION:
             object_size = sizeof(ObjectNativeFunction);
             break;
+        case ObjectType::LIST:
+            object_size = sizeof(ObjectList);
+            break;
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -146,7 +150,9 @@ class Allocator
 
     auto new_instance(ObjectClass *class_) -> ObjectInstance *;
 
-    auto new_bound_method(Value receiver, ObjectClosure* method) -> ObjectBoundMethod *;
+    auto new_list(int64_t length, int64_t capacity) -> ObjectList*;
+
+    auto new_bound_method(Value receiver, ObjectClosure *method) -> ObjectBoundMethod *;
 
     auto new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *;
 

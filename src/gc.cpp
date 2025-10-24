@@ -223,6 +223,15 @@ auto GarbageCollector::blacken_object(Object *object) -> void
         }
         break;
     }
+
+    case ObjectType::LIST:
+    {
+        auto list = static_cast<ObjectList *>(object);
+        // Mark all values stored in the list
+        for (auto value : list->get_values())
+            mark_value(value);
+        break;
+    }
     default:
         throw std::logic_error("invalid object type");
         break;

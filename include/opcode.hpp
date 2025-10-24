@@ -49,7 +49,9 @@
     X(ZERO)                                                                                        \
     X(MINUS_ONE)                                                                                   \
     X(ONE)                                                                                         \
-    X(METHOD)
+    X(METHOD)                                                                                      \
+    X(LIST)                                                                                        \
+    X(LIST_APPEND)
 
 enum class OpCode : uint8_t
 {

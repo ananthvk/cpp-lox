@@ -105,6 +105,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::STRING;
     }
 
+    auto is_list() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::LIST;
+    }
+
     auto is_function() const -> bool
     {
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::FUNCTION;

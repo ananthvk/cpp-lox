@@ -290,6 +290,10 @@ auto Lexer::const_token_iterator::scan_token() -> TokenType
         return TokenType::LEFT_BRACE;
     case '}':
         return TokenType::RIGHT_BRACE;
+    case '[':
+        return TokenType::LEFT_BRACKET;
+    case ']':
+        return TokenType::RIGHT_BRACKET;
     case ';':
         return TokenType::SEMICOLON;
     case ',':
