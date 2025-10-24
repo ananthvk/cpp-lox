@@ -53,6 +53,14 @@ $ cd builddir
 $ meson test --benchmark --interactive
 ```
 
+For profiling, and to view the graph
+
+```
+$ g++ -pg -O0 ../src/*.cpp ../src/native/*.cpp -I../include -I../thirdparty -lfmt
+$ ./a.out program.lox
+$ gprof -b ./a.out gmon.out | gprof2dot | dot -Tsvg -o output.svg
+```
+
 ## Development build
 
 Have `Clang` installed along with `asan`. You also need to follow the steps in the above section, `pytest` must be installed and available on the `PATH`
@@ -205,6 +213,16 @@ class Foo {}
 var f = Foo();
 f.x = print;
 println(f.x?.prop); // nil (becasue x is a native function)
+```
+
+10) For inheritance, instead of `<` operator, I have decided to use `:` in my language (similar to C++)
+
+Example:
+```
+class Foo {
+}
+class Bar : Foo {
+}
 ```
 
 ## TODO

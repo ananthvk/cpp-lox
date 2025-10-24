@@ -32,6 +32,7 @@
     X(STORE_PROPERTY)                                                                              \
     X(LOAD_PROPERTY)                                                                               \
     X(LOAD_PROPERTY_SAFE)                                                                          \
+    X(LOAD_SUPER)                                                                                  \
     X(CLOSE_UPVALUE)                                                                               \
     X(JUMP_IF_FALSE)                                                                               \
     X(JUMP_IF_TRUE)                                                                                \
@@ -42,6 +43,7 @@
     X(CALL)                                                                                        \
     X(CLASS)                                                                                       \
     X(INVOKE)                                                                                      \
+    X(INHERIT)                                                                                     \
     X(CLOSURE)                                                                                     \
     X(METHOD)
 

@@ -68,6 +68,7 @@ class Compiler
     struct ClassCompiler
     {
         ClassCompiler *enclosing;
+        bool has_super_class;
     };
 
     CompilerOpts opts;
@@ -168,6 +169,7 @@ class Compiler
 
     auto method() -> void;
     auto this_(bool canAssign) -> void;
+    auto super_(bool canAssign) -> void;
 
     /**
      * Helper functions to declare and define variables

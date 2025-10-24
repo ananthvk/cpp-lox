@@ -50,7 +50,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     rules[+TokenType::OR]               = {nullptr,        F(or_),           ParsePrecedence::OR};
     rules[+TokenType::PRINT]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RETURN]           = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::SUPER]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::SUPER]            = {F(super_),      nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::THIS]             = {F(this_),       nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::TRUE]             = {F(literal),     nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::VAR]              = {nullptr,        nullptr,          ParsePrecedence::NONE};
@@ -658,10 +658,41 @@ auto Compiler::class_declaration() -> void
 
     ClassCompiler class_compiler;
     class_compiler.enclosing = enclosing_class;
+    class_compiler.has_super_class = false;
     enclosing_class = &class_compiler;
+    auto class_token = parser.previous();
+
+    // Inheritance is optional, check if a ":" is present, if it is there, parse the superclass name
+    if (parser.match(TokenType::COLON))
+    {
+        parser.consume(TokenType::IDENTIFIER, "Expected superclass name after ':'");
+        // Load the superclass class object onto the top of the stack
+        variable(false);
+        if (class_token.lexeme == parser.previous().lexeme)
+        {
+            parser.report_error(
+                "Circular inheritance not allowed. Class '{}' is trying to inherit from itself",
+                class_token.lexeme);
+        }
+        // Create a new scope, and define a variable called "super"
+        begin_scope();
+        Token token;
+        token.lexeme = "super";
+        token.line = parser.previous().line;
+        token.token_type = TokenType::IDENTIFIER;
+        add_local(token, true); // cannot reassign super
+        define_variable(0, true);
+        class_compiler.has_super_class = true;
+
+        // Also load the subclass object onto the top of the stack
+        named_variable(class_token, false);
+        // INHERIT consumes the top two values on the stack, the top value is the subclass and the
+        // value below it is the base class
+        emit_opcode(OpCode::INHERIT);
+    }
 
     // Loads the class object onto the stack so that methods can bind to it
-    named_variable(parser.previous(), false);
+    named_variable(class_token, false);
 
     parser.consume(TokenType::LEFT_BRACE, "Expected '{' after class name");
     // In lox, classes do not have field declarations, so it can only contain methods
@@ -673,6 +704,9 @@ auto Compiler::class_declaration() -> void
 
     // Pop the class object from the stack
     emit_opcode(OpCode::POP_TOP);
+
+    if (class_compiler.has_super_class)
+        end_scope();
 
     // Set enclosing_class back to what it was before we started to compile the class body
     enclosing_class = enclosing_class->enclosing;
@@ -716,6 +750,44 @@ auto Compiler::this_(bool canAssign) -> void
     // we pass false to variable since it is not possible to assign to this
     // The compiler treats "this" just like any other identifer.
     variable(false);
+}
+
+auto Compiler::super_(bool canAssign) -> void
+{
+    if (enclosing_class == nullptr)
+    {
+        parser.report_error("Cannot use 'super' outside a class");
+    }
+    else if (!enclosing_class->has_super_class)
+    {
+        parser.report_error("Cannot use 'super' in a class that has no superclass");
+    }
+
+    // In this implementation, super can only be used to access methods on parent class that has
+    // been overriden
+    parser.consume(TokenType::DOT, "Expected '.' after 'super'");
+    parser.consume(TokenType::IDENTIFIER, "Expected method name after 'super.'");
+
+    auto method_name = allocator.intern_string(parser.previous().lexeme);
+    int method_index = chunk()->add_constant(method_name);
+
+    // The superclass method needs to be invoked on the current instance, so for a super call,
+    // two values need to be on the stack. "this" -> which refers to the instance on which the
+    // method is invoked, and "super" -> which refers to the superclass object
+
+    Token tmp;
+    tmp.lexeme = "this";
+    tmp.line = parser.previous().line;
+    tmp.token_type = TokenType::IDENTIFIER;
+    named_variable(tmp, false);
+    tmp.lexeme = "super";
+    named_variable(tmp, false);
+
+    // The instruction has a single operand, the method name index on the constant table
+    // It pops two values from the stack, the current instance, and the superclass. Then it executes
+    // the superclass method on the current instance
+    emit_opcode(OpCode::LOAD_SUPER);
+    emit_uint16_le(static_cast<uint16_t>(method_index));
 }
 
 auto Compiler::compile_function([[maybe_unused]] FunctionType fun_type, std::string_view name)

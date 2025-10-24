@@ -204,6 +204,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::POP_TOP:
     case OpCode::DUP_TOP:
     case OpCode::CLOSE_UPVALUE:
+    case OpCode::INHERIT:
         return simple_instruction(instruction, offset);
     case OpCode::CALL:
         return instruction_call(instruction, offset, chunk);
@@ -215,6 +216,7 @@ auto disassemble_instruction(const Chunk &chunk, int offset, Context *context) -
     case OpCode::STORE_PROPERTY:
     case OpCode::LOAD_PROPERTY:
     case OpCode::LOAD_PROPERTY_SAFE:
+    case OpCode::LOAD_SUPER:
         return instruction_uint16_le(instruction, offset, chunk, true);
     case OpCode::LOAD_UPVALUE:
     case OpCode::STORE_UPVALUE:
