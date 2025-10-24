@@ -270,3 +270,4 @@ x[2] = "x"; // Not allowed, throws error since strings are immutable
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements
+- [ ] Implement slices
