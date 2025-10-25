@@ -288,6 +288,8 @@ x[2] = "x"; // Not allowed, throws error since strings are immutable
 
 [Opcodes list](documents/opcodes_list.md)
 
+[Bytecode file format](documents/bytecode_file_format.md)
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements

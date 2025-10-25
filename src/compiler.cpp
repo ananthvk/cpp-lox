@@ -965,6 +965,12 @@ auto Compiler::parse_variable(std::string_view err_message, bool is_constant) ->
 
 auto Compiler::define_variable(int constant_index, bool is_const) -> void
 {
+    if (constant_index > 0xFFFF)
+    {
+        parser.report_error(
+            "Syntax Error: Too many global variables, can only have < 65535 global variables");
+        return;
+    }
     // We are not in the global scope, do not do anything
     if (scope_depth > 0)
     {
