@@ -284,6 +284,10 @@ println(x[1]); // prints e
 x[2] = "x"; // Not allowed, throws error since strings are immutable
 ```
 
+## Documents
+
+[Opcodes list](documents/opcodes_list.md)
+
 ## TODO
 - [ ] Fix division by zero error
 - [ ] Implement break statements
