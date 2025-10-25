@@ -4,6 +4,7 @@
 #include "debug.hpp"
 #include "gc.hpp"
 #include "lexer.hpp"
+#include "serializer.hpp"
 #include "vm.hpp"
 #include <fmt/color.h>
 #include <fmt/format.h>
@@ -41,6 +42,33 @@ auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM 
 
     if (lox_opts.compile_only)
         return InterpretResult::OK;
+
+    // TODO: Just to execute the serialization, remove this later
+    Serializer serializer;
+    serializer.serialize_function(obj);
+    for (auto &chunk : serializer.get_chunks())
+    {
+        auto &buffer = chunk.second;
+        fmt::print("Serialized bytecode: [{}]", chunk.first);
+        for (size_t i = 0; i < buffer.size(); ++i)
+        {
+            fmt::print("{:02x}", buffer[i]);
+            if (i < buffer.size() - 1)
+                fmt::print(" ");
+        }
+        fmt::print("\n");
+        fmt::print("\n");
+    }
+
+    auto &strings = serializer.get_strings();
+    fmt::print("Strings: ");
+    for (size_t i = 0; i < strings.size(); ++i)
+    {
+        fmt::print("{:02x}", strings[i]);
+        if (i < strings.size() - 1)
+            fmt::print(" ");
+    }
+    fmt::print("\n");
 
     result = vm.run(obj, std::cout);
 

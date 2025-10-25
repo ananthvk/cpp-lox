@@ -9,7 +9,7 @@
 
 class Chunk
 {
-  private:
+  public:
     /*
      * Marks the start of a line. Line `line_number` starts at the byte with offset `offset`
      */
@@ -19,6 +19,7 @@ class Chunk
         int line_number;
     };
 
+  private:
     std::vector<uint8_t> code;
     std::vector<Value> value_array;
     std::vector<LineInfo> lines;
@@ -50,6 +51,8 @@ class Chunk
     auto get_code() const -> const std::vector<uint8_t> &;
 
     auto get_constants() -> std::vector<Value> & { return value_array; }
+
+    auto get_lines() -> std::vector<LineInfo> & { return lines; }
 
     auto get_code() -> std::vector<uint8_t> &;
 

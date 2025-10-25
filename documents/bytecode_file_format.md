@@ -57,7 +57,7 @@ Strings are stored in a compact representation, with the header first (which inc
 
 ### Chunk
 
-#### Chunk header (16 bytes)
+#### Chunk header (24 bytes)
 
 | Name                    | Offset | Size (bytes) | Type     | Comments                           |
 |-------------------------|--------|--------------|----------|------------------------------------|
@@ -68,7 +68,8 @@ Strings are stored in a compact representation, with the header first (which inc
 | Constant pool size      | 8      | 2            | uint16_t | Size of constant pool              |
 | Code length             | 10     | 4            | uint32_t | Length of bytecode instructions    |
 | Debug info present      | 14     | 1            | uint8_t  | 1 if debug info present, 0 if not  |
-| Reserved                | 15     | 1            | Reserved | Reserved for future use            |
+| ID                      | 15     | 4            | uint32_t | Internal identifier of the chunk   |
+| Reserved                | 19     | 5            | Reserved | Reserved for future use            |
 
 #### Constant pool (variable size)
 
@@ -100,12 +101,12 @@ The total size of debug info can be calculated by multiplying the number of pair
 
 ### Symbol table
 
-#### Symbol table header (8 bytes)
+#### Symbol table header (4 bytes)
 
 | Name                    | Offset | Size (bytes) | Type     | Comments                           |
 |-------------------------|--------|--------------|----------|------------------------------------|
-| Size                    | 0      | 4            | uint32_t | Number of entries in global table  |
-| Reserved                | 4      | 8            | Reserved | Reserved                           |
+| Size                    | 0      | 2            | uint16_t | Number of entries in global table  |
+| Reserved                | 2      | 2            | Reserved | Reserved                           |
 
 #### Values (variable size)
 
@@ -144,3 +145,14 @@ Each string is stored as a length-prefixed value:
 | Characters | variable     | char[]   | String data                 |
 
 Strings are stored sequentially from string 0 to string N, where N is determined by the size field in the string header.
+
+###  Value types
+
+| Type          | Byte |
+|---------------|------|
+| NIL           | 'N'  |
+| BOOLEAN       | 'B'  |
+| REAL          | 'R'  |
+| INT           | 'I'  |
+| ObjectString  | 'S'  |
+| ObjectFunction| 'F'  |

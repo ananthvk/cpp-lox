@@ -558,6 +558,20 @@ inline int encode_length_prefixed(uint8_t *buffer, const std::string &s)
 }
 
 /**
+ * @brief Encodes a string_view as a length prefixed array into a buffer
+ * @tparam endianness Endianness of the length to be written
+ * @param buffer The buffer where the encoded string will be stored
+ * @param s The string_view to be encoded
+ * @return The number of bytes written to the buffer,
+ * @note `buffer` should be of size atleast equal to `sizeof(size_t) + s.size()`
+ */
+template <endian endianness>
+inline int encode_length_prefixed(uint8_t *buffer, std::string_view s)
+{
+    return encode_length_prefixed<endianness>(buffer, s.data(), s.size());
+}
+
+/**
  * @brief Decodes a length-prefixed string from a buffer.
  * @tparam endianness Endianness of the length in the buffer
  * @param buffer The buffer containing the length-prefixed string to decode.

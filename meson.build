@@ -30,6 +30,7 @@ sources = files(
     'src/native/time.cpp',
     'src/parser.cpp',
     'src/register_native_functions.cpp',
+    'src/serializer.cpp',
     'src/value.cpp',
     'src/vm.cpp',
 )
