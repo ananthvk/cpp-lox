@@ -985,12 +985,6 @@ auto Compiler::define_variable(int constant_index, bool is_const) -> void
             context->get_name(constant_index)->get());
         return;
     }
-    if (val.defined)
-    {
-        parser.report_error("Syntax Error: Variable '{}' has been declared, cannot be redeclared",
-                            context->get_name(constant_index)->get());
-        return;
-    }
     val.is_const = is_const;
     emit_opcode(OpCode::DEFINE_GLOBAL);
     emit_uint16_le(static_cast<uint16_t>(constant_index));

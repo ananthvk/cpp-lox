@@ -20,6 +20,8 @@ class Lox
     CompilerOpts compiler_opts;
     VMOpts vm_opts;
     LoxOpts lox_opts;
+    
+    bool native_functions_registered = false;
 
   public:
     auto run_repl() -> int;

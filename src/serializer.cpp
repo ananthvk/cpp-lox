@@ -1,5 +1,7 @@
 #include "serializer.hpp"
+#include "context.hpp"
 #include "datapacker.hpp"
+#include <fmt/format.h>
 
 auto Serializer::serialize_string(ObjectString *string) -> uint32_t
 {
@@ -29,6 +31,7 @@ auto Serializer::serialize_string(ObjectString *string) -> uint32_t
         throw std::logic_error("string not serialized correctly");
     }
     strings_offset[string] = offset;
+    string_count++;
     return offset;
 }
 
@@ -172,4 +175,128 @@ auto Serializer::serialize_function(ObjectFunction *function) -> uint32_t
     current_offset += current_segment_size;
 
     return current_chunk_id;
+}
+
+auto Serializer::serialize_symbol_table(Context *context) -> std::vector<uint8_t>
+{
+    std::vector<uint8_t> buffer;
+
+    // Write the symbol table header
+    uint16_t size = static_cast<uint16_t>(context->names.size());
+    uint16_t reserved = 0;
+
+    buffer.resize(4);
+    uint8_t *buf = buffer.data();
+    auto count = datapacker::bytes::encode<datapacker::endian::little>(buf, size, reserved);
+    if (count != 4)
+    {
+        throw std::logic_error("invalid number of bytes written for symbol table header");
+    }
+
+    // Write symbol name, index pairs
+    auto offset = buffer.size();
+    auto new_size = buffer.size() + 8 * context->names.size();
+    buffer.resize(new_size);
+    buf = buffer.data() + offset;
+
+    for (size_t i = 0; i < context->names.size(); i++)
+    {
+        uint32_t index = serialize_string(context->names[i]);
+        uint8_t is_const = context->values[i].is_const;
+        uint16_t reserved0 = 0;
+        uint8_t reserved1 = 0;
+        buf += datapacker::bytes::encode<datapacker::endian::little>(buf, index, is_const,
+                                                                     reserved0, reserved1);
+    }
+    return buffer;
+}
+
+auto Serializer::write_string_block_header() -> void
+{
+    uint32_t reserved = 0;
+    // It's assumed that the size of the string block >= 8 bytes, and the first 8 bytes have been
+    // left free for the string header
+    if (datapacker::bytes::encode<datapacker::endian::little>(strings_block.data(), string_count,
+                                                              reserved) != 8)
+    {
+        throw std::logic_error("coudl not write string header");
+    }
+}
+
+auto Serializer::serialize_program(ObjectFunction *function, Context *context) -> SerializedBytecode
+{
+    // Reset all values before starting serialization
+    strings_block.clear();
+    // For storing the string header
+    strings_block.resize(8);
+    strings_offset.clear();
+    chunks.clear();
+    chunk_counter = 0;
+    string_count = 0;
+
+    // Serialize the program
+
+    auto id = serialize_function(function);
+    if (id != 0)
+    {
+        throw std::logic_error("id of main function (script) not 0");
+    }
+
+    // Serialize the global values
+    auto globals = serialize_symbol_table(context);
+
+    // Serialize the strings, emit the header
+    write_string_block_header();
+
+    // Combine all the bytes together
+
+    SerializedBytecode result;
+    // Iterate over chunks in reverse order, i.e. the main chunk will be emitted last
+    // This is done to simplify the loader, since all references to functions will be resolved
+    // before they are called
+    std::vector<uint8_t> bytecode;
+    for (auto iter = chunks.rbegin(); iter != chunks.rend(); ++iter)
+    {
+        bytecode.insert(bytecode.end(), iter->second.begin(), iter->second.end());
+    }
+
+    result.chunk_count = chunk_counter;
+    result.bytecode = std::move(bytecode);
+    result.globals = std::move(globals);
+    result.strings = std::move(strings_block);
+    strings_block.clear();
+    return result;
+}
+
+auto Serializer::display_serialized(std::ostream &os, const SerializedBytecode &bytecode) -> void
+{
+    os << "=== Serialized Program ===\n";
+    os << "Chunk count: " << bytecode.chunk_count << "\n\n";
+
+    os << "Bytecode (" << bytecode.bytecode.size() << " bytes):\n";
+    for (size_t i = 0; i < bytecode.bytecode.size(); ++i)
+    {
+        os << fmt::format("{:02x}", bytecode.bytecode[i]);
+        if (i < bytecode.bytecode.size() - 1)
+            os << " ";
+    }
+    os << "\n\n";
+
+    os << "Strings (" << bytecode.strings.size() << " bytes):\n";
+    for (size_t i = 0; i < bytecode.strings.size(); ++i)
+    {
+        os << fmt::format("{:02x}", bytecode.strings[i]);
+        if (i < bytecode.strings.size() - 1)
+            os << " ";
+    }
+    os << "\n\n";
+
+    os << "Globals (" << bytecode.globals.size() << " bytes):\n";
+    for (size_t i = 0; i < bytecode.globals.size(); ++i)
+    {
+        os << fmt::format("{:02x}", bytecode.globals[i]);
+        if (i < bytecode.globals.size() - 1)
+            os << " ";
+    }
+    os << "\n";
 }

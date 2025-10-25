@@ -722,8 +722,9 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                 char ch = string_obj->get()[index];
                 pop(); // index
                 pop(); // list
-                
-                // TODO: Optimize this: Wasteful since a new string has to be interned, along with std::string for a single character
+
+                // TODO: Optimize this: Wasteful since a new string has to be interned, along with
+                // std::string for a single character
                 push(allocator.intern_string(std::string(1, ch)));
             }
             break;
@@ -929,6 +930,7 @@ auto VM::define_native_function(std::string_view name, int arity, NativeFunction
     context->get_value(index) = peek(0);
     context->set_initialized(index, true);
     context->set_defined(index, true);
+    context->get_internal_value(index).is_created_by_runtime = true;
 
     pop();
     pop();

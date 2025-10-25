@@ -12,8 +12,13 @@ class Context
         bool defined;
         bool initialized;
         bool is_const;
+        bool is_created_by_runtime;
 
-        GlobalValue() : value(), defined(false), initialized(false), is_const(false) {}
+        GlobalValue()
+            : value(), defined(false), initialized(false), is_const(false),
+              is_created_by_runtime(false)
+        {
+        }
     };
 
   private:
@@ -73,4 +78,5 @@ class Context
     auto get_name(int index) const -> ObjectString * { return names[index]; }
 
     friend class GarbageCollector;
+    friend class Serializer;
 };

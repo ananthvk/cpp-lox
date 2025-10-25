@@ -20,11 +20,11 @@ Each chunk is composed of a chunk header, constant pool, the bytecode instructio
 └──────────────┴───────────────┴───────────────────────┴──────────────────────┘
 ```
 
-The symbol table is serialized as symbol table header, followed by values. 
+The symbol table is serialized as symbol table header, followed by global names. 
 
 ```
 ┌─────────────────────────┬─────────┬─────────┬───────┬─────────┐
-│ Symbol table header     │ Value  0│ Value  1│ ..... │ Value  N│
+│ Symbol table header     │ String 0│ String 1│ ..... │ String N│
 └─────────────────────────┴─────────┴─────────┴───────┴─────────┘
 ```
 
@@ -110,21 +110,16 @@ The total size of debug info can be calculated by multiplying the number of pair
 
 #### Values (variable size)
 
-The global symbol table contains 0 or more values used by any function in the program, they are stored as 24 byte records
+The global symbol table contains 0 or more global values used by any function in the program, they are stored as 8 byte records
 
 | Name        | Offset | Size (bytes) | Type     | Comments                                       |
 |-------------|--------|--------------|----------|------------------------------------------------|
 | Name        | 0      | 4            | uint32_t | String index for symbol name                   |
-| Index       | 4      | 4            | uint32_t | Symbol index                                   |
-| Type        | 8      | 1            | uint8_t  | Value type identifier                          |
-| Value       | 9      | 8            | varies   | Value data (depends upon the type)             |
-| Defined     | 17     | 1            | uint8_t  | 1 if defined, 0 if not                         |
-| Initialized | 18     | 1            | uint8_t  | 1 if initialized, 0 if not                     |
-| Is const    | 19     | 1            | uint8_t  | 1 if constant, 0 if not                        |
-| Reserved    | 20     | 1            | uint8_t  | Reserved for future use                        |
-| Reserved    | 21     | 3            | Reserved | Reserved for future use                        |
+| Is const    | 4      | 1            | uint8_t  | 1 indicates the name is const, 0 means no      |
+| Reserved    | 5      | 3            | Reserved | Reserved for future use                        |
 
-The total size of the symbol table can be found by multiplying size (from header) with 24 bytes
+The total size of the symbol table can be found by multiplying size (from header) with 8 bytes
+
 
 ### Strings
 

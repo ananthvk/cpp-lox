@@ -45,30 +45,14 @@ auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM 
 
     // TODO: Just to execute the serialization, remove this later
     Serializer serializer;
-    serializer.serialize_function(obj);
-    for (auto &chunk : serializer.get_chunks())
-    {
-        auto &buffer = chunk.second;
-        fmt::print("Serialized bytecode: [{}]", chunk.first);
-        for (size_t i = 0; i < buffer.size(); ++i)
-        {
-            fmt::print("{:02x}", buffer[i]);
-            if (i < buffer.size() - 1)
-                fmt::print(" ");
-        }
-        fmt::print("\n");
-        fmt::print("\n");
-    }
+    auto serialized = serializer.serialize_program(obj, context);
+    serializer.display_serialized(std::cout, serialized);
 
-    auto &strings = serializer.get_strings();
-    fmt::print("Strings: ");
-    for (size_t i = 0; i < strings.size(); ++i)
+    if (!native_functions_registered)
     {
-        fmt::print("{:02x}", strings[i]);
-        if (i < strings.size() - 1)
-            fmt::print(" ");
+        vm.register_native_functions();
+        native_functions_registered = true;
     }
-    fmt::print("\n");
 
     result = vm.run(obj, std::cout);
 
@@ -106,7 +90,6 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
-    vm.register_native_functions();
 
     compile_and_execute(source, reporter, vm, allocator, &context);
 
@@ -131,6 +114,7 @@ auto Lox::run_repl() -> int
     gc.set_vm(&vm);
 
     vm.register_native_functions();
+    native_functions_registered = true;
 
     while (true)
     {
@@ -181,9 +165,10 @@ auto Lox::run_source(std::string_view src) -> int
     // nor in the stack
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
-    vm.register_native_functions();
-
     auto [obj, result] = compiler.compile();
+    // Register the native functions after the compiler finishes compiling so that the global table
+    // does not get polluted
+    vm.register_native_functions();
     if (result != InterpretResult::OK)
     {
         reporter.display(stderr);
