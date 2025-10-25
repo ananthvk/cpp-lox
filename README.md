@@ -109,13 +109,19 @@ Usage:
   -v, --version                 Prints program version
 ```
 
-## Changes from the book
+## Notable Changes from the book & Usage
 
-1) The compiler de-duplicates integers (but not real numbers)
+### De-duplication of integers
 
-2) Supports 65k constants, and 65k global variables (accessed with 2 byte unsigned index)
+The compiler de-duplicates integers (but not real numbers)
 
-3) `const` variables
+### More constants
+
+Supports 65k constants, and 65k global variables (accessed with 2 byte unsigned index)
+
+### `const` variables
+
+`const` variables
 
 In global scope,
 ```
@@ -133,7 +139,7 @@ redeclaration with var Example:
 
 One difference is that redeclaration with const is not allowed since it helps make the vm simpler, otherwise an extra flag/byte needs to be maintained to identify if it's a const declaration or a var declaration.
 
-4) `switch` statement
+### `switch` statement
 
 Supports C-style switch statements with cases and default:
 
@@ -155,11 +161,11 @@ switch (value) {
 - There is no break statement, there is no fallthrough
 - Cases cannot appear after the default statement
 
-5) 
+### Local scope redeclaration  
 
 In local scope redeclaration of any form is disallowed
 
-6) Other native functions
+### List of native functions
 
 - `sqrt(value number) double` - Returns the square root of the number
 - `exit(status_code int)` - Exits the interpreter with the status code
@@ -183,19 +189,23 @@ In local scope redeclaration of any form is disallowed
 - `sys__mem_get_net_bytes() int` - Returns the net bytes currently allocated (allocated - freed)
 - `sys__mem_display_gc_stats()` - Prints detailed garbage collection statistics to the console
 
-7) `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
+### No print statements
+
+`print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.
 Do not use this statement unless needed, and instead use the `print()` and `println()` functions.
 
 Note: The GC implementation in my project does *not* track all memory and it will use a bit of extra memory. This is because some parts of the application uses `std::vector` and `std::string` that are not managed by the garbage collector. In the book, all memory is allocated through `reallocate()` hence the GC has complete control over the memory. But in my implementation, all vectors & strings are wrapped in VM objects, so once they are freed, the associated vectors & strings get freed too.
 
-8) Native functions for manipulating and accessing properties (fields)
+### Native functions for accessing properties
+
+Native functions for manipulating and accessing properties (fields)
 
 - `has_property(instance, string) bool` - Returns true if the property exists on the instance (similar to `hasattr` of python)
 - `get_property(instance, string) value` - Returns the value of the property on the instance (similar to `getattr` of python)
 - `set_property(instance, string, value)` - Sets the property on the instance to the given value (similar to `setattr` of python)
 - `del_property(instance, string) bool` - Deletes a property on an instance, returns true if the property was deleted, false if the property did not not exist
 
-9) Optional chaining operator `?.`
+### Optional chaining operator `?.`
 
 This operator is similar to the one in JS and can be used to access properties of nested objects easily (when some intermediate object is nil / not an instance)
 
@@ -215,7 +225,9 @@ f.x = print;
 println(f.x?.prop); // nil (becasue x is a native function)
 ```
 
-10) For inheritance, instead of `<` operator, I have decided to use `:` in my language (similar to C++)
+### `:` instead of `<` for inheritance
+
+For inheritance, instead of `<` operator, I have decided to use `:` in my language (similar to C++)
 
 Example:
 ```
@@ -225,9 +237,13 @@ class Bar : Foo {
 }
 ```
 
-11) Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1` respectively on to the stack. This was added as an optimization, so that the value need not be loaded from the constant table whenever these values are present.
+### Additional OPCODES for optimization of constants
 
-12) Implement list data structure (Note: It's implemented as a dynamic array (vector) rather than a linked list (like CPython))
+Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1` respectively on to the stack. This was added as an optimization, so that the value need not be loaded from the constant table whenever these values are present.
+
+### Lists (dynamic arrays)
+
+Implement list data structure (Note: It's implemented as a dynamic array (vector) rather than a linked list (like CPython))
 
 Example:
 ```
@@ -254,7 +270,9 @@ Native functions to work with lists
 - `delete(list, index)`: Removes an element at specified index from list
 - `pop(list) value`: Removes and returns the last element from a list
 
-13) Indexing works with strings too
+### String indexing
+
+Indexing works with strings too
 
 The result of indexing a string results in another string (there is no character datatype)
 
@@ -265,7 +283,6 @@ println(x[1]); // prints e
 
 x[2] = "x"; // Not allowed, throws error since strings are immutable
 ```
-
 
 ## TODO
 - [ ] Fix division by zero error
