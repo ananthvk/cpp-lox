@@ -226,6 +226,8 @@ auto Allocator::free_object(Object *obj) -> void
 
 auto Allocator::collect_garbage() -> void
 {
+    if (gc_disabled)
+        return;
     gc->collect_garbage();
     gc_cycles++;
 }

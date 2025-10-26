@@ -49,6 +49,9 @@ int main(int argc, char *argv[])
         ("c,command",        "Execute the given command and exit",
                              cxxopts::value<std::string>())
 
+        ("g,emit-debug-info",  "Include debug information in compiled bytecode (line number mappings). Can only be used with -o/--output flag",
+                             cxxopts::value<bool>()->default_value("false"))
+
         ("script",           "The lox program file to execute",
                              cxxopts::value<std::string>())
 
@@ -88,10 +91,32 @@ int main(int argc, char *argv[])
                 fmt::println("Error: No script file specified when using --output option");
                 exit(1);
             }
+            // Check if any VM options are specified - error since the emitted bytecode is stored to
+            // a file, and is not executed
+            if (result.count("enable-step-mode") != 0 || result.count("trace-execution") != 0 ||
+                result.count("stress-gc") != 0 || result.count("log-gc") != 0 ||
+                result.count("trace-eval-stack") != 0 || result.count("eval-stack-size") != 0 ||
+                result.count("display-mem-stats") != 0 ||
+                result.count("gc-initial-collection-threshold") != 0)
+            {
+                fmt::println(
+                    "Error: VM options are not allowed when using --output (compile mode)");
+                exit(1);
+            }
+        }
+        if (result.count("output") == 0)
+        {
+            if (result.count("emit-debug-info") != 0)
+            {
+                fmt::println(
+                    "Error: The flag -g/--emit-debug-info can only be used with --output (compile mode)");
+                exit(1);
+            }
         }
 
         CompilerOpts copts;
         copts.debug_print_tokens = result["print-tokens"].as<bool>();
+        copts.emit_debug_information = result["emit-debug-info"].as<bool>();
 
         VMOpts vopts;
         vopts.debug_step_mode_enabled = result["enable-step-mode"].as<bool>();

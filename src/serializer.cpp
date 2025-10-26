@@ -45,7 +45,7 @@ auto Serializer::write_chunk_header(uint8_t *buf, ObjectFunction *function, uint
     uint16_t upvalue_count = static_cast<uint16_t>(function->upvalue_count());
     uint16_t constant_pool_size = static_cast<uint16_t>(chunk->get_constants().size());
     uint32_t code_length = static_cast<uint32_t>(chunk->get_code().size());
-    uint8_t debug_present = 1;
+    uint8_t debug_present = static_cast<uint8_t>(opts.emit_debug_information);
     uint32_t chunk_id_ = chunk_id;
 
     uint32_t reserved0 = 0;
@@ -170,13 +170,16 @@ auto Serializer::serialize_function(ObjectFunction *function) -> uint32_t
     buffer.insert(buffer.end(), chunk->get_code().begin(), chunk->get_code().end());
     current_offset += current_segment_size;
 
-    // Serialize the debug information
-    // The required size is 8 for the header, with 8 bytes per LineInfo struct
-    current_segment_size = 8 + (8 * chunk->get_lines().size());
-    new_size = buffer.size() + current_segment_size;
-    buffer.resize(new_size);
-    write_debug_information(buffer.data() + current_offset, function);
-    current_offset += current_segment_size;
+    // Serialize the debug information if specified
+    if (opts.emit_debug_information)
+    {
+        // The required size is 8 for the header, with 8 bytes per LineInfo struct
+        current_segment_size = 8 + (8 * chunk->get_lines().size());
+        new_size = buffer.size() + current_segment_size;
+        buffer.resize(new_size);
+        write_debug_information(buffer.data() + current_offset, function);
+        current_offset += current_segment_size;
+    }
 
     return current_chunk_id;
 }

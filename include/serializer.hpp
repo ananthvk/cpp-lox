@@ -1,5 +1,6 @@
 #pragma once
 #include "classes.hpp"
+#include "compiler_opts.hpp"
 #include "context.hpp"
 #include "function.hpp"
 #include "object.hpp"
@@ -31,6 +32,8 @@ class Serializer
 
     uint32_t string_count = 0;
 
+    CompilerOpts opts;
+
     auto write_chunk_header(uint8_t *buf, ObjectFunction *function, uint32_t chunk_id) -> void;
     auto write_constant_pool(uint8_t *buf, ObjectFunction *function) -> void;
     auto write_debug_information(uint8_t *buf, ObjectFunction *function) -> void;
@@ -56,7 +59,10 @@ class Serializer
     auto write_string_block_header() -> void;
 
   public:
-    auto serialize_program(ObjectFunction *function, Context *context) -> SerializedBytecode;
+    Serializer(const CompilerOpts &opts) : opts(opts) {}
+
+    auto serialize_program(ObjectFunction *function, Context *context)
+        -> SerializedBytecode;
 
     auto display_serialized(std::ostream &os, const SerializedBytecode &bytecode) -> void;
 };

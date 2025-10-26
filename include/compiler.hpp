@@ -1,6 +1,7 @@
 #pragma once
 #include "allocator.hpp"
 #include "chunk.hpp"
+#include "compiler_opts.hpp"
 #include "config.hpp"
 #include "context.hpp"
 #include "error_reporter.hpp"
@@ -14,12 +15,6 @@
 
 class GarbageCollector;
 
-struct CompilerOpts
-{
-    bool debug_print_tokens = false;
-
-    bool dump_function_bytecode = false;
-};
 
 enum class ParsePrecedence
 {

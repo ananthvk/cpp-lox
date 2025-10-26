@@ -62,6 +62,8 @@ class Allocator
     HashMap<InternedString, ObjectString *, InternedStringHasher, InternedStringCmp>
         interned_strings;
 
+    bool gc_disabled = false;
+
     // These two functions exist to capture statistics about garbage collection, and to trigger
     // garbage collection when it exceeds threshold
     template <typename T> auto create_object()
@@ -190,6 +192,12 @@ class Allocator
     auto get_gc_cycles() const -> size_t { return gc_cycles; }
 
     auto get_temp_stash() -> std::vector<Value> & { return temp_stash; }
+
+    auto disable_gc() -> void { gc_disabled = true; }
+
+    auto enable_gc() -> void { gc_disabled = false; }
+
+    auto is_gc_disabled() const -> bool { return gc_disabled; }
 
     ~Allocator();
 };

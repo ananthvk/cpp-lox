@@ -1,8 +1,8 @@
 #include "lox.hpp"
 #include "allocator.hpp"
 #include "compiler.hpp"
-#include "file_header.hpp"
 #include "debug.hpp"
+#include "file_header.hpp"
 #include "gc.hpp"
 #include "lexer.hpp"
 #include "serializer.hpp"
@@ -118,6 +118,7 @@ auto Lox::compile_file(const std::filesystem::path &source_path,
     Allocator allocator(vm_opts);
     allocator.set_gc(&gc);
     gc.set_allocator(&allocator);
+    allocator.disable_gc();
 
     Context context;
 
@@ -143,9 +144,11 @@ auto Lox::compile_file(const std::filesystem::path &source_path,
     if (lox_opts.dump_bytecode)
         disassemble_chunk(*obj->get(), "program", &context);
 
-    Serializer serializer;
+    Serializer serializer(compiler_opts);
     auto serialized = serializer.serialize_program(obj, &context);
-    
+
+    serializer.display_serialized(std::cout, serialized);
+
     FileHeader header_writer;
     header_writer.write(output_path, serialized);
     return 0;
