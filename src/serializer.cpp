@@ -138,6 +138,10 @@ auto Serializer::write_debug_information(uint8_t *buf, ObjectFunction *function)
 
 auto Serializer::serialize_function(ObjectFunction *function) -> uint32_t
 {
+    if (chunk_counter == UINT16_MAX)
+    {
+        throw std::logic_error("too many chunks, can only serialize < 65535 chunks");
+    }
     uint32_t current_chunk_id = chunk_counter;
     auto &buffer = chunks[current_chunk_id];
     chunk_counter++;

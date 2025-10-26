@@ -52,10 +52,12 @@ int main(int argc, char *argv[])
         ("script",           "The lox program file to execute",
                              cxxopts::value<std::string>())
 
+        ("o,output",         "Compiles the script, generates the bytecode and store it in the specified file. Does not execute the program",
+                             cxxopts::value<std::string>())
+
         ("h,help",           "Prints this help message")
 
         ("v,version",        "Prints program version");
-
         options.parse_positional({"script"});
 
         // clang-format on
@@ -79,6 +81,15 @@ int main(int argc, char *argv[])
             fmt::println("Check out 'cpplox --help' for usage");
         }
 
+        if (result.count("output") != 0)
+        {
+            if (result.count("script") == 0)
+            {
+                fmt::println("Error: No script file specified when using --output option");
+                exit(1);
+            }
+        }
+
         CompilerOpts copts;
         copts.debug_print_tokens = result["print-tokens"].as<bool>();
 
@@ -95,8 +106,8 @@ int main(int argc, char *argv[])
         LoxOpts lopts;
         lopts.dump_bytecode = result["dump-bytecode"].as<bool>();
         lopts.compile_only = result["compile-only"].as<bool>();
-
         Lox lox(copts, vopts, lopts);
+
 
         if (result.count("command") != 0)
             return lox.run_source(result["command"].as<std::string>());
@@ -104,6 +115,12 @@ int main(int argc, char *argv[])
         if (result.count("script") == 0)
             return lox.run_repl();
 
+        if (result.count("output") != 0)
+        {
+            // Compile the file instead
+            return lox.compile_file(result["script"].as<std::string>(),
+                                    result["output"].as<std::string>());
+        }
         // Run the given file
         return lox.run_file(result["script"].as<std::string>());
     }

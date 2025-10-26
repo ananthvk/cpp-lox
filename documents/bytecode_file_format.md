@@ -43,16 +43,16 @@ Strings are stored in a compact representation, with the header first (which inc
 
 | Name                | Offset | Size (bytes) | Type            | Comments                      |
 |---------------------|--------|--------------|-----------------|-------------------------------|
-| Magic number        | 0      | 4            |`0xC 0x0 0xD 0xE`| Identifies the file           |
+| Magic number        | 0      | 4            |`0x00 0x4C 0x4F 0x58`| Identifies the file           |
 | CRC                 | 4      | 4            | uint32_t        | CRC32 checksum of full file   |
 | Version major       | 8      | 1            | uint8_t         | Major version number          |
 | Version minor       | 9      | 1            | uint8_t         | Minor version number          |
 | Version patch       | 10     | 1            | uint8_t         | Patch version number          |
 | Number of chunks    | 11     | 2            | uint16_t        | Count of chunks               |
-| Chunks start offset | 13     | 4            | uint32_t        | Offset to first chunk         |
+| Chunk start offset  | 13     | 4            | uint32_t        | Offset to first chunk         |
 | Global table offset | 17     | 4            | uint32_t        | Offset to global symbol table |
 | Strings offset      | 21     | 4            | uint32_t        | Offset to string pool         |
-| File size           | 25     | 4            | uint32_t        | Total size of file            |
+| File size           | 25     | 4            | uint32_t        | Total size of file header + bytecode + strings + globals|
 | Reserved            | 29     | 3            | Reserved        | Reserved for future use       |
 
 ### Chunk

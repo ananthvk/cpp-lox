@@ -1,6 +1,7 @@
 #include "lox.hpp"
 #include "allocator.hpp"
 #include "compiler.hpp"
+#include "file_header.hpp"
 #include "debug.hpp"
 #include "gc.hpp"
 #include "lexer.hpp"
@@ -43,17 +44,6 @@ auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM 
     if (lox_opts.compile_only)
         return InterpretResult::OK;
 
-    // TODO: Just to execute the serialization, remove this later
-    Serializer serializer;
-    auto serialized = serializer.serialize_program(obj, context);
-    serializer.display_serialized(std::cout, serialized);
-
-    if (!native_functions_registered)
-    {
-        vm.register_native_functions();
-        native_functions_registered = true;
-    }
-
     result = vm.run(obj, std::cout);
 
     return result;
@@ -90,6 +80,7 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
+    vm.register_native_functions();
 
     compile_and_execute(source, reporter, vm, allocator, &context);
 
@@ -97,6 +88,66 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
     {
         reporter.display(stderr);
     }
+    return 0;
+}
+
+auto Lox::compile_file(const std::filesystem::path &source_path,
+                       const std::filesystem::path &output_path) -> int
+{
+    // Similar to run file but do not create the VM
+    std::ifstream file(source_path);
+    if (!file)
+    {
+        fmt::print(fmt::fg(fmt::color::red), "Unable to read \"{}\" Error: {}\n",
+                   source_path.string(), std::strerror(errno));
+        return 1;
+    }
+    if (!std::filesystem::is_regular_file(source_path))
+    {
+        fmt::print(fmt::fg(fmt::color::red), "Unable to read \"{}\" Error: Not a file\n",
+                   source_path.string());
+        return 1;
+    }
+    std::stringstream ss;
+    ss << file.rdbuf();
+    auto source = ss.str();
+
+    ErrorReporter reporter;
+
+    GarbageCollector gc(vm_opts);
+    Allocator allocator(vm_opts);
+    allocator.set_gc(&gc);
+    gc.set_allocator(&allocator);
+
+    Context context;
+
+    Lexer lexer(source);
+    if (compiler_opts.debug_print_tokens)
+    {
+        print_tokens(lexer);
+    }
+    Parser parser(lexer.begin(), reporter);
+    Compiler compiler(parser, compiler_opts, allocator, &context, FunctionType::SCRIPT);
+
+    auto [obj, result] = compiler.compile();
+
+    if (result != InterpretResult::OK)
+    {
+        if (reporter.has_messages())
+        {
+            reporter.display(stderr);
+        }
+        return 1;
+    }
+
+    if (lox_opts.dump_bytecode)
+        disassemble_chunk(*obj->get(), "program", &context);
+
+    Serializer serializer;
+    auto serialized = serializer.serialize_program(obj, &context);
+    
+    FileHeader header_writer;
+    header_writer.write(output_path, serialized);
     return 0;
 }
 
@@ -114,7 +165,6 @@ auto Lox::run_repl() -> int
     gc.set_vm(&vm);
 
     vm.register_native_functions();
-    native_functions_registered = true;
 
     while (true)
     {
