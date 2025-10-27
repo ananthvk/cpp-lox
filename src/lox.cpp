@@ -52,7 +52,6 @@ auto Lox::compile_and_execute(std::string_view src, ErrorReporter &reporter, VM 
 
 auto Lox::run_file(const std::filesystem::path &path) -> int
 {
-
     std::ifstream file(path);
     if (!file)
     {
@@ -66,12 +65,8 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
                    path.string());
         return 1;
     }
-    std::stringstream ss;
-    ss << file.rdbuf();
-    auto source = ss.str();
 
     ErrorReporter reporter;
-
     GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
     allocator.set_gc(&gc);
@@ -81,13 +76,44 @@ auto Lox::run_file(const std::filesystem::path &path) -> int
 
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
-    vm.register_native_functions();
 
-    compile_and_execute(source, reporter, vm, allocator, &context);
-
-    if (reporter.has_messages())
+    FileHeader header;
+    if (header.is_compiled_lox_program(path))
     {
-        reporter.display(stderr);
+        // It's a compiled program
+        auto bytecode = header.read(path);
+        Deserializer deserialzer;
+        auto obj = deserialzer.deserialize_program(bytecode, allocator, &context);
+
+        allocator.disable_gc();
+        vm.register_native_functions();
+        allocator.enable_gc();
+
+        auto result = vm.run(obj, std::cout);
+
+        if (reporter.has_error() || result != InterpretResult::OK)
+        {
+            reporter.display(stderr);
+            return 1;
+        }
+    }
+    else
+    {
+        // It's a source program
+        std::stringstream ss;
+        ss << file.rdbuf();
+        auto source = ss.str();
+
+        // TODO: In this case the global variable indices will be different to a compiled program
+        vm.register_native_functions();
+        compile_and_execute(source, reporter, vm, allocator, &context);
+
+        if (reporter.has_messages())
+        {
+            reporter.display(stderr);
+        }
+        if (reporter.has_messages())
+            return 1;
     }
     return 0;
 }

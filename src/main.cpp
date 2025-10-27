@@ -108,10 +108,16 @@ int main(int argc, char *argv[])
         {
             if (result.count("emit-debug-info") != 0)
             {
-                fmt::println(
-                    "Error: The flag -g/--emit-debug-info can only be used with --output (compile mode)");
+                fmt::println("Error: The flag -g/--emit-debug-info can only be used with --output "
+                             "(compile mode)");
                 exit(1);
             }
+        }
+
+        if(result.count("command") != 0 && (result.count("emit-debug-info") != 0 || result.count("output") != 0)) {
+            fmt::println(
+                "Error: The flags -g/--emit-debug-info and --output cannot be used with --command");
+            exit(1);
         }
 
         CompilerOpts copts;

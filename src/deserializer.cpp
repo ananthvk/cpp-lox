@@ -392,6 +392,7 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, uint8_t *buffer, uin
 // deserialization so that objects don't get freed, and the gc is enabled before the
 // function returns. In case an exception is thrown, it's the responsibility of the caller
 // to re-enable the gc (if needed)
+// TODO: Later make a zero copy version that directly takes three uint8_t* and sizes
 auto Deserializer::deserialize_program(SerializedBytecode &bytecode, Allocator &allocator,
                                        Context *context) -> ObjectFunction *
 {
