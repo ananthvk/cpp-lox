@@ -14,3 +14,5 @@ lox_executable = executable(
     cpp_args: dev_flags,
     include_directories: include_dirs,
 )
+
+subdir('tools')

@@ -142,6 +142,12 @@ Execute it with,
 $ cpp-lox compiled.loxc
 ```
 
+Use `tools/loxdump` to disassemble a compiled lox program
+
+```
+$ ./tools/loxdump compiled.loxc
+```
+
 ### De-duplication of integers
 
 The compiler de-duplicates integers (but not real numbers)

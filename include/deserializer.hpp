@@ -18,7 +18,7 @@ class Deserializer
 
     auto deserialize_strings(Allocator &allocator, uint8_t *buffer, uint32_t size) -> void;
     auto deserialize_global_table(Context *context, uint8_t *buffer, uint32_t size) -> void;
-    auto deserialize_chunks(Allocator &allocator, uint8_t *buffer, uint32_t size,
+    auto deserialize_chunks(Allocator &allocator, Context *context, uint8_t *buffer, uint32_t size,
                             uint32_t expected_chunk_count) -> void;
     auto deserialize_constant_pool(std::vector<Value> &constant_pool, uint8_t *buffer,
                                    uint32_t constant_pool_size) -> void;

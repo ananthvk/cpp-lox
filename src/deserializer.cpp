@@ -1,5 +1,6 @@
 #include "deserializer.hpp"
 #include "datapacker.hpp"
+#include "debug.hpp"
 #include <fmt/format.h>
 
 auto Deserializer::deserialize_strings(Allocator &allocator, uint8_t *buffer, uint32_t size) -> void
@@ -272,8 +273,8 @@ auto Deserializer::deserialize_debug_info(Chunk &chunk, uint8_t *buffer, uint32_
     return offset;
 }
 
-auto Deserializer::deserialize_chunks(Allocator &allocator, uint8_t *buffer, uint32_t size,
-                                      uint32_t expected_chunk_count) -> void
+auto Deserializer::deserialize_chunks(Allocator &allocator, Context *context, uint8_t *buffer,
+                                      uint32_t size, uint32_t expected_chunk_count) -> void
 {
     uint32_t offset = 0;
     while (offset < size)
@@ -370,6 +371,12 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, uint8_t *buffer, uin
             offset = deserialize_debug_info(*chunk, buffer, offset, size);
         }
 
+        if (is_log_enabled)
+        {
+            fmt::print("code [{} bytes]\n", chunk->get_code().size());
+            disassemble_chunk(*chunk, std::string(name_iter->second->get()), context, false);
+        }
+
         auto obj =
             allocator.new_function(arity, name_iter->second, upvalue_count, std::move(chunk));
 
@@ -424,7 +431,7 @@ auto Deserializer::deserialize_program(SerializedBytecode &bytecode, Allocator &
     {
         throw std::runtime_error("bytecode load error: bytecode block too large");
     }
-    deserialize_chunks(allocator, bytecode.bytecode.data(),
+    deserialize_chunks(allocator, context, bytecode.bytecode.data(),
                        static_cast<uint32_t>(bytecode.bytecode.size()), bytecode.chunk_count);
 
     // Check if the main function (id 0) exists

@@ -159,10 +159,14 @@ auto closure_instruction(OpCode op, int offset, const Chunk &chunk, Context *con
     return offset;
 }
 
-auto disassemble_chunk(const Chunk &chunk, const std::string &name, Context *context) -> void
+auto disassemble_chunk(const Chunk &chunk, const std::string &name, Context *context,
+                       bool print_header) -> void
 {
-    fmt::print(fmt::fg(fmt::color::white) | fmt::emphasis::bold, "== {} ({} bytes) ==\n", name,
-               chunk.get_code().size());
+    if (print_header)
+    {
+        fmt::print(fmt::fg(fmt::color::white) | fmt::emphasis::bold, "== {} ({} bytes) ==\n", name,
+                   chunk.get_code().size());
+    }
     const auto &code = chunk.get_code();
     for (int offset = 0; offset < static_cast<int>(code.size());)
     {
