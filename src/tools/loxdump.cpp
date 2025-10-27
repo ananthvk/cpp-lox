@@ -3,7 +3,7 @@
 #include "deserializer.hpp"
 #include "file_header.hpp"
 #include "gc.hpp"
-#include "vm.hpp"
+#include "vmopts.hpp"
 #include <filesystem>
 #include <fmt/color.h>
 #include <fmt/format.h>

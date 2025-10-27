@@ -1,0 +1,260 @@
+Disassembly of 'linkedlist.lc':
+
+=== strings block [size: 268 bytes, count: 20] ===
+0x00000008 | ''
+0x0000000c | 'Node'
+0x00000014 | 'LinkedList'
+0x00000022 | 'createList'
+0x00000030 | 'head'
+0x00000038 | 'size'
+0x00000040 | 'createNode'
+0x0000004e | 'value'
+0x00000057 | 'next'
+0x0000005f | 'addToList'
+0x0000006c | 'traverse'
+0x00000078 | 'Traversing list:'
+0x0000008c | 'List size: '
+0x0000009b | '================='
+0x000000b0 | 'STATS'
+0x000000b9 | '================'
+0x000000cd | 'myList'
+0x000000d7 | 'println'
+0x000000e2 | 'to_string'
+0x000000ef | 'sys__mem_display_gc_stats'
+
+=== global table [size: 84 bytes, entries: 10] ===
+0000000000 | [     ] 'Node'
+0000000001 | [     ] 'LinkedList'
+0000000002 | [     ] 'createList'
+0000000003 | [     ] 'createNode'
+0000000004 | [     ] 'addToList'
+0000000005 | [     ] 'traverse'
+0000000006 | [     ] 'myList'
+0000000007 | [     ] 'println'
+0000000008 | [     ] 'to_string'
+0000000009 | [     ] 'sys__mem_display_gc_stats'
+
+=== chunk 4 [name: 'traverse'] ===
+arity: 1
+upvalue count: 0
+constant pool size: 2
+code length: 30
+debug info present: yes
+constant pool [size: 18 bytes, entries: 2]
+00000 | 'head'
+00001 | 'next'
+debug info [count: 5, size: 48 bytes]
+code [30 bytes]
+0000    38 LOAD_LOCAL              1 
+0003     | LOAD_PROPERTY           0 'head'
+0006    39 LOAD_LOCAL              2 
+0009     | NIL
+0010     | EQUAL
+0011     | NOT
+0012     | POP_JUMP_IF_FALSE       13 0028 L43
+0015    41 LOAD_LOCAL              2 
+0018     | LOAD_PROPERTY           1 'next'
+0021     | STORE_LOCAL             2 
+0024     | POP_TOP
+0025    42 JUMP_BACKWARD          22 0006 L39
+0028    43 NIL
+0029     | RETURN
+
+=== chunk 3 [name: 'addToList'] ===
+arity: 2
+upvalue count: 0
+constant pool size: 8
+code length: 91
+debug info present: yes
+constant pool [size: 72 bytes, entries: 8]
+00000 | 'head'
+00001 | 'head'
+00002 | 'head'
+00003 | 'next'
+00004 | 'next'
+00005 | 'next'
+00006 | 'size'
+00007 | 'size'
+debug info [count: 12, size: 104 bytes]
+code [91 bytes]
+0000    22 LOAD_GLOBAL             3 'createNode'
+0003     | LOAD_LOCAL              2 
+0006     | CALL                    1 '1 arguments'
+0008    24 LOAD_LOCAL              1 
+0011     | LOAD_PROPERTY           0 'head'
+0014     | NIL
+0015     | EQUAL
+0016     | POP_JUMP_IF_FALSE       13 0032 L28
+0019    25 LOAD_LOCAL              1 
+0022     | LOAD_LOCAL              3 
+0025     | STORE_PROPERTY          1 'head'
+0028     | POP_TOP
+0029    26 JUMP_FORWARD           42 0074 L34
+0032    28 LOAD_LOCAL              1 
+0035     | LOAD_PROPERTY           2 'head'
+0038    29 LOAD_LOCAL              4 
+0041     | LOAD_PROPERTY           3 'next'
+0044     | NIL
+0045     | EQUAL
+0046     | NOT
+0047     | POP_JUMP_IF_FALSE       13 0063 L32
+0050    30 LOAD_LOCAL              4 
+0053     | LOAD_PROPERTY           4 'next'
+0056     | STORE_LOCAL             4 
+0059     | POP_TOP
+0060    31 JUMP_BACKWARD          25 0038 L29
+0063    32 LOAD_LOCAL              4 
+0066     | LOAD_LOCAL              3 
+0069     | STORE_PROPERTY          5 'next'
+0072     | POP_TOP
+0073    33 POP_TOP
+0074    34 LOAD_LOCAL              1 
+0077     | LOAD_LOCAL              1 
+0080     | LOAD_PROPERTY           7 'size'
+0083     | ONE
+0084     | ADD
+0085     | STORE_PROPERTY          6 'size'
+0088     | POP_TOP
+0089    35 NIL
+0090     | RETURN
+
+=== chunk 2 [name: 'createNode'] ===
+arity: 1
+upvalue count: 0
+constant pool size: 2
+code length: 29
+debug info present: yes
+constant pool [size: 18 bytes, entries: 2]
+00000 | 'value'
+00001 | 'next'
+debug info [count: 5, size: 48 bytes]
+code [29 bytes]
+0000    15 LOAD_GLOBAL             0 'Node'
+0003     | CALL                    0 '0 arguments'
+0005    16 LOAD_LOCAL              2 
+0008     | LOAD_LOCAL              1 
+0011     | STORE_PROPERTY          0 'value'
+0014     | POP_TOP
+0015    17 LOAD_LOCAL              2 
+0018     | NIL
+0019     | STORE_PROPERTY          1 'next'
+0022     | POP_TOP
+0023    18 LOAD_LOCAL              2 
+0026     | RETURN
+0027    19 NIL
+0028     | RETURN
+
+=== chunk 1 [name: 'createList'] ===
+arity: 0
+upvalue count: 0
+constant pool size: 2
+code length: 27
+debug info present: yes
+constant pool [size: 18 bytes, entries: 2]
+00000 | 'head'
+00001 | 'size'
+debug info [count: 5, size: 48 bytes]
+code [27 bytes]
+0000     8 LOAD_GLOBAL             1 'LinkedList'
+0003     | CALL                    0 '0 arguments'
+0005     9 LOAD_LOCAL              1 
+0008     | NIL
+0009     | STORE_PROPERTY          0 'head'
+0012     | POP_TOP
+0013    10 LOAD_LOCAL              1 
+0016     | ZERO
+0017     | STORE_PROPERTY          1 'size'
+0020     | POP_TOP
+0021    11 LOAD_LOCAL              1 
+0024     | RETURN
+0025    12 NIL
+0026     | RETURN
+
+=== chunk 0 [name: ''] ===
+arity: 0
+upvalue count: 0
+constant pool size: 13
+code length: 150
+debug info present: yes
+constant pool [size: 117 bytes, entries: 13]
+00000 | 'Node'
+00001 | 'LinkedList'
+00002 | '<function createList>'
+00003 | '<function createNode>'
+00004 | '<function addToList>'
+00005 | '<function traverse>'
+00006 | '10000'
+00007 | 'Traversing list:'
+00008 | 'List size: '
+00009 | 'size'
+00010 | '================='
+00011 | 'STATS'
+00012 | '================'
+debug info [count: 18, size: 152 bytes]
+code [150 bytes]
+0000     1 CLASS                   0 'Node'
+0003     | DEFINE_GLOBAL           0 'Node'
+0006     | LOAD_GLOBAL             0 'Node'
+0009     2 POP_TOP
+0010     4 CLASS                   1 'LinkedList'
+0013     | DEFINE_GLOBAL           1 'LinkedList'
+0016     | LOAD_GLOBAL             1 'LinkedList'
+0019     5 POP_TOP
+0020    12 CLOSURE                 2 '<function createList>'
+0023     | DEFINE_GLOBAL           2 'createList'
+0026    19 CLOSURE                 3 '<function createNode>'
+0029     | DEFINE_GLOBAL           3 'createNode'
+0032    35 CLOSURE                 4 '<function addToList>'
+0035     | DEFINE_GLOBAL           4 'addToList'
+0038    43 CLOSURE                 5 '<function traverse>'
+0041     | DEFINE_GLOBAL           5 'traverse'
+0044    45 LOAD_GLOBAL             2 'createList'
+0047     | CALL                    0 '0 arguments'
+0049     | DEFINE_GLOBAL           6 'myList'
+0052    47 ZERO
+0053     | LOAD_LOCAL              1 
+0056     | LOAD_CONSTANT           6 '10000'
+0058     | LESS
+0059     | POP_JUMP_IF_FALSE       30 0092 L49
+0062     | JUMP_FORWARD           12 0077 L48
+0065     | LOAD_LOCAL              1 
+0068     | ONE
+0069     | ADD
+0070     | STORE_LOCAL             1 
+0073     | POP_TOP
+0074     | JUMP_BACKWARD          24 0053 L47
+0077    48 LOAD_GLOBAL             4 'addToList'
+0080     | LOAD_GLOBAL             6 'myList'
+0083     | LOAD_LOCAL              1 
+0086     | CALL                    2 '2 arguments'
+0088     | POP_TOP
+0089    49 JUMP_BACKWARD          27 0065 L47
+0092     | POP_TOP
+0093    51 LOAD_GLOBAL             7 'println'
+0096     | LOAD_CONSTANT           7 'Traversing list:'
+0098     | CALL                    1 '1 arguments'
+0100     | POP_TOP
+0101    52 LOAD_GLOBAL             5 'traverse'
+0104     | LOAD_GLOBAL             6 'myList'
+0107     | CALL                    1 '1 arguments'
+0109     | POP_TOP
+0110    53 LOAD_GLOBAL             7 'println'
+0113     | LOAD_CONSTANT           8 'List size: '
+0115     | LOAD_GLOBAL             8 'to_string'
+0118     | LOAD_GLOBAL             6 'myList'
+0121     | LOAD_PROPERTY           9 'size'
+0124     | CALL                    1 '1 arguments'
+0126     | ADD
+0127     | CALL                    1 '1 arguments'
+0129     | POP_TOP
+0130    56 LOAD_GLOBAL             7 'println'
+0133     | LOAD_CONSTANT          10 '================='
+0135     | LOAD_CONSTANT          11 'STATS'
+0137     | LOAD_CONSTANT          12 '================'
+0139     | CALL                    3 '3 arguments'
+0141     | POP_TOP
+0142    57 LOAD_GLOBAL             9 'sys__mem_display_gc_stats'
+0145     | CALL                    0 '0 arguments'
+0147     | POP_TOP
+0148     1 NIL
+0149     | RETURN
