@@ -14,12 +14,12 @@ $ ninja -j8
 
 If you are on linux, run
 ```
-$ ./src/cpplox
+$ ./src/bin/cpplox
 ```
 
 On windows, run
 ```
-.\src\cpplox.exe
+.\src\bin\cpplox.exe
 ```
 
 ## To run tests
@@ -38,6 +38,14 @@ Install dependencies
 $ pip install -r requirements.txt
 ```
 
+After building, three binaries are produced
+
+`./builddir/src/bin/cpplox` - Includes a Compiler, VM and a REPL
+
+`./builddir/src/bin/loxvm` - Standalone VM, does not include compiler, used for running compiled lox programs
+
+`./builddir/src/tools/loxdump` - For disassembling compiled lox programs
+
 Run tests
 ```
 $ meson setup builddir -Denable-tests=true
@@ -53,13 +61,6 @@ $ cd builddir
 $ meson test --benchmark --interactive
 ```
 
-For profiling, and to view the graph
-
-```
-$ g++ -pg -O0 ../src/*.cpp ../src/native/*.cpp -I../include -I../thirdparty -lfmt
-$ ./a.out program.lox
-$ gprof -b ./a.out gmon.out | gprof2dot | dot -Tsvg -o output.svg
-```
 
 ## Development build
 
@@ -144,7 +145,7 @@ $ cpp-lox compiled.loxc
 
 Use `tools/loxdump` to disassemble a compiled lox program
 
-```
+``
 $ ./tools/loxdump compiled.loxc
 ```
 

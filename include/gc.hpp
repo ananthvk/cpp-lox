@@ -8,8 +8,8 @@
 class GarbageCollector
 {
     // Non owning pointer to allocator
-    Allocator *allocator;
-    VM *vm;
+    Allocator *allocator = nullptr;
+    VM *vm = nullptr;
     VMOpts vopts;
     int log_indent_level;
     std::vector<Object *> never_delete_objects;
