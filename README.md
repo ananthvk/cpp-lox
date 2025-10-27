@@ -145,7 +145,7 @@ $ cpp-lox compiled.loxc
 
 Use `tools/loxdump` to disassemble a compiled lox program
 
-``
+```
 $ ./tools/loxdump compiled.loxc
 ```
 
