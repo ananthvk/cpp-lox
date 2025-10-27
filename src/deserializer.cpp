@@ -60,13 +60,16 @@ auto Deserializer::deserialize_strings(Allocator &allocator, uint8_t *buffer, ui
 
     if (is_log_enabled)
     {
-        fmt::println("=== strings block [size: {} bytes, count: {}] ===", size, string_count);
+        fmt::print(fmt::fg(fmt::color::cyan), "=== strings block [size: {} bytes, count: {}] ===\n",
+                   size, string_count);
         // Display all strings
         for (auto rec : strings)
         {
-            fmt::println("{:#010x} | '{}'", rec.first, rec.second->get());
+            fmt::print(fmt::fg(fmt::color::yellow), "{:#010x}", rec.first);
+            fmt::print(" | ");
+            fmt::print(fmt::fg(fmt::color::green), "'{}'\n", rec.second->get());
         }
-        fmt::println("");
+        fmt::print("\n");
     }
 }
 
@@ -93,14 +96,15 @@ auto Deserializer::deserialize_global_table(Context *context, uint8_t *buffer, u
     if (size != (num_entries * 8 + 4))
     {
         throw std::runtime_error(
-            "bytecode load error: invalid global symbol table size, expected " +
+            "bytecode load error: invalid global string table size, expected " +
             std::to_string(num_entries * 8 + 4) + " bytes, got " + std::to_string(size) + " bytes");
     }
 
     uint32_t offset = 4; // Header size
     if (is_log_enabled)
     {
-        fmt::println("=== global table [size: {} bytes, entries: {}] ===", size, num_entries);
+        fmt::print(fmt::fg(fmt::color::cyan),
+                   "=== global table [size: {} bytes, entries: {}] ===\n", size, num_entries);
     }
     for (int i = 0; i < num_entries; i++)
     {
@@ -133,14 +137,18 @@ auto Deserializer::deserialize_global_table(Context *context, uint8_t *buffer, u
         context->get_internal_value(index).is_const = is_const;
         if (is_log_enabled)
         {
-            fmt::println("{:010d} | [{}] '{}'", i, is_const ? "const" : "     ",
-                         iter->second->get());
+            fmt::print(fmt::fg(fmt::color::yellow), "{:010d}", i);
+            fmt::print(" | ");
+            fmt::print(fmt::fg(is_const ? fmt::color::magenta : fmt::color::white), "[{}]",
+                       is_const ? "const" : "     ");
+            fmt::print(" ");
+            fmt::print(fmt::fg(fmt::color::green), "'{}'\n", iter->second->get());
         }
         offset += 8;
     }
     if (is_log_enabled)
     {
-        fmt::println("");
+        fmt::print("\n");
     }
 }
 
@@ -242,7 +250,8 @@ auto Deserializer::deserialize_debug_info(Chunk &chunk, uint8_t *buffer, uint32_
     offset += 8;
     if (is_log_enabled)
     {
-        fmt::println("debug info [count: {}, size: {} bytes]", count, count * 8 + 8);
+        fmt::print(fmt::fg(fmt::color::blue), "debug info [count: {}, size: {} bytes]\n", count,
+                   count * 8 + 8);
     }
 
     // Check if minimum n * 8 bytes are available for the pairs
@@ -325,12 +334,19 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, Context *context, ui
 
         if (is_log_enabled)
         {
-            fmt::println("=== chunk {} [name: '{}'] ===", id, name_iter->second->get());
-            fmt::println("arity: {}", arity);
-            fmt::println("upvalue count: {}", upvalue_count);
-            fmt::println("constant pool size: {}", constant_pool_size);
-            fmt::println("code length: {}", code_length);
-            fmt::println("debug info present: {}", debug_info_present ? "yes" : "no");
+            fmt::print(fmt::fg(fmt::color::cyan), "=== chunk {} [name: '{}'] ===\n", id,
+                       name_iter->second->get());
+            fmt::print(fmt::fg(fmt::color::white), "arity: ");
+            fmt::print(fmt::fg(fmt::color::yellow), "{}\n", arity);
+            fmt::print(fmt::fg(fmt::color::white), "upvalue count: ");
+            fmt::print(fmt::fg(fmt::color::yellow), "{}\n", upvalue_count);
+            fmt::print(fmt::fg(fmt::color::white), "constant pool size: ");
+            fmt::print(fmt::fg(fmt::color::yellow), "{}\n", constant_pool_size);
+            fmt::print(fmt::fg(fmt::color::white), "code length: ");
+            fmt::print(fmt::fg(fmt::color::yellow), "{}\n", code_length);
+            fmt::print(fmt::fg(fmt::color::white), "debug info present: ");
+            fmt::print(fmt::fg(debug_info_present ? fmt::color::green : fmt::color::red), "{}\n",
+                       debug_info_present ? "yes" : "no");
         }
 
         // Read the constant pool
@@ -348,11 +364,13 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, Context *context, ui
 
         if (is_log_enabled)
         {
-            fmt::println("constant pool [size: {} bytes, entries: {}]", constant_pool_size * 9,
-                         constant_pool_size);
+            fmt::print(fmt::fg(fmt::color::blue), "constant pool [size: {} bytes, entries: {}]\n",
+                       constant_pool_size * 9, constant_pool_size);
             for (int i = 0; i < constant_pool_size; i++)
             {
-                fmt::println("{:05d} | '{}'", i, constant_pool[i].to_string());
+                fmt::print(fmt::fg(fmt::color::yellow), "{:05d}", i);
+                fmt::print(" | ");
+                fmt::print(fmt::fg(fmt::color::green), "'{}'\n", constant_pool[i].to_string());
             }
         }
 
@@ -373,7 +391,7 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, Context *context, ui
 
         if (is_log_enabled)
         {
-            fmt::print("code [{} bytes]\n", chunk->get_code().size());
+            fmt::print(fmt::fg(fmt::color::blue), "code [{} bytes]\n", chunk->get_code().size());
             disassemble_chunk(*chunk, std::string(name_iter->second->get()), context, false);
         }
 
@@ -389,7 +407,7 @@ auto Deserializer::deserialize_chunks(Allocator &allocator, Context *context, ui
         functions[id] = obj;
         if (is_log_enabled)
         {
-            fmt::println("");
+            fmt::print("\n");
         }
     }
 }
