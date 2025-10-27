@@ -11,15 +11,25 @@ project(
 include_dirs = include_directories(['include', 'thirdparty'])
 project_deps = [dependency('fmt')]
 
-sources = files(
-    'src/allocator.cpp',
-    'src/chunk.cpp',
-    'src/compiler.cpp',
-    'src/debug.cpp',
-    'src/deserializer.cpp',
-    'src/gc.cpp',
-    'src/lexer.cpp',
-    'src/lox.cpp',
+# Sources used by all binaries
+common_sources = files(
+    'src/common/allocator.cpp',
+    'src/common/chunk.cpp',
+    'src/common/debug_vm.cpp',
+    'src/common/gc.cpp',
+    'src/common/value.cpp',
+)
+
+# Sources used only by the compiler
+compiler_sources = files(
+    'src/compiler/compiler.cpp',
+    'src/compiler/debug_compiler.cpp',
+    'src/compiler/lexer.cpp',
+    'src/compiler/parser.cpp',
+)
+
+# Sources used only by the VM
+vm_sources = files(
     'src/native/classes.cpp',
     'src/native/list.cpp',
     'src/native/math.cpp',
@@ -29,12 +39,21 @@ sources = files(
     'src/native/string.cpp',
     'src/native/test.cpp',
     'src/native/time.cpp',
-    'src/parser.cpp',
-    'src/register_native_functions.cpp',
-    'src/serializer.cpp',
-    'src/value.cpp',
-    'src/vm.cpp',
+    'src/vm/register_native_functions.cpp',
+    'src/vm/vm.cpp',
 )
+
+# Sources used by serialization
+serialization_sources = files(
+    'src/serialization/deserializer.cpp',
+    'src/serialization/serializer.cpp',
+)
+
+# Sources used by the lox library
+lox_sources = files('src/lox/lox.cpp')
+
+# Stubs
+compiler_stub = files('src/stubs/compiler_stub.cpp')
 
 subdir('flags')
 subdir('src')

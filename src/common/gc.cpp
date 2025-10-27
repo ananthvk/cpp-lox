@@ -1,5 +1,5 @@
 #include "gc.hpp"
-#include "compiler.hpp"
+#include "compiler_fwd.hpp"
 #include "math.h"
 
 GarbageCollector::GarbageCollector(VMOpts vm_opts) : vopts(vm_opts), log_indent_level(0) {}
@@ -8,6 +8,7 @@ auto GarbageCollector::set_allocator(Allocator *alloc) -> void { allocator = all
 
 auto GarbageCollector::collect_garbage() -> void
 {
+
     log(fmt::color::green, "{} [VM: {}, Compiler: {}]", "begin", (vm != nullptr) ? "live" : "none",
         Compiler::does_compiler_exist() ? "live" : "none");
     auto bytes_freed_initial = allocator->get_bytes_freed();

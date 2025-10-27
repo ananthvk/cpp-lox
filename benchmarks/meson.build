@@ -4,7 +4,11 @@ current_dir = include_directories('.')
 # Library for your Lox runtime
 benchmark_liblox = static_library(
     'liblox_bench',
-    sources: sources,
+    sources: common_sources
+    + compiler_sources
+    + vm_sources
+    + serialization_sources
+    + lox_sources,
     include_directories: [include_dirs, current_dir],
     dependencies: project_deps,
     override_options: ['b_sanitize=none', 'b_lto=false', 'optimization=3'],
