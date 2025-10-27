@@ -105,11 +105,42 @@ Usage:
       --stress-gc               Stresses the GC by triggering a collection 
                                 everytime a new object is created
   -c, --command arg             Execute the given command and exit
+  -g, --emit-debug-info         Include debug information in compiled 
+                                bytecode (line number mappings). Can only 
+                                be used with -o/--output flag
+  -o, --output arg              Compiles the script, generates the bytecode 
+                                and store it in the specified file. Does 
+                                not execute the program
   -h, --help                    Prints this help message
   -v, --version                 Prints program version
 ```
 
 ## Notable Changes from the book & Usage
+
+### Serialization of bytecode to file and execution of it
+
+Supports storing the compiled bytecode in a file, then loading and executing it. See [bytecode file format](documents/bytecode_file_format.md) to learn more about how the compiled program is stored on disk.
+
+To generate a bytecode file, use the `-o/--output` flag, and optionally the `-g/--emit-debug-info` flag to emit the line-bytecode offset mapping.
+
+Example: 
+
+```
+$ cpp-lox program.lox -o compiled.loxc
+```
+
+or 
+
+```
+$ cpp-lox program.lox -o compiled.loxc -g
+```
+If you also want to include bytecode line positions.
+
+Execute it with,
+
+```
+$ cpp-lox compiled.loxc
+```
 
 ### De-duplication of integers
 
