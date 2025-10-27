@@ -148,6 +148,10 @@ class Allocator
 
     auto new_function(int arity, std::string_view name) -> ObjectFunction *;
 
+    // To be used by the deserializer to create the function in one call
+    auto new_function(int arity, ObjectString *name, int upvalue_count,
+                      std::unique_ptr<Chunk> chunk) -> ObjectFunction *;
+
     auto new_class(ObjectString *name) -> ObjectClass *;
 
     auto new_instance(ObjectClass *class_) -> ObjectInstance *;

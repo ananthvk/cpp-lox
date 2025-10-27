@@ -120,7 +120,11 @@ auto Serializer::write_debug_information(uint8_t *buf, ObjectFunction *function)
 {
     auto &line_info = function->get()->get_lines();
     // Write the header of 8 bytes
-    uint32_t num_pairs = 0;
+    if (line_info.size() >= UINT32_MAX)
+    {
+        throw std::logic_error("error while writing debug info: too much debug info");
+    }
+    uint32_t num_pairs = static_cast<uint32_t>(line_info.size());
     uint32_t reserved = 0;
     auto count = datapacker::bytes::encode<datapacker::endian::little>(buf, num_pairs, reserved);
     buf += count;
@@ -220,11 +224,15 @@ auto Serializer::serialize_symbol_table(Context *context) -> std::vector<uint8_t
 
 auto Serializer::write_string_block_header() -> void
 {
-    uint32_t reserved = 0;
+    if (strings_block.size() >= UINT32_MAX)
+    {
+        throw std::runtime_error("strings block too huge");
+    }
+    uint32_t string_block_size = static_cast<uint32_t>(strings_block.size());
     // It's assumed that the size of the string block >= 8 bytes, and the first 8 bytes have been
     // left free for the string header
     if (datapacker::bytes::encode<datapacker::endian::little>(strings_block.data(), string_count,
-                                                              reserved) != 8)
+                                                              string_block_size) != 8)
     {
         throw std::logic_error("coudl not write string header");
     }

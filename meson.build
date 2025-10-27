@@ -16,6 +16,7 @@ sources = files(
     'src/chunk.cpp',
     'src/compiler.cpp',
     'src/debug.cpp',
+    'src/deserializer.cpp',
     'src/gc.cpp',
     'src/lexer.cpp',
     'src/lox.cpp',

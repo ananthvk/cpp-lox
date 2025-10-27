@@ -172,6 +172,21 @@ auto Allocator::new_function(int arity, std::string_view name) -> ObjectFunction
     return obj;
 }
 
+auto Allocator::new_function(int arity, ObjectString *name, int upvalue_count,
+                             std::unique_ptr<Chunk> chunk) -> ObjectFunction *
+{
+    if (vopts.debug_stress_gc)
+        collect_garbage();
+    create_object<ObjectFunction>();
+    auto obj = new ObjectFunction(arity, std::move(chunk), name);
+    obj->upvalue_count_ = upvalue_count;
+    obj->is_marked = false;
+    objs.push_back(obj);
+    if (vopts.debug_log_gc)
+        gc->log_allocation(obj);
+    return obj;
+}
+
 auto Allocator::new_native_function(int arity, NativeFunction function) -> ObjectNativeFunction *
 {
     if (vopts.debug_stress_gc)

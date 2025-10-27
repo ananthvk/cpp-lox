@@ -52,6 +52,13 @@ class Context
         return static_cast<int>(values.size() - 1);
     }
 
+    auto clear() -> void
+    {
+        values.clear();
+        global_names.clear();
+        names.clear();
+    }
+
     auto exists(ObjectString *name) -> bool { return global_names.contains(name); }
 
     auto exists(int index) -> bool { return index < values.size() && index >= 0; }
@@ -79,4 +86,5 @@ class Context
 
     friend class GarbageCollector;
     friend class Serializer;
+    friend class Deserializer;
 };

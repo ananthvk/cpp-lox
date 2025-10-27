@@ -128,7 +128,7 @@ The total size of the symbol table can be found by multiplying size (from header
 | Name                    | Offset | Size (bytes) | Type     | Comments                           |
 |-------------------------|--------|--------------|----------|------------------------------------|
 | Size                    | 0      | 4            | uint32_t | Number of strings stored           |
-| Reserved                | 4      | 8            | Reserved | Reserved                           |
+| String values size      | 4      | 8            | uint32_t | Number of bytes of string data stored (including this header (+8 bytes)) |
 
 #### String values (variable size)
 

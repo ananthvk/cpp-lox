@@ -2,6 +2,7 @@
 #include "allocator.hpp"
 #include "compiler.hpp"
 #include "debug.hpp"
+#include "deserializer.hpp"
 #include "file_header.hpp"
 #include "gc.hpp"
 #include "lexer.hpp"
@@ -146,9 +147,6 @@ auto Lox::compile_file(const std::filesystem::path &source_path,
 
     Serializer serializer(compiler_opts);
     auto serialized = serializer.serialize_program(obj, &context);
-
-    serializer.display_serialized(std::cout, serialized);
-
     FileHeader header_writer;
     header_writer.write(output_path, serialized);
     return 0;
@@ -200,39 +198,58 @@ auto Lox::run_repl() -> int
  */
 auto Lox::run_source(std::string_view src) -> int
 {
+    SerializedBytecode bytecode;
+    {
+        ErrorReporter reporter;
+        GarbageCollector gc(vm_opts);
+        Allocator allocator(vm_opts);
+        allocator.set_gc(&gc);
+        gc.set_allocator(&allocator);
+        Context context;
+
+        Lexer lexer(src);
+        Parser parser(lexer.begin(), reporter);
+
+        Compiler compiler(parser, compiler_opts, allocator, &context, FunctionType::SCRIPT);
+        auto [obj, result] = compiler.compile();
+
+        if (result != InterpretResult::OK)
+        {
+            reporter.display(stderr);
+            return 1;
+        }
+        compiler_opts.emit_debug_information = true;
+        Serializer serializer(compiler_opts);
+        bytecode = serializer.serialize_program(obj, &context);
+        // When this scope ends, all associated objects are destroyed
+    }
+
+    // Now only create the VM and check if deserialization works
     ErrorReporter reporter;
     GarbageCollector gc(vm_opts);
     Allocator allocator(vm_opts);
     allocator.set_gc(&gc);
     gc.set_allocator(&allocator);
     Context context;
-
-    Lexer lexer(src);
-    Parser parser(lexer.begin(), reporter);
-
-    Compiler compiler(parser, compiler_opts, allocator, &context, FunctionType::SCRIPT);
-
-    // The VM should be created before the compiler performs compilation
-    // because otherwise, the compiled function gets discarded when
-    // the vm gets created since the compiled function is not present in the compiler
-    // nor in the stack
     VM vm(vm_opts, reporter, allocator, &context);
     gc.set_vm(&vm);
-    auto [obj, result] = compiler.compile();
+
+    // Serialize and deserialize the bytecode to also test whether that works correctly
+    compiler_opts.emit_debug_information = true;
+    Deserializer deserializer;
+    ObjectFunction *obj = deserializer.deserialize_program(bytecode, allocator, &context);
+
+    // So that the created object function (which does not exist in any roots), does not get freed
+    allocator.disable_gc();
     // Register the native functions after the compiler finishes compiling so that the global table
     // does not get polluted
     vm.register_native_functions();
-    if (result != InterpretResult::OK)
-    {
-        reporter.display(stderr);
-        return 1;
-    }
+    allocator.enable_gc();
 
     if (lox_opts.compile_only)
         return 0;
 
-
-    result = vm.run(obj, std::cout);
+    auto result = vm.run(obj, std::cout);
 
     if (reporter.has_error() || result != InterpretResult::OK)
     {
