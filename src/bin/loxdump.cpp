@@ -1,4 +1,5 @@
 #include "allocator.hpp"
+#include "debug_vm.hpp"
 #include "deserializer.hpp"
 #include "file_header.hpp"
 #include "gc.hpp"
@@ -37,38 +38,25 @@ int main(int argc, char *argv[])
 
         auto bytecode = header.read(input_path);
 
+        // Setup VM components for deserialization
         VMOpts vm_opts;
-
-        ErrorReporter reporter;
         GarbageCollector gc(vm_opts);
         Allocator allocator(vm_opts);
         allocator.set_gc(&gc);
         gc.set_allocator(&allocator);
+        allocator.disable_gc(); // Disable GC during deserialization
 
         Context context;
 
-        VM vm(vm_opts, reporter, allocator, &context);
-        gc.set_vm(&vm);
-
-        Deserializer deserialzer;
-        auto obj = deserialzer.deserialize_program(bytecode, allocator, &context);
-
-        allocator.disable_gc();
-        vm.register_native_functions();
-        allocator.enable_gc();
-
-        auto result = vm.run(obj, std::cout);
-
-        if (reporter.has_error() || result != InterpretResult::OK)
-        {
-            reporter.display(stderr);
-            return 1;
-        }
+        Deserializer deserializer(true);
+        fmt::print(fmt::fg(fmt::color::green), "Disassembly of '{}':\n\n", input_path.string());
+        deserializer.deserialize_program(bytecode, allocator, &context);
     }
-    catch (std::exception &e)
+    catch (const std::exception &e)
     {
         fmt::print(fmt::fg(fmt::color::red), "Error: {}\n", e.what());
         return 1;
     }
+
     return 0;
 }

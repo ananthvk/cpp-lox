@@ -1,5 +1,6 @@
 #pragma once
 
+#include "crc32.hpp"
 #include "datapacker.hpp"
 #include "serializer.hpp"
 #include <cstdint>
@@ -34,8 +35,6 @@ class FileHeader
             global_table_offset + static_cast<uint32_t>(bytecode.globals.size());
         uint32_t file_size = strings_offset + static_cast<uint32_t>(bytecode.strings.size());
 
-        // TODO: Implement CRC of file data later
-
         uint8_t header[32];
         auto count = datapacker::bytes::encode<datapacker::endian::little>(
             header, MAGIC[0], MAGIC[1], MAGIC[2], MAGIC[3], // Magic number (4 bytes)
@@ -54,6 +53,27 @@ class FileHeader
         if (count != 32)
         {
             throw std::logic_error("Invalid number of bytes written for file header");
+        }
+
+        // Compute the CRC32 of the rest of the header (excluding the magic and crc placeholder)
+        uint32_t crc = Crc32_ComputeBuf(0, header + 8, sizeof(header) - 8);
+
+        // Compute the CRC32 of the chunks
+        crc = Crc32_ComputeBuf(crc, bytecode.bytecode.data(), bytecode.bytecode.size());
+
+        // Compute the CRC32 of the globals
+        crc = Crc32_ComputeBuf(crc, bytecode.globals.data(), bytecode.globals.size());
+
+        // Compute the CRC32 of the strings
+        crc = Crc32_ComputeBuf(crc, bytecode.strings.data(), bytecode.strings.size());
+
+        // Store the checksum in little endian format
+        if (datapacker::bytes::encode<datapacker::endian::little>(header +
+                                                                      4, // To skip the magic bytes
+                                                                  crc)   // CRC-32 checksum
+            != 4)
+        {
+            throw std::logic_error("Invalid number of bytes written for checksum");
         }
 
         // Write header
@@ -172,7 +192,13 @@ class FileHeader
             throw std::runtime_error("Not a valid Lox compiled program");
         }
 
-        // TODO: CRC Check here
+        // Compute the CRC of the file, excluding the magic bytes and the CRC value itself
+        uint32_t file_crc = Crc32_ComputeBuf(0, buffer.data() + 8, buffer.size() - 8);
+
+        if (file_crc != crc)
+        {
+            throw std::runtime_error("Bytecode file corrupted: CRC32 checksum mismatch");
+        }
 
         // Check for compatibility only for major version. Minor versions and patch should remain
         // backward compatible. Reject all forward versions of the bytecode file

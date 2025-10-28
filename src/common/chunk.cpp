@@ -57,7 +57,7 @@ auto Chunk::get_line_number(int offset) const -> int
     // TODO: Improve it
     if (lines.size() == 0)
     {
-        return -1;
+        return 0;
     }
     if (lines.size() == 1)
     {

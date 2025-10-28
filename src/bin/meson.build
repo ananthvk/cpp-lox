@@ -15,3 +15,20 @@ lox_executable = executable(
     cpp_args: dev_flags,
     include_directories: include_dirs,
 )
+
+executable(
+    'loxdump',
+    sources: ['loxdump.cpp'] + compiler_stub,
+    dependencies: project_deps,
+    link_with: [libcommon, libserialization],
+    cpp_args: dev_flags,
+    include_directories: include_dirs,
+)
+
+executable(
+    'loxcrc',
+    sources: ['loxcrc.cpp'],
+    dependencies: project_deps,
+    cpp_args: dev_flags,
+    include_directories: include_dirs,
+)

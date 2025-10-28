@@ -42,5 +42,4 @@ liblox = static_library(
     link_with: [libcommon, libcompiler, libvm, libserialization],
 )
 
-subdir('tools')
 subdir('bin')

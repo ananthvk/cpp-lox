@@ -22,6 +22,16 @@ On windows, run
 .\src\bin\cpplox.exe
 ```
 
+After building, three binaries are produced
+
+`./builddir/src/bin/cpplox` - Includes a Compiler, VM and a REPL
+
+`./builddir/src/bin/loxvm` - Standalone VM, does not include compiler, used for running compiled lox programs
+
+`./builddir/src/bin/loxdump` - For disassembling compiled lox programs
+
+`./builddir/src/bin/loxcrc` - For updating the CRC checksum of a compiled lox program (operates on the file inplace)
+
 ## To run tests
 
 To run tests, you need to have `Python 3`
@@ -38,13 +48,6 @@ Install dependencies
 $ pip install -r requirements.txt
 ```
 
-After building, three binaries are produced
-
-`./builddir/src/bin/cpplox` - Includes a Compiler, VM and a REPL
-
-`./builddir/src/bin/loxvm` - Standalone VM, does not include compiler, used for running compiled lox programs
-
-`./builddir/src/tools/loxdump` - For disassembling compiled lox programs
 
 Run tests
 ```
@@ -143,10 +146,10 @@ Execute it with,
 $ cpp-lox compiled.loxc
 ```
 
-Use `tools/loxdump` to disassemble a compiled lox program
+Use `src/bin/loxdump` to disassemble a compiled lox program
 
 ```
-$ ./tools/loxdump compiled.loxc
+$ ./src/bin/loxdump compiled.loxc
 ```
 
 ### De-duplication of integers
