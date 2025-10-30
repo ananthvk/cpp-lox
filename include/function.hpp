@@ -37,6 +37,8 @@ class ObjectFunction : public Object
 
     auto name() const -> ObjectString * { return name_; }
 
+    auto hash_code() const -> int64_t override { return hash_pointer(this); };
+
     auto get() const -> Chunk * { return chunk.get(); }
 
     auto operator==(const ObjectFunction &other) const -> bool { return this == &other; }
@@ -72,6 +74,8 @@ class ObjectNativeFunction : public Object
     auto get_type() const -> ObjectType override { return ObjectType::NATIVE_FUNCTION; }
 
     auto arity() const -> size_t { return arity_; }
+
+    auto hash_code() const -> int64_t override { return hash_pointer(this); };
 
     auto get() const -> NativeFunction { return function; }
 
@@ -111,6 +115,9 @@ class ObjectUpvalue : public Object
 
     auto get() const -> Value * { return location; }
 
+    // Returns the hash of the pointer of the underlying slot location
+    auto hash_code() const -> int64_t override { return hash_pointer(location); };
+
     auto set(Value *slot) { location = slot; }
 
     auto operator==(const ObjectUpvalue &other) const -> bool { return location == other.location; }
@@ -148,6 +155,8 @@ class ObjectClosure : public Object
     auto get() const -> ObjectFunction * { return function; }
 
     auto get_upvalues() -> std::vector<ObjectUpvalue *> & { return upvalues; }
+
+    auto hash_code() const -> int64_t override { return hash_pointer(this); };
 
     auto upvalue_count() const -> int { return upvalue_count_; }
 

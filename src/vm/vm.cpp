@@ -729,6 +729,12 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             }
             break;
         }
+        case OpCode::MAP:
+        case OpCode::MAP_ADD:
+        {
+            report_error("not yet implemented");
+            return InterpretResult::RUNTIME_ERROR;
+        }
         default:
             throw std::logic_error("Invalid instruction");
         }

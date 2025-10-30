@@ -136,8 +136,6 @@ class Allocator
 
     auto set_gc(GarbageCollector *garbage_collector) -> void;
 
-    auto hash_string(const char *str, size_t length) const -> uint32_t;
-
     auto check_interned(const char *str, size_t length) -> std::pair<ObjectString *, uint32_t>;
 
     auto intern_string(const char *str, size_t length,

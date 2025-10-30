@@ -327,6 +327,9 @@ In local scope redeclaration of any form is disallowed
 - `sys__mem_get_net_bytes() int` - Returns the net bytes currently allocated (allocated - freed)
 - `sys__mem_display_gc_stats()` - Prints detailed garbage collection statistics to the console
 
+- `hash(value)` - Returns the hash value (int64_t of a value), throws error if the type is not hashable
+- `is_hashable(value) bool` - Returns true if the value is hashable, false otherwise (like lists, maps)
+
 ### No print statements
 
 `print` statement is renamed to `echo`. This was done to maintain compatability with tests without major refactoring.

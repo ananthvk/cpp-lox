@@ -17,7 +17,8 @@ enum class ObjectType : uint8_t
     CLASS,
     INSTANCE,
     BOUND_METHOD,
-    LIST
+    LIST,
+    MAP
 };
 
 class Object
@@ -26,6 +27,11 @@ class Object
     bool is_marked;
 
     virtual auto get_type() const -> ObjectType = 0;
+
+    // The hash of the value, should return -1 if the object is not hashable
+    // If two objects are equal, they MUST return the same hash value, different objects may return
+    // the same hash value
+    virtual auto hash_code() const -> int64_t = 0;
 
     virtual ~Object() {}
 };
@@ -51,6 +57,8 @@ class ObjectString : public Object
     auto size() const -> size_t { return length; }
 
     auto hash() const -> uint32_t { return hash_; }
+
+    auto hash_code() const -> int64_t override { return static_cast<int64_t>(hash_); }
 
     auto get() const -> std::string_view { return std::string_view{data, length}; }
 
@@ -91,6 +99,8 @@ inline auto object_type_to_string(ObjectType type) -> const char *
         return "BOUND_METHOD";
     case ObjectType::LIST:
         return "LIST";
+    case ObjectType::MAP:
+        return "MAP";
     default:
         return "UNKNOWN";
     }
