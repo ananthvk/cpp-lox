@@ -167,6 +167,7 @@ class Compiler
     auto super_(bool canAssign) -> void;
     auto list(bool canAssign) -> void;
     auto index(bool canAssign) -> void;
+    auto map(bool canAssign) -> void;
 
     /**
      * Helper functions to declare and define variables

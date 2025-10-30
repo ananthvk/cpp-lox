@@ -53,7 +53,9 @@
     X(ONE)                                                                                         \
     X(METHOD)                                                                                      \
     X(LIST)                                                                                        \
-    X(LIST_APPEND)
+    X(LIST_APPEND)                                                                                 \
+    X(MAP)                                                                                         \
+    X(MAP_ADD)
 
 enum class OpCode : uint8_t
 {
