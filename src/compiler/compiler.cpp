@@ -15,7 +15,7 @@ Compiler::Compiler(Parser &parser, const CompilerOpts &opts, Allocator &allocato
     // clang-format off
     rules[+TokenType::LEFT_PAREN]       = {F(grouping),    F(call),          ParsePrecedence::CALL};
     rules[+TokenType::RIGHT_PAREN]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
-    rules[+TokenType::LEFT_BRACE]       = {nullptr,        nullptr,          ParsePrecedence::NONE};
+    rules[+TokenType::LEFT_BRACE]       = {F(map),         nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::RIGHT_BRACE]      = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::COMMA]            = {nullptr,        nullptr,          ParsePrecedence::NONE};
     rules[+TokenType::QUESTION_DOT]     = {nullptr,        F(safe_dot),      ParsePrecedence::CALL};
@@ -1509,6 +1509,66 @@ auto Compiler::list(bool canAssign) -> void
     {
         emit_opcode(OpCode::LIST);
         emit_byte(static_cast<uint8_t>(list_length));
+    }
+}
+
+// Compiles a map declaration
+auto Compiler::map(bool canAssign) -> void
+{
+    // This is similar to list declaration, just that pairs of values separated by ":" are parsed
+    // It can either be, {} (empty)
+    // or have expressions, {key_expr1: value_expr1, key_expr2: value_expr2, ....}
+
+    int64_t map_length = 0;
+    if (parser.check(TokenType::RIGHT_BRACE))
+    {
+        parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after map declaration");
+
+        // Create empty map
+        emit_opcode(OpCode::MAP);
+        emit_byte(0);
+        return;
+    }
+    bool should_emit_build_op = true;
+
+    while (1)
+    {
+        // Parse & emit the key expression
+        expression();
+
+        // Parse the colon
+        parser.consume(TokenType::COLON, "Expected ':' between key and value in map declaration");
+
+        // Parse & emit the value expression
+        expression();
+
+        map_length++;
+        if (!should_emit_build_op)
+        {
+            // OpCode::MAP has already been emitted, so emit an MAP_ADD instruction
+            emit_opcode(OpCode::MAP_ADD);
+        }
+
+        if (map_length == MAP_BUILD_ADD_THRESHOLD)
+        {
+            emit_opcode(OpCode::MAP);
+            emit_byte(static_cast<uint8_t>(map_length));
+            should_emit_build_op = false;
+        }
+
+        if (!parser.match(TokenType::COMMA))
+            break;
+
+        // Support trailing commas
+        if (parser.check(TokenType::RIGHT_BRACE))
+            break;
+    }
+
+    parser.consume(TokenType::RIGHT_BRACE, "Expected '}' after map declaration");
+    if (should_emit_build_op)
+    {
+        emit_opcode(OpCode::MAP);
+        emit_byte(static_cast<uint8_t>(map_length));
     }
 }
 

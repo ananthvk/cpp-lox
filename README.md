@@ -152,6 +152,103 @@ Use `src/bin/loxdump` to disassemble a compiled lox program
 $ ./src/bin/loxdump compiled.loxc
 ```
 
+### Lists (dynamic arrays)
+
+Implement list data structure (Note: It's implemented as a dynamic array (vector) rather than a linked list (like CPython))
+
+Example:
+```
+var x = [1, 2, 3]; // Create a list
+println(x[0]); // Get element at index, prints 1
+println(x); // Print the list
+println(x[0] = 8); // Prints 8, sets index 0 to 8
+```
+
+Implementation: Two new opcodes `LIST` and `LIST_APPEND` have been added. `LIST` takes a single byte operand, the intial size of the list (`n`), and it reads & pops the top `n` values on stack and creates a new list object. If `n` >= 10, the compiler will emit a `LIST` list instruction to build the list with 10 values, and for the remaining values, it adds a `LIST_APPEND` after emitting the bytecode for the expression. This is done so that the stack does not overflow when a list is declared with a lot of elements.
+
+Note: Allocating huge lists eg (`list(10000000, 0)`) may cause the program to pause because the GC has to trace through all those values even if there are no object references. In the future, try to optimize this
+
+Another two instructions: `LOAD_INDEX` and `STORE_INDEX` to access and modify list members
+
+For `STORE_INDEX`: `[container, index, value] -> [ ] after execution`
+For `LOAD_INDEX`: `[container, index] -> [value]`
+
+Native functions to work with lists
+- `len(list) int`: Returns the length of the list, works the same with strings
+- `cap(list) int`: Returns the capacity of the backing array of the list
+- `list(len, default, cap) list`: Creates a new list with the specified length, capacity, and default value. All three arguments are optional. len is the initial length of the list, cap is the capacity of the list (after which a new reallocation will be triggered), and default is the default value when creating the list (default is nil).
+- `append(list, element)`: Adds an element to the end of a list
+- `delete(list, index)`: Removes an element at specified index from list
+- `pop(list) value`: Removes and returns the last element from a list
+
+### String indexing
+
+Indexing works with strings too
+
+The result of indexing a string results in another string (there is no character datatype)
+
+Example:
+```
+var x = "hello";
+println(x[1]); // prints e
+
+x[2] = "x"; // Not allowed, throws error since strings are immutable
+```
+
+### Maps (Hashmap)
+
+This implementation also supports associative data structure, `map`. Internally it is implemented using hash maps (the same implementation is used for methods and fields)
+
+Declaring a new map,
+```
+// Keys & values can be any expression
+var x = {
+    "name": "hello",
+    3: "three",
+    3: "three",
+};
+
+// Empty map
+var x = {};
+
+// Can also be declared as
+var x = map();
+
+// Printing type
+println(type(x)) // map
+```
+
+Accessing & Modifying values in a map
+```
+var x  = {
+    "three": 3,
+    "four": 4
+};
+println(x["three"]); // Prints 3
+x["three"] = -3; // Updates the value of key "three" to -3
+x["two"] = 2; // If a key does not exist, it gets created
+println(x["five"]); // If a key does not exist, throws runtime error
+```
+
+Native functions to work with maps
+- `len(map) int`: Returns the number of key-value pairs in the map
+- `map() map`: Creates a new map
+- `append(map, key, value)`: Adds the key-value pair to the map (same as using the `[]` operator)
+- `delete(map, key) bool`: Deletes the key from the map, returns true if the key was removed, false if the key does not exist
+- `keys(map) list`: Returns a list of keys of the map
+- `values(map) list`: Returns a list of values of the map
+- `has(map, key) bool`: Returns true if the key exists in the map
+- `clear(map)`: Clears all key-value pairs of the map
+- `get(map, key, default)`:  Returns the value associated with the key in the map, if the key does not exist, returns the set default value. `default` is optional, and if not specified, returns nil
+
+Note: Currently there is no way to iterate over all elements of the map using a loop (no range for loop yet), so use the `keys` function to retrieve all the keys, then iterate over this list using a loop.
+
+Note: Also objects can be used as map keys, but there is no way to specify custom hash or equality operators, so they will be checked for equality based on whether they are the same object. (same memory location)
+
+Lists & Maps are unhashable, and cannot be used as map keys (similar behavior to CPython)
+
+
+
 ### De-duplication of integers
 
 The compiler de-duplicates integers (but not real numbers)
@@ -282,49 +379,6 @@ class Bar : Foo {
 
 Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1` respectively on to the stack. This was added as an optimization, so that the value need not be loaded from the constant table whenever these values are present.
 
-### Lists (dynamic arrays)
-
-Implement list data structure (Note: It's implemented as a dynamic array (vector) rather than a linked list (like CPython))
-
-Example:
-```
-var x = [1, 2, 3]; // Create a list
-println(x[0]); // Get element at index, prints 1
-println(x); // Print the list
-println(x[0] = 8); // Prints 8, sets index 0 to 8
-```
-
-Implementation: Two new opcodes `LIST` and `LIST_APPEND` have been added. `LIST` takes a single byte operand, the intial size of the list (`n`), and it reads & pops the top `n` values on stack and creates a new list object. If `n` >= 10, the compiler will emit a `LIST` list instruction to build the list with 10 values, and for the remaining values, it adds a `LIST_APPEND` after emitting the bytecode for the expression. This is done so that the stack does not overflow when a list is declared with a lot of elements.
-
-Note: Allocating huge lists eg (`list(10000000, 0)`) may cause the program to pause because the GC has to trace through all those values even if there are no object references. In the future, try to optimize this
-
-Another two instructions: `LOAD_INDEX` and `STORE_INDEX` to access and modify list members
-
-For `STORE_INDEX`: `[container, index, value] -> [ ] after execution`
-For `LOAD_INDEX`: `[container, index] -> [value]`
-
-Native functions to work with lists
-- `len(list) int`: Returns the length of the list, works the same with strings
-- `cap(list) int`: Returns the capacity of the backing array of the list
-- `list(len, default, cap) list`: Creates a new list with the specified length, capacity, and default value. All three arguments are optional. len is the initial length of the list, cap is the capacity of the list (after which a new reallocation will be triggered), and default is the default value when creating the list (default is nil).
-- `append(list, element)`: Adds an element to the end of a list
-- `delete(list, index)`: Removes an element at specified index from list
-- `pop(list) value`: Removes and returns the last element from a list
-
-### String indexing
-
-Indexing works with strings too
-
-The result of indexing a string results in another string (there is no character datatype)
-
-Example:
-```
-var x = "hello";
-println(x[1]); // prints e
-
-x[2] = "x"; // Not allowed, throws error since strings are immutable
-```
-
 ## Documents
 
 [Opcodes list](documents/opcodes_list.md)
@@ -335,3 +389,7 @@ x[2] = "x"; // Not allowed, throws error since strings are immutable
 - [ ] Fix division by zero error
 - [ ] Implement break statements
 - [ ] Implement slices
+- [ ] Implement `clear()` method for lists
+- [ ] Implement `copy()` method for lists & maps (shallow copy, copies only the top level values)
+- [ ] Range for loops (to iterate over maps/lists)
+- [ ] Support custom hash, comparision operators between objects
