@@ -1,19 +1,8 @@
 #include "allocator.hpp"
 #include "gc.hpp"
+#include "hash.hpp"
 
 auto Allocator::set_gc(GarbageCollector *garbage_collector) -> void { gc = garbage_collector; }
-
-auto Allocator::hash_string(const char *str, size_t length) const -> uint32_t
-{
-    // FNV-1a hash function from the book
-    uint32_t hash = 2166136261u;
-    for (size_t i = 0; i < length; i++)
-    {
-        hash ^= (uint8_t)str[i];
-        hash *= 16777619;
-    }
-    return hash;
-}
 
 auto Allocator::check_interned(const char *str, size_t length)
     -> std::pair<ObjectString *, uint32_t>

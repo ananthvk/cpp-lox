@@ -6,4 +6,4 @@
 
 auto Compiler::mark_compiler_roots(GarbageCollector &gc, bool is_vm_live) -> void {}
 
-auto Compiler::does_compiler_exist() -> bool { return true; }
+auto Compiler::does_compiler_exist() -> bool { return false; }

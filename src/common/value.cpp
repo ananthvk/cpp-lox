@@ -129,3 +129,22 @@ auto Value::operator==(Value other) const -> bool
     }
     return false;
 }
+
+auto Value::hash_code() const -> int64_t
+{
+    switch (type)
+    {
+    case ValueType::NIL:
+        return NIL_HASH_VALUE;
+    case ValueType::BOOLEAN:
+        return as_bool() ? 1 : 0;
+    case ValueType::NUMBER_INT:
+        return hash_int(as_integer());
+    case Value::NUMBER_REAL:
+        return hash_double(as_real());
+    case ValueType::OBJECT:
+        return as_object()->hash_code();
+    default:
+        throw std::logic_error("invalid object type");
+    }
+}

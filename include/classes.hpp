@@ -21,6 +21,8 @@ class ObjectClass : public Object
 
     auto name() const -> ObjectString * { return name_; }
 
+    auto hash_code() const -> int64_t override { return hash_pointer(this); };
+
     auto methods() -> StringValueTable & { return methods_; }
 
     auto get_init_method() -> Value & { return init_method; }
@@ -60,6 +62,8 @@ class ObjectInstance : public Object
 
     auto get_fields() -> StringValueTable & { return fields; }
 
+    auto hash_code() const -> int64_t override { return hash_pointer(this); };
+
     auto operator==(const ObjectInstance &other) const -> bool { return this == &other; }
 
     // Copy not allowed
@@ -98,7 +102,21 @@ class ObjectBoundMethod : public Object
 
     auto method() -> ObjectClosure * { return method_; }
 
-    auto operator==(const ObjectBoundMethod &other) const -> bool { return this == &other; }
+    auto hash_code() const -> int64_t override
+    {
+        // Combine method & receiver hashes
+        auto h1 = hash_pointer(method_);
+        auto h2 = receiver_.hash_code();
+        if (h2 == -1)
+            return h1;
+        return hash_int(
+            static_cast<int64_t>(static_cast<uint64_t>(h1) ^ static_cast<uint64_t>(h2)));
+    };
+
+    auto operator==(const ObjectBoundMethod &other) const -> bool
+    {
+        return method_ == other.method_ && receiver_ == other.receiver_;
+    }
 
     // Copy not allowed
     ObjectBoundMethod(const ObjectInstance &other) = delete;

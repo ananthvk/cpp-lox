@@ -2,6 +2,7 @@
 #include "object.hpp"
 
 #include "fast_float.h"
+#include "hash.hpp"
 #include <fmt/format.h>
 #include <math.h>
 #include <stddef.h>
@@ -42,6 +43,12 @@ struct Value
     auto to_string() const -> std::string;
 
     auto operator==(Value other) const -> bool;
+
+    // Returns a signed 64 bit number that is generated based on the content's of the value
+    // Objects that are equal must return the same hash value, objects that are different may return
+    // the same value
+    // Returns -1 if the value is not hashable (like lists/maps)
+    auto hash_code() const -> int64_t;
 
     template <typename T> Value(T value, bool uninitialized = false)
     {

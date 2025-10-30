@@ -82,9 +82,34 @@ auto native_len(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
     return {Value{0}, false};
 }
 
+auto native_hash(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+{
+    Value val = values[1];
+    auto hash = val.hash_code();
+    if (hash == -1)
+    {
+        vm->report_error("unhashable type");
+        return {Value{}, false};
+    }
+    return {Value{hash}, true};
+}
+
+auto native_is_hashable(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
+{
+    Value val = values[1];
+    auto hash = val.hash_code();
+    if (hash == -1)
+    {
+        return {Value{false}, false};
+    }
+    return {Value{true}, true};
+}
+
 auto register_stdlib(VM *vm) -> void
 {
     vm->define_native_function("len", 1, native_len);
     vm->define_native_function("exit", 1, native_exit);
     vm->define_native_function("type", 1, native_type);
+    vm->define_native_function("hash", 1, native_hash);
+    vm->define_native_function("is_hashable", 1, native_is_hashable);
 }

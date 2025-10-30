@@ -28,6 +28,9 @@ class ObjectList : public Object
 
     auto capacity() -> int64_t { return static_cast<int64_t>(values.capacity()); }
 
+    // Lists are not hashable
+    auto hash_code() const -> int64_t override { return -1; };
+
     auto get_values() -> std::vector<Value> & { return values; }
 
     auto get(int64_t index) -> std::optional<Value>
