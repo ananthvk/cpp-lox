@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
 
         ("v,version",        "Prints program version");
         options.parse_positional({"script"});
+        init_decode_table();
 
         // clang-format on
         auto result = options.parse(argc, argv);

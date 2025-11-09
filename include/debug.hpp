@@ -10,3 +10,5 @@
 
 
 auto print_tokens(const Lexer &lexer) -> void;
+
+auto init_decode_table() -> void;
