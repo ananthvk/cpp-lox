@@ -63,13 +63,13 @@ auto VM::execute(std::ostream &os) -> InterpretResult
             }
             fmt::println(" ]");
         }
-        if (opts.debug_trace_execution)
-        {
-            auto current_chunk = current_frame->closure->get()->get();
-            disassemble_instruction(
-                *current_chunk,
-                static_cast<int>(current_frame->ip - current_chunk->get_code().data()), context);
-        }
+        // if (opts.debug_trace_execution)
+        //{
+        //     auto current_chunk = current_frame->closure->get()->get();
+        //     disassemble_instruction(
+        //         *current_chunk,
+        //         static_cast<int>(current_frame->ip - current_chunk->get_code().data()), context);
+        // }
         if (opts.debug_step_mode_enabled)
         {
             getchar();

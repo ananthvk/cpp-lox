@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define OPCODES_LIST                                                                               \
+    X(INVALID)                                                                                     \
     X(RETURN)                                                                                      \
     X(LOAD_CONSTANT)                                                                               \
     X(LOAD_CONSTANT_LONG)                                                                          \

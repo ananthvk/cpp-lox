@@ -396,3 +396,4 @@ Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1`
 - [ ] Implement `copy()` method for lists & maps (shallow copy, copies only the top level values)
 - [ ] Range for loops (to iterate over maps/lists)
 - [ ] Support custom hash, comparision operators between objects
+- [ ] Fix opts.debug_trace_execution (L70 in vm)

@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
             return 1;
         }
 
+        init_decode_table();
+
         auto bytecode = header.read(input_path);
 
         // Setup VM components for deserialization
