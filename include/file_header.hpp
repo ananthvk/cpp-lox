@@ -24,7 +24,7 @@ class FileHeader
         {
             throw new std::system_error(errno, std::generic_category(),
                                         "failed to open bytecode file for writing: " +
-                                            std::string(filepath.filename()));
+                                            std::string(filepath.filename().string()));
         }
 
         // Calculate offsets
@@ -141,7 +141,7 @@ class FileHeader
         {
             throw new std::system_error(errno, std::generic_category(),
                                         "failed to open bytecode file for reading: " +
-                                            std::string(filepath.filename()));
+                                            std::string(filepath.filename().string()));
         }
         auto size = infile.tellg();
         infile.seekg(0, std::ios::beg);
