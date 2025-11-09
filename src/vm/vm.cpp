@@ -668,11 +668,37 @@ auto VM::execute(std::ostream &os) -> InterpretResult
                     "Runtime error: Strings are immutable, and do not support index assignment");
                 return InterpretResult::RUNTIME_ERROR;
             }
-            if (!peek(2).is_list())
+            if (!(peek(2).is_list() || peek(2).is_map()))
             {
-                report_error("Runtime error: Cannot set index of value, can only index lists");
+                report_error(
+                    "Runtime error: Cannot set index of value, can only index lists and maps");
                 return InterpretResult::RUNTIME_ERROR;
             }
+
+            if (peek(2).is_map())
+            {
+                auto map_obj = static_cast<ObjectMap *>(peek(2).as_object());
+                auto key = peek(1);
+                auto value = peek(0);
+                if (key.hash_code() == -1)
+                {
+                    report_error("Runtime error: Key '{}' is of unhashable type, and cannot be "
+                                 "used to set map value",
+                                 key.to_string());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+                // Add it to the map
+                map_obj->set(key, value);
+
+                pop(); // value
+                pop(); // key
+                pop(); // map
+
+                // Push back the value on the top of the stack so that it can be used in expressions
+                push(value);
+                break;
+            }
+
             if (!peek(1).is_integer())
             {
                 report_error("Runtime error: Index of a list must be an integer");
@@ -698,12 +724,36 @@ auto VM::execute(std::ostream &os) -> InterpretResult
         }
         case OpCode::LOAD_INDEX:
         {
-            if (!(peek(1).is_list() || peek(1).is_string()))
+            if (!(peek(1).is_list() || peek(1).is_string() || peek(1).is_map()))
             {
-                report_error(
-                    "Runtime error: Cannot get index of value, can only index lists and strings");
+                report_error("Runtime error: Cannot get index of value, can only index lists, "
+                             "strings and maps");
                 return InterpretResult::RUNTIME_ERROR;
             }
+            if (peek(1).is_map())
+            {
+                auto map_obj = static_cast<ObjectMap *>(peek(1).as_object());
+                auto key = peek(0);
+                auto val = map_obj->get(key);
+                if (key.hash_code() == -1)
+                {
+                    report_error("Runtime error: Key '{}' is of unhashable type, and cannot be "
+                                 "used to access map value",
+                                 key.to_string());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+                if (!val)
+                {
+                    report_error("Runtime error: Key '{}' does not exist in the map",
+                                 key.to_string());
+                    return InterpretResult::RUNTIME_ERROR;
+                }
+                pop();             // index
+                pop();             // map
+                push(val.value()); // Push the value
+                break;
+            }
+
             if (!peek(0).is_integer())
             {
                 report_error("Runtime error: Index of a list or string must be an integer");
