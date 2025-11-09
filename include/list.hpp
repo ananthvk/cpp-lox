@@ -33,6 +33,10 @@ class ObjectList : public Object
 
     auto get_values() -> std::vector<Value> & { return values; }
 
+    auto set_values(const std::vector<Value> &new_values) -> void { values = new_values; }
+
+    auto set_values(std::vector<Value> &&new_values) -> void { values = std::move(new_values); }
+
     auto get(int64_t index) -> std::optional<Value>
     {
         if (index >= values.size())

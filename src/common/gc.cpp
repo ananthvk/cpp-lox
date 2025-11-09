@@ -233,6 +233,21 @@ auto GarbageCollector::blacken_object(Object *object) -> void
             mark_value(value);
         break;
     }
+    case ObjectType::MAP:
+    {
+        auto map = static_cast<ObjectMap *>(object);
+        // Mark all keys and values stored in the list
+        auto &slots = map->get_table().get_slots();
+        for (auto &slot : slots)
+        {
+            if (slot.state == ValueValueTable::Slot::State::FILLED)
+            {
+                mark_value(slot.key);
+                mark_value(slot.value);
+            }
+        }
+        break;
+    }
     default:
         throw std::logic_error("invalid object type");
         break;

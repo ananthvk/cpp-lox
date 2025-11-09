@@ -113,6 +113,21 @@ auto Allocator::new_list(int64_t length, int64_t capacity, Value default_) -> Ob
     return obj;
 }
 
+auto Allocator::new_map() -> ObjectMap *
+{
+    if (vopts.debug_stress_gc)
+        collect_garbage();
+    create_object<ObjectMap>();
+
+    auto obj = new ObjectMap();
+    obj->is_marked = false;
+    objs.push_back(obj);
+
+    if (vopts.debug_log_gc)
+        gc->log_allocation(obj);
+    return obj;
+}
+
 auto Allocator::new_instance(ObjectClass *class_) -> ObjectInstance *
 {
     if (vopts.debug_stress_gc)

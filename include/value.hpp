@@ -117,6 +117,11 @@ struct Value
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::LIST;
     }
 
+    auto is_map() const -> bool
+    {
+        return type == ValueType::OBJECT && data.o->get_type() == ObjectType::MAP;
+    }
+
     auto is_function() const -> bool
     {
         return type == ValueType::OBJECT && data.o->get_type() == ObjectType::FUNCTION;
