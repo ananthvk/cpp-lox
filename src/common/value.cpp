@@ -2,6 +2,7 @@
 #include "classes.hpp"
 #include "function.hpp"
 #include "list.hpp"
+#include "map.hpp"
 #include "object.hpp"
 
 auto Value::to_string() const -> std::string
@@ -68,6 +69,24 @@ auto Value::to_string() const -> std::string
             }
             return fmt::format("[{}]", result);
         }
+        case ObjectType::MAP:
+        {
+            std::string result = "";
+            auto &slots = static_cast<ObjectMap *>(data.o)->get_table().get_slots();
+            bool first_one = true;
+            for (auto &slot : slots)
+            {
+                if (slot.state == ValueValueTable::Slot::State::FILLED)
+                {
+                    if (first_one)
+                        result += slot.key.to_string() + ": " + slot.value.to_string();
+                    else
+                        result += ", " + slot.key.to_string() + ": " + slot.value.to_string();
+                    first_one = false;
+                }
+            }
+            return fmt::format("{{{}}}", result);
+        }
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -115,6 +134,7 @@ auto Value::operator==(Value other) const -> bool
         case ObjectType::INSTANCE:
         case ObjectType::CLOSURE:
         case ObjectType::LIST:
+        case ObjectType::MAP:
             return as_object() == other.as_object();
         case ObjectType::UPVALUE:
             // Two upvalues are equal if they point to the same location

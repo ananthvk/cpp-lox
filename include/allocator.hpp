@@ -3,6 +3,7 @@
 #include "function.hpp"
 #include "hashmap.hpp"
 #include "list.hpp"
+#include "map.hpp"
 #include "object.hpp"
 #include "utils.hpp"
 #include "vmopts.hpp"
@@ -108,6 +109,9 @@ class Allocator
         case ObjectType::LIST:
             object_size = sizeof(ObjectList);
             break;
+        case ObjectType::MAP:
+            object_size = sizeof(ObjectMap);
+            break;
         default:
             throw std::logic_error("invalid object type");
             break;
@@ -155,6 +159,8 @@ class Allocator
     auto new_instance(ObjectClass *class_) -> ObjectInstance *;
 
     auto new_list(int64_t length, int64_t capacity, Value default_ = Value{}) -> ObjectList *;
+
+    auto new_map() -> ObjectMap *;
 
     auto new_bound_method(Value receiver, ObjectClosure *method) -> ObjectBoundMethod *;
 
