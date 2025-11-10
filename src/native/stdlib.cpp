@@ -57,6 +57,10 @@ auto native_type(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
     {
         return {vm->get_allocator()->intern_string("list"), true};
     }
+    else if (val.is_map())
+    {
+        return {vm->get_allocator()->intern_string("map"), true};
+    }
     else
     {
         vm->report_error("internal error: invalid type");
@@ -78,7 +82,12 @@ auto native_len(VM *vm, int arg_count, Value *values) -> std::pair<Value, bool>
         auto size = static_cast<ObjectList *>(val.as_object())->size();
         return {Value{size}, true};
     }
-    vm->report_error("invalid argument type to call len(), must be a string or list");
+    if (val.is_map())
+    {
+        auto size = static_cast<ObjectMap *>(val.as_object())->size();
+        return {Value{size}, true};
+    }
+    vm->report_error("invalid argument type to call len(), must be a string, list or map");
     return {Value{0}, false};
 }
 
