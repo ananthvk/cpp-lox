@@ -179,6 +179,7 @@ Native functions to work with lists
 - `list(len, default, cap) list`: Creates a new list with the specified length, capacity, and default value. All three arguments are optional. len is the initial length of the list, cap is the capacity of the list (after which a new reallocation will be triggered), and default is the default value when creating the list (default is nil).
 - `append(list, element)`: Adds an element to the end of a list
 - `delete(list, index)`: Removes an element at specified index from list
+- `clear(list)`: Clears all values of the list
 - `pop(list) value`: Removes and returns the last element from a list
 
 ### String indexing
@@ -392,8 +393,9 @@ Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1`
 - [ ] Fix division by zero error
 - [ ] Implement break statements
 - [ ] Implement slices
-- [ ] Implement `clear()` method for lists
+- [x] Implement `clear()` method for lists
 - [ ] Implement `copy()` method for lists & maps (shallow copy, copies only the top level values)
 - [ ] Range for loops (to iterate over maps/lists)
 - [ ] Support custom hash, comparision operators between objects
 - [ ] Fix opts.debug_trace_execution (L70 in vm)
+- [ ] flush native method (when using print)

@@ -32,6 +32,7 @@ compiler_sources = files(
 vm_sources = files(
     'src/native/classes.cpp',
     'src/native/list.cpp',
+    'src/native/map.cpp',
     'src/native/math.cpp',
     'src/native/memory.cpp',
     'src/native/stdio.cpp',

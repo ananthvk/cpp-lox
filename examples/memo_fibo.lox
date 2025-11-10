@@ -1,0 +1,39 @@
+// Memoized fibonacci using maps
+
+var memo = {};
+
+fun fibonacci(n) {
+    if (n <= 1) return n;
+    
+    if (has(memo, n)) {
+         return memo[n];
+    }
+    
+    memo[n] = fibonacci(n - 1) + fibonacci(n - 2);
+    return memo[n];
+}
+
+fun fibonacci_no_memo(n) {
+    if (n <= 1) return n;
+    return fibonacci_no_memo(n - 1) + fibonacci_no_memo(n - 2);
+}
+
+const n1 = 85;
+const n2 = 25;
+
+println("Fibonacci sequence (Memoized):");
+var start = clock();
+for (var i = 0; i <= n1; i = i + 1) {
+    print(fibonacci(i), "");
+}
+println("");
+
+println("Took:", clock() - start, "s");
+
+println("Fibonacci sequence:");
+start = clock();
+for (var i = 0; i <= n2; i = i + 1) {
+    print(fibonacci_no_memo(i), "");
+}
+println("");
+println("Took:", clock() - start, "s");
