@@ -1,0 +1,210 @@
+// Simple program to parse a mathematical expression using shunting yard algorithm
+
+// Assumptions:
+// 1) Numbers are single digit only
+// 2) Operators are one of + - / * or ( )
+
+const precedence = {
+    "+" : 2,
+    "-" : 2,
+    "*" : 3,
+    "/" : 3,
+};
+
+fun get_operator_table() {
+    // To demonstrate usage of maps
+    fun add(a, b) {
+        return a + b;
+    }
+    
+    fun sub(a, b) {
+        return a - b;
+    }
+    
+    fun mul(a, b) {
+        return a * b;
+    }
+    
+    fun div(a, b) {
+        return a / b;
+    }
+    return {
+        "+": add,
+        "-": sub,
+        "*": mul,
+        "/": div
+    };
+};
+
+const operators = get_operator_table();
+
+class Result {
+    init(value, err) {
+        this.value = value;
+        this.err = err;
+    }
+};
+
+// Returns a Result (list) containing the expression converted to postfix notation
+fun infix_to_postfix(expr) {
+    const output_queue = [];
+    const stack = [];
+    for(var i = 0; i < len(expr); i = i + 1) {
+        if(expr[i] == " ") {
+            continue;
+        }
+        else if(is_number(expr[i])) {
+            append(output_queue, to_int(expr[i]));
+        } else if(is_operator(expr[i])) {
+            // Pop all higher precedence operators
+            while(len(stack) != 0 and stack[len(stack)-1] != "(" and precedence[stack[len(stack) - 1]] >= precedence[expr[i]]) {
+                append(output_queue, pop(stack));
+            }
+            append(stack, expr[i]);
+        } else if(expr[i] == "(") {
+            append(stack, expr[i]);
+        } else if(expr[i] == ")") {
+            while(len(stack) != 0 and stack[len(stack) - 1] != "(") {
+                append(output_queue, pop(stack));
+            }
+            if(len(stack) == 0 or stack[len(stack) - 1] != "(") {
+                return Result([], "Unmatched parenthesis");
+            }
+            pop(stack);
+        } else {
+            return Result([], "Invalid character '" + expr[i] +"'");
+        }
+    }
+
+    // Pop remaining operators that are present on the stack
+    while(len(stack) != 0) {
+        if(stack[len(stack) - 1] == "(") {
+            return Result([], "Unmatched parenthesis");
+        } 
+        append(output_queue, pop(stack));
+    }
+
+    return Result(output_queue, "");
+}
+
+// Returns a result
+fun postfix_evaluation(expr) {
+    const stack = [];
+    for(var i = 0; i < len(expr); i = i + 1) {
+        // If it's a number, push it onto the stack
+        if(type(expr[i]) == "int") {
+            append(stack, expr[i]);
+        } else if(type(expr[i]) == "string"){
+            if(is_operator(expr[i])) {
+                // All operators defined are binary operators
+                if(len(stack) < 2) {
+                    return Result(0, "stack underflow");
+                }
+                const op_fun = operators[expr[i]];
+                const b = pop(stack);
+                const a = pop(stack);
+                append(stack, op_fun(a, b));
+            } else {
+                return Result(0, "invalid operator: " + expr[i]);
+            }
+        } else {
+            return Result(0, "logic error, unkown type in expression: " + type(expr[i]));
+        }
+    }
+    if (len(stack) != 1) {
+        return Result(0, "stack does not contain result, or contains multiple values");
+    }
+    return Result(stack[0],"");
+}
+
+
+fun main() {
+    println("Mathematical expression evaluator, type 'exit' to exit");
+    while(true) {
+        print("> ");
+        const line = input();
+        // No break yet :(
+        if(line == "exit")
+            exit(0);
+        if(line == "")
+            continue;
+
+        var result = infix_to_postfix(line);
+        if(result.err != "") {
+            println("Error:", result.err);
+            continue;
+        } 
+        result = postfix_evaluation(result.value);
+        if(result.err != "") {
+            println("Error:", result.err);
+            continue;
+        } 
+        println(result.value);
+    }
+}
+
+fun is_number(char) {
+    if(char == "0" 
+        or char == "1"
+        or char == "2"
+        or char == "3"
+        or char == "4"
+        or char == "5"
+        or char == "6"
+        or char == "7"
+        or char == "8"
+        or char == "9") {
+        return true;
+    }
+    return false;
+}
+
+fun is_operator(char) {
+    return has(operators, char);
+}
+
+fun compute(line) {
+    var result = infix_to_postfix(line);
+    if(result.err != "") {
+        println("Error:", result.err);
+        exit(1);
+    } 
+    result = postfix_evaluation(result.value);
+    if(result.err != "") {
+        println("Error:", result.err);
+        exit(1);
+    } 
+    return result.value;
+}
+
+fun test() {
+    assert(compute("3 * 2 + 1") == 7, "multiplication precedence test failed");
+    assert(compute("1 + 3 * 2") == 7, "addition and multiplication precedence test failed");
+    assert(compute("8 / 2 - 1") == 3, "division and subtraction test failed");
+    assert(compute("(1 + 2) * 3") == 9, "parentheses grouping test failed");
+    assert(compute("2 * (3 + 4)") == 14, "parentheses with multiplication test failed");
+    assert(compute("9 - 3 / 3") == 8, "subtraction and division precedence test failed");
+    assert(compute("(8 - 2) / 3") == 2, "parentheses with division test failed");
+    assert(compute("1 + 2 * 3 - 4") == 3, "mixed operations test failed");
+    assert(compute("((1 + 2) * 3) - 4") == 5, "nested parentheses test failed");
+    assert(compute("5 * 2 - 3 * 2") == 4, "multiple multiplications test failed");
+    assert(compute("2 + 3 * (4 - 1) / 3") == 5, "complex mixed operations with parentheses test failed");
+    assert(compute("(2 + 3) * (4 - 1) / 3") == 5, "multiple parentheses groups test failed");
+    assert(compute("8 / (2 + 2) + 3 * 2") == 8, "division with parentheses plus multiplication test failed");
+    assert(compute("(9 - 3) / (2 + 1) * 4") == 8, "division and multiplication with parentheses test failed");
+    assert(compute("2 * (3 + 4 * (5 - 3))") == 22, "deeply nested parentheses test failed");
+    assert(compute("(8 / 2 - 1) * (3 + 2)") == 15, "multiple grouped expressions test failed");
+    assert(compute("9 - (3 + 2) * (4 / 2)") == -1, "subtraction with grouped multiplication test failed");
+    assert(compute("((2 + 3) * 2 - 4) / 2") == 3, "complex nested operations test failed");
+    assert(compute("6 / (1 + 2) + 4 * (5 - 3)") == 10, "mixed division and multiplication with groups test failed");
+    assert(compute("(7 - (2 + 1)) * (8 / (3 + 1))") == 8, "nested subtraction and division test failed");
+    assert(compute("((((1 + 2) * 3) - 4) / 5) + 2") == 3, "deeply nested parentheses chain test failed");
+    assert(compute("(((8 / 2) * 2) + ((4 + 1) - 2)) + ((9 - 6) * (7 - 5))") == 17, "complex multi-level nesting test failed");
+    assert(compute("((2 + 3) * (4 - 1)) - ((6 / 2) + (8 - 5))") == 9, "balanced complex expression test failed");
+    assert(compute("5+3-5*3-2") == -9, "precedence test");
+}
+
+print("Testing....");
+test();
+println("done");
+main();
