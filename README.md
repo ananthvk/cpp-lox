@@ -119,6 +119,12 @@ Usage:
   -v, --version                 Prints program version
 ```
 
+## Examples
+
+Check out the examples in the `examples/` directory.
+
+For a complex example see, a math evaluation program using Shunting-Yard algorithm [here](examples/math_evaluator.lox)
+
 ## Notable Changes from the book & Usage
 
 ### Serialization of bytecode to file and execution of it
@@ -399,3 +405,4 @@ Three new instructions, `ZERO`, `ONE`, `MINUS_ONE`, that push `0`, `1`, and `-1`
 - [ ] Support custom hash, comparision operators between objects
 - [ ] Fix opts.debug_trace_execution (L70 in vm)
 - [ ] flush native method (when using print)
+- [ ] implement a chr and ord function (to convert to and from ascii values)
