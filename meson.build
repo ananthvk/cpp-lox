@@ -1,7 +1,7 @@
 project(
     'cpplox',
     'cpp',
-    version: '1.0.5',
+    version: '1.0.6',
     default_options: [
         'warning_level=3',
         'cpp_std=c++20',
@@ -9,7 +9,7 @@ project(
 )
 
 include_dirs = include_directories(['include', 'thirdparty'])
-project_deps = [dependency('fmt')]
+project_deps = [dependency('fmt', static: true)]
 
 # Sources used by all binaries
 common_sources = files(
