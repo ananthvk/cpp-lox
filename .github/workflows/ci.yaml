@@ -2,13 +2,13 @@ name: CI
 
 on:
     push:
-        branches: ["main"]
+        branches: ["master"]
         paths:
             - "**.cpp"
             - "**.hpp"
             - "**.h"
     pull_request:
-        branches: ["main"]
+        branches: ["master"]
         paths:
             - "**.cpp"
             - "**.hpp"
