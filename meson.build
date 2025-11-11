@@ -1,12 +1,22 @@
 project(
     'cpplox',
     'cpp',
-    version: '1.0.7',
+    version: '1.0.8',
     default_options: [
         'warning_level=3',
         'cpp_std=c++20',
     ],
 )
+
+# Make the executable static so that dll/so version mismatch can be avoided
+system = host_machine.system()
+if system == 'windows'
+    add_project_arguments(['-static-libstdc++', '-static-libgcc'], language: 'cpp')
+elif system == 'linux'
+    add_project_arguments(['-static-libstdc++', '-static-libgcc'], language: 'cpp')
+elif system == 'darwin'
+    add_project_arguments(['-stdlib=libc++'], language: 'cpp')
+endif
 
 include_dirs = include_directories(['include', 'thirdparty'])
 project_deps = [dependency('fmt', static: true)]

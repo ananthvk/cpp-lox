@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
         if (result.count("version"))
         {
-            fmt::println("v1.0.7");
+            fmt::println("v1.0.8");
             exit(0);
         }
 
