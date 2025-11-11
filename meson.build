@@ -1,7 +1,7 @@
 project(
     'cpplox',
     'cpp',
-    version: '1.0.4',
+    version: '1.0.5',
     default_options: [
         'warning_level=3',
         'cpp_std=c++20',

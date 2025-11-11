@@ -43,7 +43,10 @@ jobs:
               if: runner.os == 'Windows'
               run: |
                   mkdir release-${{ matrix.os }}
-                  copy builddir\src\bin\cpplox.exe builddir\src\bin\loxcrc.exe builddir\src\bin\loxdump.exe builddir\src\bin\loxvm.exe release-${{ matrix.os }}\
+                  Copy-Item builddir\src\bin\cpplox.exe release-${{ matrix.os }}\
+                  Copy-Item builddir\src\bin\loxcrc.exe release-${{ matrix.os }}\
+                  Copy-Item builddir\src\bin\loxdump.exe release-${{ matrix.os }}\
+                  Copy-Item builddir\src\bin\loxvm.exe release-${{ matrix.os }}\
                   Compress-Archive -Path release-${{ matrix.os }}\* -DestinationPath cpp-lox-${{ matrix.os }}.zip
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
