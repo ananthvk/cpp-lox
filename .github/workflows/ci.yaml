@@ -22,12 +22,8 @@ jobs:
                   python-version: "3.x"
             - name: Install dependencies
               run: python -m pip install meson ninja pytest
-            - name: Install fmt (using wrap)
-              run: meson wrap install fmt
-            - name: Install google-benchmark (using wrap)
-              run: meson wrap install google-benchmark
             - name: Configure Project
-              run: meson setup -Denable-tests=true builddir/
+              run: meson setup --wrap-mode=forcefallback -Denable-tests=true builddir/
               env:
                   CC: g++
             - name: Run Tests
