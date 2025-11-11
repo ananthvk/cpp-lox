@@ -1057,3 +1057,4 @@ auto VM::run(ObjectFunction *function, std::ostream &os) -> InterpretResult
     current_frame = &frames[frame_count - 1];
     return execute(os);
 }
+
