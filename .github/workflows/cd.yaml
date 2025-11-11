@@ -36,7 +36,7 @@ jobs:
             - name: Package Executables
               run: |
                   mkdir -p release-${{ matrix.os }}
-                  cp builddir/src/bin/cpplox builddir/src/bin/loxcrc builddir/src/bin/loxdump builddir/src/bin/loxvm release-${{ matrix.os }}/ 2>/dev/null || true
+                  cp builddir/src/bin/cpplox builddir/src/bin/loxcrc builddir/src/bin/loxdump builddir/src/bin/loxvm release-${{ matrix.os }}/
                   cd release-${{ matrix.os }} && zip -r ../cpp-lox-${{ matrix.os }}.zip * && cd ..
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
