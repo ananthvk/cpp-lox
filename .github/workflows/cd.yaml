@@ -33,11 +33,18 @@ jobs:
               run: meson compile -C builddir/
             - name: Run Tests
               run: meson test -C builddir/ -v
-            - name: Package Executables
+            - name: Package Executables (Unix)
+              if: runner.os != 'Windows'
               run: |
                   mkdir -p release-${{ matrix.os }}
                   cp builddir/src/bin/cpplox builddir/src/bin/loxcrc builddir/src/bin/loxdump builddir/src/bin/loxvm release-${{ matrix.os }}/
                   cd release-${{ matrix.os }} && zip -r ../cpp-lox-${{ matrix.os }}.zip * && cd ..
+            - name: Package Executables (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  mkdir release-${{ matrix.os }}
+                  copy builddir\src\bin\cpplox.exe builddir\src\bin\loxcrc.exe builddir\src\bin\loxdump.exe builddir\src\bin\loxvm.exe release-${{ matrix.os }}\
+                  Compress-Archive -Path release-${{ matrix.os }}\* -DestinationPath cpp-lox-${{ matrix.os }}.zip
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
               with:
