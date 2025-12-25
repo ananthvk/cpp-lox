@@ -1,4 +1,4 @@
-Disassembly of 'linkedlist.lc':
+Disassembly of 'linkedlist.loxc':
 
 === strings block [size: 268 bytes, count: 20] ===
 0x00000008 | ''
@@ -45,20 +45,20 @@ constant pool [size: 18 bytes, entries: 2]
 00001 | 'next'
 debug info [count: 5, size: 48 bytes]
 code [30 bytes]
-0000    38 LOAD_LOCAL              1 
-0003     | LOAD_PROPERTY           0 'head'
-0006    39 LOAD_LOCAL              2 
-0009     | NIL
-0010     | EQUAL
-0011     | NOT
-0012     | POP_JUMP_IF_FALSE       13 0028 L43
-0015    41 LOAD_LOCAL              2 
-0018     | LOAD_PROPERTY           1 'next'
-0021     | STORE_LOCAL             2 
-0024     | POP_TOP
-0025    42 JUMP_BACKWARD          22 0006 L39
-0028    43 NIL
-0029     | RETURN
+   38 00000: 17 01 00                            LOAD_LOCAL 1
+      00003: 1b 00 00                            LOAD_PROPERTY 0 [head]
+   39 00006: 17 02 00                            LOAD_LOCAL 2
+      00009: 09                                  NIL
+      0000a: 0e                                  EQUAL
+      0000b: 0d                                  NOT
+      0000c: 23 0d 00                            POP_JUMP_IF_FALSE 13 -> 001c:L43
+   41 0000f: 17 02 00                            LOAD_LOCAL 2
+      00012: 1b 01 00                            LOAD_PROPERTY 1 [next]
+      00015: 16 02 00                            STORE_LOCAL 2
+      00018: 12                                  POP_TOP
+   42 00019: 25 16 00                            JUMP_BACKWARD 22 -> 0006:L39
+   43 0001c: 09                                  NIL
+      0001d: 01                                  RETURN
 
 === chunk 3 [name: 'addToList'] ===
 arity: 2
@@ -77,46 +77,46 @@ constant pool [size: 72 bytes, entries: 8]
 00007 | 'size'
 debug info [count: 12, size: 104 bytes]
 code [91 bytes]
-0000    22 LOAD_GLOBAL             3 'createNode'
-0003     | LOAD_LOCAL              2 
-0006     | CALL                    1 '1 arguments'
-0008    24 LOAD_LOCAL              1 
-0011     | LOAD_PROPERTY           0 'head'
-0014     | NIL
-0015     | EQUAL
-0016     | POP_JUMP_IF_FALSE       13 0032 L28
-0019    25 LOAD_LOCAL              1 
-0022     | LOAD_LOCAL              3 
-0025     | STORE_PROPERTY          1 'head'
-0028     | POP_TOP
-0029    26 JUMP_FORWARD           42 0074 L34
-0032    28 LOAD_LOCAL              1 
-0035     | LOAD_PROPERTY           2 'head'
-0038    29 LOAD_LOCAL              4 
-0041     | LOAD_PROPERTY           3 'next'
-0044     | NIL
-0045     | EQUAL
-0046     | NOT
-0047     | POP_JUMP_IF_FALSE       13 0063 L32
-0050    30 LOAD_LOCAL              4 
-0053     | LOAD_PROPERTY           4 'next'
-0056     | STORE_LOCAL             4 
-0059     | POP_TOP
-0060    31 JUMP_BACKWARD          25 0038 L29
-0063    32 LOAD_LOCAL              4 
-0066     | LOAD_LOCAL              3 
-0069     | STORE_PROPERTY          5 'next'
-0072     | POP_TOP
-0073    33 POP_TOP
-0074    34 LOAD_LOCAL              1 
-0077     | LOAD_LOCAL              1 
-0080     | LOAD_PROPERTY           7 'size'
-0083     | ONE
-0084     | ADD
-0085     | STORE_PROPERTY          6 'size'
-0088     | POP_TOP
-0089    35 NIL
-0090     | RETURN
+   22 00000: 15 03 00                            LOAD_GLOBAL 3 # createNode
+      00003: 17 02 00                            LOAD_LOCAL 2
+      00006: 27 01                               CALL 1
+   24 00008: 17 01 00                            LOAD_LOCAL 1
+      0000b: 1b 00 00                            LOAD_PROPERTY 0 [head]
+      0000e: 09                                  NIL
+      0000f: 0e                                  EQUAL
+      00010: 23 0d 00                            POP_JUMP_IF_FALSE 13 -> 0020:L28
+   25 00013: 17 01 00                            LOAD_LOCAL 1
+      00016: 17 03 00                            LOAD_LOCAL 3
+      00019: 1a 01 00                            STORE_PROPERTY 1 [head]
+      0001c: 12                                  POP_TOP
+   26 0001d: 24 2a 00                            JUMP_FORWARD 42 -> 004a:L34
+   28 00020: 17 01 00                            LOAD_LOCAL 1
+      00023: 1b 02 00                            LOAD_PROPERTY 2 [head]
+   29 00026: 17 04 00                            LOAD_LOCAL 4
+      00029: 1b 03 00                            LOAD_PROPERTY 3 [next]
+      0002c: 09                                  NIL
+      0002d: 0e                                  EQUAL
+      0002e: 0d                                  NOT
+      0002f: 23 0d 00                            POP_JUMP_IF_FALSE 13 -> 003f:L32
+   30 00032: 17 04 00                            LOAD_LOCAL 4
+      00035: 1b 04 00                            LOAD_PROPERTY 4 [next]
+      00038: 16 04 00                            STORE_LOCAL 4
+      0003b: 12                                  POP_TOP
+   31 0003c: 25 19 00                            JUMP_BACKWARD 25 -> 0026:L29
+   32 0003f: 17 04 00                            LOAD_LOCAL 4
+      00042: 17 03 00                            LOAD_LOCAL 3
+      00045: 1a 05 00                            STORE_PROPERTY 5 [next]
+      00048: 12                                  POP_TOP
+   33 00049: 12                                  POP_TOP
+   34 0004a: 17 01 00                            LOAD_LOCAL 1
+      0004d: 17 01 00                            LOAD_LOCAL 1
+      00050: 1b 07 00                            LOAD_PROPERTY 7 [size]
+      00053: 2f                                  ONE
+      00054: 05                                  ADD
+      00055: 1a 06 00                            STORE_PROPERTY 6 [size]
+      00058: 12                                  POP_TOP
+   35 00059: 09                                  NIL
+      0005a: 01                                  RETURN
 
 === chunk 2 [name: 'createNode'] ===
 arity: 1
@@ -129,20 +129,20 @@ constant pool [size: 18 bytes, entries: 2]
 00001 | 'next'
 debug info [count: 5, size: 48 bytes]
 code [29 bytes]
-0000    15 LOAD_GLOBAL             0 'Node'
-0003     | CALL                    0 '0 arguments'
-0005    16 LOAD_LOCAL              2 
-0008     | LOAD_LOCAL              1 
-0011     | STORE_PROPERTY          0 'value'
-0014     | POP_TOP
-0015    17 LOAD_LOCAL              2 
-0018     | NIL
-0019     | STORE_PROPERTY          1 'next'
-0022     | POP_TOP
-0023    18 LOAD_LOCAL              2 
-0026     | RETURN
-0027    19 NIL
-0028     | RETURN
+   15 00000: 15 00 00                            LOAD_GLOBAL 0 # Node
+      00003: 27 00                               CALL 0
+   16 00005: 17 02 00                            LOAD_LOCAL 2
+      00008: 17 01 00                            LOAD_LOCAL 1
+      0000b: 1a 00 00                            STORE_PROPERTY 0 [value]
+      0000e: 12                                  POP_TOP
+   17 0000f: 17 02 00                            LOAD_LOCAL 2
+      00012: 09                                  NIL
+      00013: 1a 01 00                            STORE_PROPERTY 1 [next]
+      00016: 12                                  POP_TOP
+   18 00017: 17 02 00                            LOAD_LOCAL 2
+      0001a: 01                                  RETURN
+   19 0001b: 09                                  NIL
+      0001c: 01                                  RETURN
 
 === chunk 1 [name: 'createList'] ===
 arity: 0
@@ -155,20 +155,20 @@ constant pool [size: 18 bytes, entries: 2]
 00001 | 'size'
 debug info [count: 5, size: 48 bytes]
 code [27 bytes]
-0000     8 LOAD_GLOBAL             1 'LinkedList'
-0003     | CALL                    0 '0 arguments'
-0005     9 LOAD_LOCAL              1 
-0008     | NIL
-0009     | STORE_PROPERTY          0 'head'
-0012     | POP_TOP
-0013    10 LOAD_LOCAL              1 
-0016     | ZERO
-0017     | STORE_PROPERTY          1 'size'
-0020     | POP_TOP
-0021    11 LOAD_LOCAL              1 
-0024     | RETURN
-0025    12 NIL
-0026     | RETURN
+    8 00000: 15 01 00                            LOAD_GLOBAL 1 # LinkedList
+      00003: 27 00                               CALL 0
+    9 00005: 17 01 00                            LOAD_LOCAL 1
+      00008: 09                                  NIL
+      00009: 1a 00 00                            STORE_PROPERTY 0 [head]
+      0000c: 12                                  POP_TOP
+   10 0000d: 17 01 00                            LOAD_LOCAL 1
+      00010: 2d                                  ZERO
+      00011: 1a 01 00                            STORE_PROPERTY 1 [size]
+      00014: 12                                  POP_TOP
+   11 00015: 17 01 00                            LOAD_LOCAL 1
+      00018: 01                                  RETURN
+   12 00019: 09                                  NIL
+      0001a: 01                                  RETURN
 
 === chunk 0 [name: ''] ===
 arity: 0
@@ -192,69 +192,69 @@ constant pool [size: 117 bytes, entries: 13]
 00012 | '================'
 debug info [count: 18, size: 152 bytes]
 code [150 bytes]
-0000     1 CLASS                   0 'Node'
-0003     | DEFINE_GLOBAL           0 'Node'
-0006     | LOAD_GLOBAL             0 'Node'
-0009     2 POP_TOP
-0010     4 CLASS                   1 'LinkedList'
-0013     | DEFINE_GLOBAL           1 'LinkedList'
-0016     | LOAD_GLOBAL             1 'LinkedList'
-0019     5 POP_TOP
-0020    12 CLOSURE                 2 '<function createList>'
-0023     | DEFINE_GLOBAL           2 'createList'
-0026    19 CLOSURE                 3 '<function createNode>'
-0029     | DEFINE_GLOBAL           3 'createNode'
-0032    35 CLOSURE                 4 '<function addToList>'
-0035     | DEFINE_GLOBAL           4 'addToList'
-0038    43 CLOSURE                 5 '<function traverse>'
-0041     | DEFINE_GLOBAL           5 'traverse'
-0044    45 LOAD_GLOBAL             2 'createList'
-0047     | CALL                    0 '0 arguments'
-0049     | DEFINE_GLOBAL           6 'myList'
-0052    47 ZERO
-0053     | LOAD_LOCAL              1 
-0056     | LOAD_CONSTANT           6 '10000'
-0058     | LESS
-0059     | POP_JUMP_IF_FALSE       30 0092 L49
-0062     | JUMP_FORWARD           12 0077 L48
-0065     | LOAD_LOCAL              1 
-0068     | ONE
-0069     | ADD
-0070     | STORE_LOCAL             1 
-0073     | POP_TOP
-0074     | JUMP_BACKWARD          24 0053 L47
-0077    48 LOAD_GLOBAL             4 'addToList'
-0080     | LOAD_GLOBAL             6 'myList'
-0083     | LOAD_LOCAL              1 
-0086     | CALL                    2 '2 arguments'
-0088     | POP_TOP
-0089    49 JUMP_BACKWARD          27 0065 L47
-0092     | POP_TOP
-0093    51 LOAD_GLOBAL             7 'println'
-0096     | LOAD_CONSTANT           7 'Traversing list:'
-0098     | CALL                    1 '1 arguments'
-0100     | POP_TOP
-0101    52 LOAD_GLOBAL             5 'traverse'
-0104     | LOAD_GLOBAL             6 'myList'
-0107     | CALL                    1 '1 arguments'
-0109     | POP_TOP
-0110    53 LOAD_GLOBAL             7 'println'
-0113     | LOAD_CONSTANT           8 'List size: '
-0115     | LOAD_GLOBAL             8 'to_string'
-0118     | LOAD_GLOBAL             6 'myList'
-0121     | LOAD_PROPERTY           9 'size'
-0124     | CALL                    1 '1 arguments'
-0126     | ADD
-0127     | CALL                    1 '1 arguments'
-0129     | POP_TOP
-0130    56 LOAD_GLOBAL             7 'println'
-0133     | LOAD_CONSTANT          10 '================='
-0135     | LOAD_CONSTANT          11 'STATS'
-0137     | LOAD_CONSTANT          12 '================'
-0139     | CALL                    3 '3 arguments'
-0141     | POP_TOP
-0142    57 LOAD_GLOBAL             9 'sys__mem_display_gc_stats'
-0145     | CALL                    0 '0 arguments'
-0147     | POP_TOP
-0148     1 NIL
-0149     | RETURN
+    1 00000: 28 00 00                            CLASS 0 [Node]
+      00003: 13 00 00                            DEFINE_GLOBAL 0 # Node
+      00006: 15 00 00                            LOAD_GLOBAL 0 # Node
+    2 00009: 12                                  POP_TOP
+    4 0000a: 28 01 00                            CLASS 1 [LinkedList]
+      0000d: 13 01 00                            DEFINE_GLOBAL 1 # LinkedList
+      00010: 15 01 00                            LOAD_GLOBAL 1 # LinkedList
+    5 00013: 12                                  POP_TOP
+   12 00014: 2c 02 00                            CLOSURE 2 [<function createList>]
+      00017: 13 02 00                            DEFINE_GLOBAL 2 # createList
+   19 0001a: 2c 03 00                            CLOSURE 3 [<function createNode>]
+      0001d: 13 03 00                            DEFINE_GLOBAL 3 # createNode
+   35 00020: 2c 04 00                            CLOSURE 4 [<function addToList>]
+      00023: 13 04 00                            DEFINE_GLOBAL 4 # addToList
+   43 00026: 2c 05 00                            CLOSURE 5 [<function traverse>]
+      00029: 13 05 00                            DEFINE_GLOBAL 5 # traverse
+   45 0002c: 15 02 00                            LOAD_GLOBAL 2 # createList
+      0002f: 27 00                               CALL 0
+      00031: 13 06 00                            DEFINE_GLOBAL 6 # myList
+   47 00034: 2d                                  ZERO
+      00035: 17 01 00                            LOAD_LOCAL 1
+      00038: 02 06                               LOAD_CONSTANT 6 [10000]
+      0003a: 10                                  LESS
+      0003b: 23 1e 00                            POP_JUMP_IF_FALSE 30 -> 005c:L49
+      0003e: 24 0c 00                            JUMP_FORWARD 12 -> 004d:L48
+      00041: 17 01 00                            LOAD_LOCAL 1
+      00044: 2f                                  ONE
+      00045: 05                                  ADD
+      00046: 16 01 00                            STORE_LOCAL 1
+      00049: 12                                  POP_TOP
+      0004a: 25 18 00                            JUMP_BACKWARD 24 -> 0035:L47
+   48 0004d: 15 04 00                            LOAD_GLOBAL 4 # addToList
+      00050: 15 06 00                            LOAD_GLOBAL 6 # myList
+      00053: 17 01 00                            LOAD_LOCAL 1
+      00056: 27 02                               CALL 2
+      00058: 12                                  POP_TOP
+   49 00059: 25 1b 00                            JUMP_BACKWARD 27 -> 0041:L47
+      0005c: 12                                  POP_TOP
+   51 0005d: 15 07 00                            LOAD_GLOBAL 7 # println
+      00060: 02 07                               LOAD_CONSTANT 7 [Traversing list:]
+      00062: 27 01                               CALL 1
+      00064: 12                                  POP_TOP
+   52 00065: 15 05 00                            LOAD_GLOBAL 5 # traverse
+      00068: 15 06 00                            LOAD_GLOBAL 6 # myList
+      0006b: 27 01                               CALL 1
+      0006d: 12                                  POP_TOP
+   53 0006e: 15 07 00                            LOAD_GLOBAL 7 # println
+      00071: 02 08                               LOAD_CONSTANT 8 [List size: ]
+      00073: 15 08 00                            LOAD_GLOBAL 8 # to_string
+      00076: 15 06 00                            LOAD_GLOBAL 6 # myList
+      00079: 1b 09 00                            LOAD_PROPERTY 9 [size]
+      0007c: 27 01                               CALL 1
+      0007e: 05                                  ADD
+      0007f: 27 01                               CALL 1
+      00081: 12                                  POP_TOP
+   56 00082: 15 07 00                            LOAD_GLOBAL 7 # println
+      00085: 02 0a                               LOAD_CONSTANT 10 [=================]
+      00087: 02 0b                               LOAD_CONSTANT 11 [STATS]
+      00089: 02 0c                               LOAD_CONSTANT 12 [================]
+      0008b: 27 03                               CALL 3
+      0008d: 12                                  POP_TOP
+   57 0008e: 15 09 00                            LOAD_GLOBAL 9 # sys__mem_display_gc_stats
+      00091: 27 00                               CALL 0
+      00093: 12                                  POP_TOP
+    1 00094: 09                                  NIL
+      00095: 01                                  RETURN
